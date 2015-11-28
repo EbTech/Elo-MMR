@@ -1,0 +1,97 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{verbatim}
+\usepackage{tabularx}
+\usepackage{graphicx}
+
+\title{Elo-R Draft}
+%\author{Aram Ebtekar and Dougal Sutherland
+%\\based on prior analyses by Mark Glickman and Michal Fori\v{s}ek}
+%\date{}
+
+\begin{document}
+\maketitle
+
+Assume a collection of players labeled $1,\ldots,N$, each with unknown skill $s_i$ drawn from a prior distribution logistic($r_i, \sigma_1^2$). Thus, our prior knowledge about a player is parametrized by their \emph{rating} $r_i$. They take part in a ranked event such as a video game challenge or programming contest. We model this as follows: each player $i$ performs at level $p_i$, drawn independently from logistic($s_i, \sigma_2^2$). The ranking we observe is a total ordering on the players based on their performances.
+
+Fix $i$. Let $e$ be the evidence consisting of, for each $j$, whether or not $i$ beat $j$. That is, we ignore the relative ordering of player pairs which don't include $i$. Our goal is to approximate the posterior distribution of $s_i$ given $e$:
+\begin{align}
+f(s_i\mid e) \propto f(s_i)Pr(e\mid s_i) = f(s_i)\int Pr(e\mid p_i)f(p_i\mid s_i)dp_i
+\end{align}
+
+Since the integral is hard to evaluate, we will treat $Pr(e\mid p_i)$ as a delta-function that spikes at the \emph{maximum a posteriori} (MAP, a.k.a. posterior ``mode") estimate of $p_i$. This is justified as $N \rightarrow \infty$, because the evidence $e$ would overwhelmingly concentrate $p_i$ into a narrow range. Having fixed $p_i$, Equation (1) simplifies to
+\begin{align}
+f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)
+\end{align}
+
+\subsection{Performance estimation}
+
+To compute the MAP of $p_i$, we must maximize
+\begin{align}
+f(p_i\mid e) \propto f(p_i) Pr(e\mid p_i)
+\end{align}
+
+$p_i$ can be written as the sum of two logistic random variables. If we replace these by normal random variables with the same mean and variance, then their sum is also normal, and we approximate it by a logistic with the same mean and variance. Thus if $\sigma_3^2 = \sigma_1^2 + \sigma_2^2$,
+\begin{align}
+f(s_i) = \frac { e^{(s_i-r_i)/\sigma_1} } {\sigma_1\left(1 + e^{(s_i-r_i)/\sigma_1} \right)^2}
+\\f(p_i\mid s_i) = \frac { e^{(p_i-s_i)/\sigma_2} } {\sigma_2\left(1 + e^{(p_i-s_i)/\sigma_2} \right)^2}
+\\f(p_i) \approx \frac { e^{(p_i-r_i)/\sigma_3} } {\sigma_3\left(1 + e^{(p_i-r_i)/\sigma_3} \right)^2}
+\end{align}
+
+Let $W_i = N - Rank_i$ denote the number of players $i$ won against. Then
+\begin{align}
+Pr(e\mid p_i) &= \prod_{j \succ i} Pr(p_j > p_i) \prod_{j \prec i} Pr(p_j < p_i)
+\\&\approx \prod_{j \succ i} \frac {1} {1 + e^{(p_i-r_j)/\sigma_3}} \prod_{j \prec i} \frac {e^{(p_i-r_j)/\sigma_3}} {1 + e^{(p_i-r_j)/\sigma_3}}
+\\&\propto \frac {e^{W_ip_i/\sigma_3}} {\prod_{j\neq i} 1 + e^{(p_i-r_j)/\sigma_3}}
+\end{align}
+
+\begin{align}
+C_1 + \ln f(p_i\mid e) &= C_2 + \ln f(p_i) + \ln Pr(e\mid p_i)
+\\&\approx \frac{p_i-r_i}{\sigma_3} - \ln \sigma_3 - 2\ln\left(1 + e^{(p_i-r_i)/\sigma_3} \right) + \frac{W_ip_i}{\sigma_3} - \sum_{j\neq i} \ln\left(1 + e^{(p_i-r_j)/\sigma_3}\right)
+\end{align}
+
+Differentiate w.r.t. $p_i$ and set to zero:
+\begin{align}
+0 &= \frac{1}{\sigma_3} \left( 1 - \frac {2e^{(p_i-r_i)/\sigma_3}} {1 + e^{(p_i-r_i)/\sigma_3}} + W_i - \sum_{j\neq i} \frac {e^{(p_i-r_j)/\sigma_3}} {1 + e^{(p_i-r_j)/\sigma_3}} \right)
+\\Rank_i &= \frac {2} {1 + e^{(p_i-r_i)/\sigma_3}} + \sum_{j\neq i} \frac {1} {1 + e^{(p_i-r_j)/\sigma_3}}
+\end{align}
+
+Use binary search to solve for $p_i$. This is the \emph{performance} of player $i$ in the match.
+
+\subsection{Proportional rating update}
+
+Our approximate formula for $f(s_i \mid e)$ is a product of two logistic pdfs. If we approximate these by normal pdfs, their product is again normal, and we assign the corresponding mean and variance to our posterior belief over $s_i$:
+\begin{align}
+r_{i,new} = \frac{\sigma_1^2p_i + \sigma_2^2r_i}{\sigma_3^2} \qquad \sigma_{1,new} = \frac{\sigma_1^2\sigma_2^2}{\sigma_3^2}
+\end{align}
+
+Between contests, we model changes in a player's true skill by adding to $s_i$ a Gaussian noise with mean $0$ and variance proportional to $\sigma_1^4 / \sigma_3^2$. Again approximating the product of pdfs by analogy to Gaussians, the noise conveniently resets our uncertainty $\sigma_1$ to its original value.
+
+\subsection{Alternative rating update based on the MAP of $s_i$}
+
+\begin{align}
+C + \ln f(s_i \mid e) &\approx \ln f(s_i) + \ln f(p_i\mid s_i)
+\\&= \frac{s_i-r_i}{\sigma_1} - \ln \sigma_1 - 2\ln\left(1 + e^{(s_i-r_i)/\sigma_1} \right)
+	+\frac{s_i-p_i}{\sigma_2} - \ln \sigma_2 - 2\ln\left(1 + e^{(s_i-p_i)/\sigma_2} \right)
+\end{align}
+
+Differentiate w.r.t. $s_i$ and set to zero:
+\begin{align}
+0 &= \frac{1}{\sigma_1}\left( 1 - \frac {2e^{(s_i-r_i)/\sigma_1}} {1 + e^{(s_i-r_i)/\sigma_1}} \right)
+	+ \frac{1}{\sigma_2}\left( 1 - \frac {2e^{(s_i-p_i)/\sigma_2}} {1 + e^{(s_i-p_i)/\sigma_2}} \right)
+\\ &= \frac{1}{\sigma_1} \tanh \frac {r_i-s_i} {2\sigma_1}
+	+ \frac{1}{\sigma_2} \tanh \frac {p_i-s_i} {2\sigma_2}
+\end{align}
+
+Solve for $s_i$ with binary search, and use its value as $r_{i,new}$. Note that if $\sigma_1 < \sigma_2$, then
+\begin{align}
+|r_{i,new} - r_i| < \sigma_1 \ln\frac {\sigma_2+\sigma_1} {\sigma_2-\sigma_1}
+\end{align}
+
+In other words, this method enforces an upper bound on the rating change per event.
+
+The first method can be thought of as setting $r_i$ to the player's average historical performance, with exponentially decaying weights to place the emphasis on recent events. In contrast, the second method does something similar when the performances are consistent, but puts much less weight on distant outliers. Maybe this method can be made more accurate by remembering $p_i$ values from the last 10 or so matches and computing the MAP on all 10 matches simultaneously with exponentially decaying weights, using the rating from 10 matches ago as the prior mean. The behavior induced by this modification can be likened to TopCoder's volatility measure: one very strong performance won't change the rating much, but the second or third consecutive strong performance will have a larger effect. Unlike on TopCoder, a very weak performance following a very strong perforance will \emph{not} have a large effect.
+
+\end{document}
