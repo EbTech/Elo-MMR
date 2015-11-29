@@ -2,7 +2,7 @@
 
 g++ -std=c++11 -o CFreader CFreader.cpp
 
-for round in $(seq 63 601)
+for round in $(seq 602 602)
 do
     rm Standings/$round.*
     #hash2=0

@@ -12,9 +12,9 @@
 #include <algorithm>
 using namespace std;
 
-const double sig_newbie = 450; // starting uncertainty for new player
-const double sig_limit = 150; // limiting uncertainty for a player who competed a lot
-const double sig_perf = 375; // variation in individual performances
+const double sig_newbie = 400; // starting uncertainty for new player
+const double sig_limit = 200; // limiting uncertainty for a player who competed a lot
+const double sig_perf = 500; // variation in individual performances
 //const double sig_noise = sig_limit*sig_limit / sqrt(sig_limit*sig_limit + sig_perf*sig_perf);
 const double sig_noise = sqrt(1.0 / (1.0/sig_limit/sig_limit - 1.0/sig_perf/sig_perf) - sig_limit*sig_limit);
 const double tfactor = sqrt(12.0)/M_PI;
@@ -26,7 +26,7 @@ struct Rating
     double tig; // uncertainty converted into units suitable for the tanh function
     Rating(double m, double s) : mu(m), sig(s), tig(tfactor*s) {} // create player
     Rating() : Rating(1500, sig_newbie) {} // create new player
-    int conservativeRating() { return int(mu + 1*(sig_limit - sig)); } // displayed rating
+    int conservativeRating() { return int(mu + 2*(sig_limit - sig)); } // displayed rating
     void add_noise() // prepare a prior for the current match
     {
         double varSkill = sig*sig + sig_noise*sig_noise;
@@ -54,43 +54,6 @@ void add_noise_uniform(vector<Rating>& measurements)
         r.tig *= decay;
     }
 }
-
-/* don't use this
-void add_noise_suffix(vector<Rating>& measurements)
-{
-    double sum_sigInvSq = 0;
-    double sum_newsigInvSq = 0;
-    for (auto it = measurements.rbegin(); it != measurements.rend(); ++it)
-    {
-        Rating& r = *it;
-        sum_sigInvSq += 1.0 / r.sig / r.sig;
-        r.sig = 1.0 / sqrt(1.0 / (1.0/sum_sigInvSq + sig_noise*sig_noise) - sum_newsigInvSq);
-        r.tig = tfactor * r.sig;
-        sum_newsigInvSq += 1.0 / r.sig / r.sig;
-    }
-}*/
-
-/* don't use this either
-vector<Rating> add_noise_deprecated(vector<Rating> measurements)
-{
-    vector<Rating> ret;
-    double sum_sigInvSq = 0;
-    double sum_mu_sigInvSq = 0;
-    for (Rating& r : measurements)
-    {
-        sum_sigInvSq += 1.0 / r.sig / r.sig;
-        sum_mu_sigInvSq += r.mu / r.sig / r.sig;
-    }
-    double sum_all_sigInvSq = sum_sigInvSq + 1.0 / sig_noise / sig_noise;
-    ret.emplace_back(sum_mu_sigInvSq / sum_sigInvSq,
-                    sum_all_sigInvSq * sig_noise / sum_sigInvSq);
-    for (Rating& r : measurements)
-    {
-        ret.emplace_back(r.mu + sig_noise*sig_noise*(r.mu*sum_sigInvSq - sum_mu_sigInvSq),
-                        sum_all_sigInvSq * sig_noise * sig_noise * r.sig);
-    }
-    return ret;
-}*/
 
 // returns something near the mean if the ratings are consistent; near the median if they're far apart
 double robustMean(vector<Rating> ratings, double offset = 0.0)
@@ -142,18 +105,22 @@ struct Player
     }
 };
 
-void CFtest()
+void simulateCodeforcesHistory()
 {
     map<string, Player> players;
-
-    for (int roundNum = 1; roundNum <= 220; ++roundNum)
+    
+    for (int roundNum = 1; roundNum <= 602; ++roundNum)
     {
+        if (roundNum == 589 || roundNum == 598 || roundNum == 600)
+            continue;
         stringstream ssFileName;
         ssFileName << "Standings/" << roundNum << ".txt";
         ifstream standingsFile;
         int N;
         standingsFile.open(ssFileName.str());
         standingsFile >> N;
+        cerr << "Processing Codeforces round " << roundNum;
+        cerr << " with " << N << " contestants..." << endl;
         
         vector<Rating> ratings(N);
         vector<string> names(N);
@@ -190,110 +157,7 @@ void CFtest()
     }
 }
 
-// ratings is a list of the participants, ordered from first to last place
-// returns: updated rating of the player in ratings[id]
-// PROPORTIONAL UPDATE: all performances weighted equally
-Rating update1(vector<Rating> ratings, int id, int lo, int hi)
-{
-    for (Rating& r : ratings)
-        r.add_noise();
-    double perf = performance(ratings, id, lo, hi);
-    double varSkill = ratings[id].sig * ratings[id].sig;
-    double varPerf = sig_perf * sig_perf;
-    
-    double mu_upd = (varSkill*perf + varPerf*ratings[id].mu) / (varSkill + varPerf);
-    //double sig_upd = sqrt(varSkill*varPerf/(varSkill+varPerf) + sig_noise*sig_noise);
-    double sig_upd = 1.0 / sqrt(1.0/varSkill + 1.0/varPerf);
-    return Rating(mu_upd, sig_upd);
-}
-
-// ratings is a list of the participants, ordered from first to last place
-// returns: updated rating of the player in ratings[id]
-// SINGLE-STEP ROBUST UPDATE: reduces weight of extreme performances
-// maximum rating change for an experienced player is about 87 = sqrt(3)/pi*s*(log(sig_perf+s)-log(sig_perf-s))
-Rating update2(vector<Rating> ratings, int id, int lo, int hi)
-{
-    for (Rating& r : ratings)
-        r.add_noise();
-    double perf = performance(ratings, id, lo, hi);
-    
-    vector<Rating> posterior;
-    posterior.emplace_back(ratings[id].mu, ratings[id].sig);
-    posterior.emplace_back(perf, sig_perf);
-    double mu_upd = robustMean(posterior);
-    double sig_upd = 1.0 / sqrt(1.0/ratings[id].sig/ratings[id].sig + 1.0/sig_perf/sig_perf);
-    return Rating(mu_upd, sig_upd);
-}
-
-// prior is the rating from R rounds ago, where R = performances.size()
-// MULTI-STEP ROBUST UPDATE: reduces weight of extreme performances, dynamically adjusting the weights
-Rating update3(Rating prior, vector<double> performances)
-{
-    vector<Rating> posterior;
-    posterior.emplace_back(prior.mu, prior.sig);
-    double varPosterior = prior.sig * prior.sig;
-    for (double p : performances)
-    {
-        add_noise_uniform(posterior);
-        varPosterior += sig_noise*sig_noise;
-        
-        posterior.emplace_back(p, sig_perf);
-        varPosterior = 1.0 / (1.0/varPosterior + 1.0/sig_perf/sig_perf);
-    }
-    return Rating(robustMean(posterior), sqrt(varPosterior));
-}
-
 int main()
 {
-    CFtest(); return 0;
-    // test of update3()
-    vector<double> p = {1000,1000,1000,1000,1000,1000,1000,1000,1000,1000};
-    cout << update3(Rating(), p) << endl; // after 10 matches, the rating converges to 1010
-    p.push_back(3000);
-    cout << update3(Rating(), p) << endl; // 1 strong performance only raises it to 1091
-    p.push_back(3000);
-    cout << update3(Rating(), p) << endl; // however, now the rating jumps to 1213
-    p.push_back(3000);
-    cout << update3(Rating(), p) << endl; // now it's 1410
-    p.push_back(3000);
-    cout << update3(Rating(), p) << endl; // now it's 1803
-    p.push_back(3000);
-    cout << update3(Rating(), p) << endl; // now it's 2467. at this point the rating is temporarily unstable
-                                          // because the system is unsure about which results to believe:
-                                          // depending on future performances, it may either quickly bounce
-                                          // back to the 1000 range, or it may converge near 3000.
-    p = {1000,1000,1000,1000,1000,1000,1000,1000,1000,1000,3000,-1000,-1000};
-    cout << update3(Rating(), p) << endl; // 868. unlike on TopCoder, follow-up bad performances don't get
-                                          // extra weight due to the good performance (nor vice-versa).
-                                          // it's guaranteed you'll never wish to have done worse on a round.
-    // main test
-    map<string,Rating> ratings;
-    ratings["tourist"] = Rating(3374, sig_limit);
-    string line, name;
-    cout << "On each line, output a space-separated list of distinct handles" << endl;
-    cout << "representing the final standings of a contest" << endl;
-    while (getline(cin, line) && !line.empty())
-    {
-        stringstream ss(line);
-        vector<string> names;
-        vector<Rating> preRound, postRound;
-        while (ss >> name)
-        {
-            names.push_back(name);
-            preRound.push_back(ratings[name]);
-        }
-        for (int i = 0; i < names.size(); ++i)
-        {
-            postRound.push_back(update1(preRound, i, i, i));
-            //use the following rule if you want to bound rating change to experienced members:
-            //postRound.push_back(update2(preRound, i, i, i));
-        }
-        for (int i = 0; i < names.size(); ++i)
-        {
-            ratings[names[i]] = postRound[i];
-            cout << names[i] << ": " << preRound[i].conservativeRating();
-            cout << "->" << postRound[i].conservativeRating() << " internal details: ";
-            cout << preRound[i] << " -> " << postRound[i] << endl;
-        }
-    }
+    simulateCodeforcesHistory(); // takes about 45 mins on my PC
 }
