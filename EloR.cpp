@@ -121,7 +121,7 @@ void simulateCodeforcesHistory()
 {
     map<string, Player> players;
     
-    for (int roundNum = 1; roundNum <= 604/*379*/; ++roundNum)
+    for (int roundNum = 1; roundNum <= 139; ++roundNum)
     {
         if (roundNum == 589 || roundNum == 598 || roundNum == 600)
             continue;

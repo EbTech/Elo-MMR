@@ -1,14 +1,14 @@
 Mean rating.mu = 1362.31 after Goodbye 2013 Contest
-3000 LG x 0   (2900+     x 1)
-2700 IG x 5   (2600-2899 x 15)
+3000 LG x 0    (2900+     x 1)
+2700 IG x 5    (2600-2899 x 15)
 2400 GM x 52
 2200 IM x 194
 2000 Ma x 481
 1700 CM x 3238
-1400 Ex x 7179
-1200 Sp x 7499
-1000 Pu x 9347
-0    Ne x 7221
+1450 Ex x 5703
+1200 Sp x 8975
+ 900 Pu x 13389
+-999 Ne x 3179
 2973 tourist				p=2631	delta=-49
 2846 rng_58				p=2619	delta=-40
 2777 Egor				p=3069	delta=55
