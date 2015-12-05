@@ -14,9 +14,9 @@
 \begin{document}
 \maketitle
 
-Assume a collection of players labeled $1,\ldots,N$. Player $i$ has unknown skill $s_i$; our objective is to estimate it by a \emph{rating} $r_i$ and \emph{rating uncertainty} $\sigma_i$. Our Bayesian belief on $s_i$ will be a product of logistic pdfs, which can be thought of as a prior times a set of independent measurements centered on $s_i$ with different variances.
+Assume a collection of players labeled $1,\ldots,N$. Player $i$ has unknown skill $s_i$; our objective is to estimate it by a \emph{rating} $r_i$. The kernel of our Bayesian belief on $s_i$ will be a product of logistic pdfs, which can be thought of as a prior times a set of independent measurements centered on $s_i$ with different variances.
 
-The players take part in a ranked event such as a video game challenge or programming contest. We model this as follows: each player $i$ performs at level $p_i$, drawn independently from logistic($s_i, \delta^2$). The ranking we observe is a total ordering on the players based on their performances.
+The players take part in a ranked event such as a video game challenge or programming contest. We model this as follows: each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The ranking we observe is a total ordering on the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$. According to this model, ties occur with probability zero; we will treat actual ties as half a win and half a loss.
 
 Fix $i$. Let $e$ be the evidence consisting of, for each $j$, whether or not $i$ beat $j$. That is, we ignore the relative ordering of player pairs which don't include $i$. Our goal is to approximate the posterior distribution of $s_i$ given $e$:
 \begin{align}
@@ -28,7 +28,7 @@ Since the integral is hard to evaluate, we will treat $\Pr(e\mid p_i)$ as a delt
 f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)
 \end{align}
 
-Our update algorithm thus divides into two phases: first, it must determine the player's performance $p_i$ in the contest. Then, it will use this value to update the belief distribution on $s_i$ which is summarized by ($r_i$, $\sigma_i$).
+Our update algorithm thus divides into three phases: first, it must determine the player's performance $p_i$ in the contest. Then, it will use this value to update the belief distribution on $s_i$. Finally, the belief distribution is summarized by finding the point $r_i$ that achieves its maximum.
 
 \subsection{Performance estimation}
 
@@ -58,8 +58,8 @@ C_1 + \ln f(p_i\mid e) &= C_2 + \ln f(p_i) + \ln \Pr(e\mid p_i)
 
 Differentiate w.r.t. $p_i$ and set to zero:
 \begin{align}
-0 &= \frac{\alpha}{\tau} \left( 1 - \frac {2e^{(p_i-r_i)\alpha/\tau}} {1 + e^{(p_i-r_i)\alpha/\tau}} + W_i - \sum_{j\neq i} \frac {e^{(p_i-r_j)\alpha/\tau}} {1 + e^{(p_i-r_j)\alpha/\tau}} \right)
-\\Rank_i &= \frac {2} {1 + e^{(p_i-r_i)\alpha/\tau}} + \sum_{j\neq i} \frac {1} {1 + e^{(p_i-r_j)\alpha/\tau}}
+0 &= \frac{2}{\tau} \left( 1 - \frac {2e^{2(p_i-r_i)/\tau}} {1 + e^{2(p_i-r_i)/\tau}} + W_i - \sum_{j\neq i} \frac {e^2{(p_i-r_j)/\tau}} {1 + e^{2(p_i-r_j)/\tau}} \right)
+\\Rank_i &= \frac {2} {1 + e^{2(p_i-r_i)/\tau}} + \sum_{j\neq i} \frac {1} {1 + e^{2(p_i-r_j)/\tau}}
 \end{align}
 
 Use binary search to solve for $p_i$. This is the \emph{performance} of player $i$ in the match.
@@ -69,13 +69,13 @@ Use binary search to solve for $p_i$. This is the \emph{performance} of player $
 Our approximate formula for the posterior $f(s_i \mid e)$ takes the prior $f(s_i)$ and multiplies it by a new logistic pdf $f(p_i\mid s_i)$. The general form for our posterior will be proportional to a product of normal and logistic pdfs. Since a product of normals is proportional to another normal pdfs, wlog we assume there is only one normal in the product:
 
 \begin{align}
-e^{-(s_i-\mu_0)^2/(2\tau_0^2)} \prod_k \frac { e^{2(s_i-\mu_k)/\tau_k} } { \left(1 + e^{2(s_i-\mu_k)/\tau_k} \right)^2 }
+e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_k \frac { e^{2(s_i-\mu_k)/\tau_k} } { \left(1 + e^{2(s_i-\mu_k)/\tau_k} \right)^2 }
 \end{align}
 
 Differentiate its logarithm w.r.t. $s_i$ and set to zero:
 \begin{align}
-0 &= \frac{\mu_0-s_i}{\tau_0^2} + \sum_k \frac{2}{\tau_k}\left( 1 - \frac {2e^{2(s_i-\mu_k)/\tau_k}} {1 + e^{2(s_i-\mu_k)/\tau_k}} \right)
-\\ &=  \frac{\mu_0-s_i}{\tau_0^2} + \sum_k \frac{2}{\tau_k} \tanh \frac {\mu_k-s_i} {\tau_k}
+0 &= \frac{2(\mu_0-s_i)}{\tau_0^2} + \sum_k \frac{2}{\tau_k}\left( 1 - \frac {2e^{2(s_i-\mu_k)/\tau_k}} {1 + e^{2(s_i-\mu_k)/\tau_k}} \right)
+\\0 &=  \frac{\mu_0-s_i}{\tau_0^2} + \sum_k \frac{1}{\tau_k} \tanh \frac {\mu_k-s_i} {\tau_k}
 \end{align}
 
 Solve for $s_i$ with binary search, and use its value as $r_{i,new}$. $1/\sigma_i^2 = \sum_k 1/\tau_k^2$.
@@ -91,7 +91,7 @@ However, now we have to add noise to account for changing skills. Let $\sigma^*$
 
 We say $m$ is a weighted average of $\{x_i\}$ with weights $\{w_i\}$ if $\sum_i w_i(m-x_i) = 0$. In this sense, $s_i$ is a weighted average of $\mu_k$ with weights $\tanh(\mu_k-s_i) / (\mu_k-s_i)$.
 
-\subsection{Garbage}
+\subsection{Proportional Rating Update}
 
 If we approximate these by normal pdfs, their product is again normal, and we assign the corresponding mean and variance to our posterior belief over $s_i$:
 \begin{align}
