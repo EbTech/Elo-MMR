@@ -11,19 +11,21 @@
 #include <algorithm>
 using namespace std;
 
+const int NUM_TITLES = 10;
+const array<int,NUM_TITLES> bounds = {-999,1000,1250,1500,1750,2000,2200,2400,2700,3000};
+//const array<int,NUM_TITLES> bounds = {-999,1000,1200,1400,1600,1800,2000,2200,2500,2800};
+const array<string,NUM_TITLES> titles = {"Ne","Pu","Sp","Ex","CM","Ma","IM","GM","IG","LG"};
 const double sig_limit = 100; // limiting uncertainty for a player who competed a lot
 const double sig_perf = 250; // variation in individual performances
+const double sig_newbie = sig_limit + 250; // uncertainty for a new player
 const double sig_noise = sqrt( 1.0 / (1.0/sig_limit/sig_limit - 1.0/sig_perf/sig_perf)
                                - sig_limit*sig_limit );
-const double tfactor = sqrt(12.0)/M_PI;
-// ignore this: 400*PI / (ln(10)*sqrt(3)) = sqrt(1 / (1/sig_limit^2 - 1/sig_perf^2) + sig_perf^2)
 
 struct Rating
 {
     double mu; // mean of skill belief
     double sig; // uncertainty of skill belief
-    double tig; // uncertainty converted into units suitable for the tanh function
-    Rating(double m, double s) : mu(m), sig(s), tig(tfactor*s) {} // create player
+    Rating(double m, double s) : mu(m), sig(s) {} // create player
 };
 
 ostream& operator<<(ostream& os, const Rating& r)
@@ -42,7 +44,7 @@ double robustMean(const vector<Rating>& ratings, double offC = 0, double offM = 
         double mid = (lo + hi) / 2;
         double sum = offC + offM * mid;
         for (const Rating& r : ratings)
-            sum += tanh((mid-r.mu)/r.tig) / r.tig;
+            sum += tanh((mid-r.mu)/r.sig) / r.sig;
         if (sum > 0)
             hi = mid;
         else
@@ -59,9 +61,9 @@ double performance(vector<Rating> ratings, int id, int lo, int hi)
     assert(0 <= lo && lo <= id && id <= hi && hi <= N-1);
     double offset = 0;
     for (int i = 0; i < lo; ++i)
-        offset += 1.0 / ratings[i].tig;
+        offset += 1.0 / ratings[i].sig;
     for (int i = hi+1; i < N; ++i)
-        offset -= 1.0 / ratings[i].tig;
+        offset -= 1.0 / ratings[i].sig;
     ratings.push_back(ratings[id]);
     return robustMean(ratings, offset);
 }
@@ -77,18 +79,13 @@ struct Player
     {
         double decay = sqrt(1.0 + sig_noise*sig_noise/posterior.sig/posterior.sig);
         strongPrior.sig *= decay;
-        strongPrior.tig *= decay;
         for (Rating& r : perfs)
-        {
             r.sig *= decay;
-            r.tig *= decay;
-        }
     }
     void updatePosterior()
     {
-        double tigInvSq = 1.0 / strongPrior.tig / strongPrior.tig;
-        double mu = robustMean(perfs, -strongPrior.mu*tigInvSq, tigInvSq);
         double sigInvSq = 1.0 / strongPrior.sig / strongPrior.sig;
+        double mu = robustMean(perfs, -strongPrior.mu*sigInvSq, sigInvSq);
         for (const Rating& r : perfs)
             sigInvSq += 1.0 / r.sig / r.sig;
         posterior = Rating(mu, 1.0 / sqrt(sigInvSq));
@@ -97,7 +94,7 @@ struct Player
     {
         return int(posterior.mu - 2*(posterior.sig - sig_limit) + 0.5);
     }
-    Player() : maxRating(0), strongPrior(1500,350), posterior(1500,350) { }
+    Player() : maxRating(0), strongPrior(1500,sig_newbie), posterior(1500,sig_newbie) { }
 };
 
 void simulateCodeforcesHistory()
@@ -107,7 +104,8 @@ void simulateCodeforcesHistory()
     // 2011 ends at round 139, 2013 ends at round 379
     for (int roundNum = 1; roundNum <= 604; ++roundNum)
     {
-        if (roundNum == 589 || roundNum == 598 || roundNum == 600)
+        if (roundNum==575 || roundNum==589 || roundNum==594 || roundNum==595
+            || roundNum==597 || roundNum==598 || roundNum==600)
             continue;
         
         // read the standings
@@ -165,6 +163,19 @@ void simulateCodeforcesHistory()
     cout << "Mean rating.mu = " << (sumRatings/players.size()) << endl;
     sort(conservativeRatings.begin(), conservativeRatings.end());
     reverse(conservativeRatings.begin(), conservativeRatings.end());
+    
+    array<int,NUM_TITLES> titleCount = {};
+    int titleID = NUM_TITLES - 1;
+    for (tuple<int,string,int,int,int>& entry: conservativeRatings)
+    {
+        while (get<0>(entry) < bounds[titleID])
+            --titleID;
+        ++titleCount[titleID];
+    }
+    for (titleID = NUM_TITLES - 1; titleID >= 0; --titleID)
+    {
+        cout << bounds[titleID] << " " << titles[titleID] << " x " << titleCount[titleID] << endl;
+    }
     for (tuple<int,string,int,int,int>& entry: conservativeRatings)
     {
         int delta = get<0>(entry) - get<3>(entry);
