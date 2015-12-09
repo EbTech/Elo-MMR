@@ -18,7 +18,7 @@ const int NUM_TITLES = 10;
 const array<string,NUM_TITLES> titles = {"Ne","Pu","Sp","Ex","CM","Ma","IM","GM","IG","LG"};
 const double sig_limit = 100; // limiting uncertainty for a player who competed a lot
 const double sig_perf = 250; // variation in individual performances
-const double sig_newbie = sig_limit + 250; // uncertainty for a new player
+const double sig_newbie = 350; // uncertainty for a new player
 const double sig_noise = sqrt( 1.0 / (1.0/sig_limit/sig_limit - 1.0/sig_perf/sig_perf)
                                - sig_limit*sig_limit );
 
@@ -103,7 +103,7 @@ void simulateCodeforcesHistory()
     map<string, Player> players;
     
     // 2011 ends at round 139, 2013 ends at round 379
-    for (int roundNum = 1; roundNum <= 604; ++roundNum)
+    for (int roundNum = 1; roundNum <= 606; ++roundNum)
     {
         if (roundNum==575 || roundNum==589 || roundNum==594 || roundNum==595
             || roundNum==597 || roundNum==598 || roundNum==600)

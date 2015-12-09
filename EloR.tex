@@ -118,7 +118,7 @@ Differentiate w.r.t. $s_i$ and set to zero:
 
 Solve for $s_i$ with binary search, and use its value as $r_{i,new}$. Note that if $\sigma_1 < \sigma_2$, then
 \begin{align}
-|r_{i,new} - r_i| < \sigma_1 \ln\frac {\sigma_2+\sigma_1} {\sigma_2-\sigma_1}
+|r_{i,new} - r_i| < 2\sigma_1 \text{artanh}\frac{\sigma_1}{\sigma_2}
 \end{align}
 
 In other words, this method enforces an upper bound on the rating change per event.
