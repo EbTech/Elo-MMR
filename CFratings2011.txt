@@ -1,14 +1,14 @@
 Mean rating.mu = 1411.66 after Codeforces Beta Round #99
-2800 LG x 0     2800 LG x 0     3000 LG x 0
-2500 IG x 4     2550 IG x 3     2700 IG x 1
-2200 GM x 62    2300 GM x 31    2400 GM x 12
-2000 IM x 139   2150 IM x 51    2200 IM x 53
-1800 Ma x 418   2000 Ma x 120   2000 Ma x 139
-1600 CM x 1361  1750 CM x 652   1750 CM x 652
-1400 Ex x 1994  1500 Ex x 2038  1500 Ex x 2038
-1200 Sp x 2855  1250 Sp x 3160  1250 Sp x 3160
-1000 Pu x 2948  1000 Pu x 3726  1000 Pu x 3726
--999 Ne x 1393  -999 Ne x 1393  -999 Ne x 1393
+2750 LG x 0
+2500 IG x 4
+2300 GM x 30
+2150 IM x 51
+2000 Ma x 120
+1750 CM x 652
+1500 Ex x 2038
+1250 Sp x 3160
+1000 Pu x 3726
+-999 Ne x 1393
 2742(2772) tourist				p=2619	delta=-24
 2681(2708) Petr				p=2564	delta=-22
 2580(2607) vepifanov				p=2445	delta=-27

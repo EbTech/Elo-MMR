@@ -1,7 +1,7 @@
-Mean rating.mu = 1357.06
-2800 LG x 2
-2550 IG x 17
-2300 GM x 130
+Mean rating.mu = 1357.06 after Codeforces Round #335
+2750 LG x 4
+2500 IG x 27
+2300 GM x 118
 2150 IM x 239
 2000 Ma x 562
 1750 CM x 3633

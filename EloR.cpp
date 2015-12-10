@@ -13,7 +13,7 @@ using namespace std;
 
 const int NUM_TITLES = 10;
 //const array<int,NUM_TITLES> bounds = {-999,1000,1200,1400,1600,1800,2000,2200,2500,2800};
-  const array<int,NUM_TITLES> bounds = {-999,1000,1250,1500,1750,2000,2150,2300,2550,2800};
+  const array<int,NUM_TITLES> bounds = {-999,1000,1250,1500,1750,2000,2150,2300,2500,2750};
 //const array<int,NUM_TITLES> bounds = {-999,1000,1250,1500,1750,2000,2200,2400,2700,3000};
 const array<string,NUM_TITLES> titles = {"Ne","Pu","Sp","Ex","CM","Ma","IM","GM","IG","LG"};
 const double sig_limit = 100; // limiting uncertainty for a player who competed a lot
