@@ -14,7 +14,43 @@
 \begin{document}
 \maketitle
 
-Assume a collection of players labeled $1,\ldots,N$. Player $i$ has unknown skill $s_i$; our objective is to estimate it by a \emph{rating} $r_i$. The kernel of our Bayesian belief on $s_i$ will be a product of logistic pdfs, which can be thought of as a prior times a set of independent measurements centered on $s_i$ with different variances.
+The Elo rating system sets out to assign a quantitative measure of the skills of players in a particular activity, such as chess, a video game, or an athletic sport. These ratings can be used to rank players, as well as forecasting the outcome of future matches.
+
+To make things concrete, let's label the players $1,\ldots,N$. The original Elo system deals with 1v1 zero-sum games with binary (win/lose) outcomes. From Player $i$'s history against other players, Elo derives a rating $r_i$, a real number capturing some measure of the player's skill. $r_i$ increases when player $i$ wins a match, and decreases when they lose. The magnitude of the increase or decrease depends on how ``surprising" the result was. To determine the level of surprise, we need some model of the likelihood of match outcomes between players of known ratings. Typically, the logistic function is used.
+
+Now we describe the setting for the new Elo-R system. Instead of 1v1 matches with win/lose outcomes, we assume a large number of players compete at the task, and the outcome is a total ranking of all the players in the match. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at the ratings $r_j$ of players that win and lose against $i$. This suggests the following two-phase approach: upon a new match, estimate $p_i$ for each player. Then, update the rating $r_i$ to some sort of collective average of past $p_i$s.
+
+\section{Performance Averaging}
+
+Let's focus on the second phase for now: having computed the latest $p_i$ for each player, we want to combine it with past values to get a more precise estimate. To clarify the notation in this section, we add an extra subscript $j$, ranging from $1$ to the number of matches $M$ in which player $i$ has competed, so that $p_{i,j}$ denotes the performance of player $i$ on their $j$th match, and $r_{i,j}$ denotes their rating at this time. The sample mean is perhaps the most obvious statistic to take. That is, let
+\begin{align}
+r_{i,M} = \frac{1}{M} \sum_j p_{i,j} = \left(1 - \frac{1}{M}\right) r_{i,M-1} +  \frac{1}{M} p_{i,M}
+\end{align}
+
+In addition to being simple, this method has the advantage of being a simple function of the previous rating $r_{i,M-1}$ and the new performance $p_{i,M}$, so there is no need to remember the performance history explicitly. This memorylessness also implies that players who enter a match with the same rating and same number of matches can expect to be treated similarly.
+
+However, there are two key problems here. The first is that, as a player accumulates more experience, the relative weight of a new performance approaches $0$. This is because all performances are weighted equally, even ones which are too outdated to be informative about a player's current skill. It corresponds to a model in which a player's true skill is an eternal constant, never changing, and each $p_{i,j}$ is a measurement of this constant. To properly account for a player's lifelong evolution, we wish to place less weight on the oldest performances. The second problem is that the mean is not robust to outliers. A single extreme performance, perhaps due to a power failure if the competition takes place over a web server, will drastically affect a player's rating. Thus, we wish to reduce the weight of outliers. Before we proceed, note that the above equation can be rewritten as
+\begin{align}
+\sum_j 1 (p_{i,j} - r_{i,M}) = 0
+\end{align}
+
+We say that $r_{i,M}$ is a \emph{weighted mean} of the elements $\{p_{i,j}\}_{j=1}^{M}$, each of whom has equal weight, say $1$. If the $p_{i,j}$ are thought of as independent measurements of the present true skill $s_{i,j}$, with Gaussian noise variances of $\tau_j^2$, treating $p_{i,0}$ as a prior, then the posterior belief over the true skill is a Gaussian centered at $r_{i,M}$ given by the following equation:
+\begin{align}
+\sum_j \frac{1}{\tau_j^2} (p_{i,j} - r_{i,M}) = 0
+\end{align}
+
+All we did here is set the weight of $p_{i,j}$ to $\frac{1}{\tau_j^2}$. If the weights (or equivalently, the $\tau_js$) form a geometric sequence, we maintain the memoryless property. We'll derive the weights later; for now, it's simplest to imagine them decreasing by a constant ratio for each match backward in time.
+
+In order to bound the effect of any individual outlier, we also require that its weight approach $0$ as it approaches $\pm\infty$. We still want to treat non-outliers in essentially the same way as before, so their weight should be close to $\frac{1}{\tau_j^2}$ for performances close to the weighted mean, which is $r_{i,M}$ by definition. Thus, we opt for a weight of $\frac{\tanh\frac{p_{i,j} - r_{i,M}}{\tau_j}}{\tau_j(p_{i,j} - r_{i,M})}$. This choice will receive additional justification later: essentially, it has to do with assuming the heavy-tailed logistic distribution in place of the Gaussian noise discussed previously. The final equation is:
+\begin{align}
+\sum_j \frac {1}{\tau_j} \tanh\frac{p_{i,j} - r_{i,M}}{\tau_j} = 0
+\end{align}
+
+It is monotonic in $r_{i,M}$, which can hence be solved for using binary search. A straightforward linear approximation shows that in the limit as the performances vary much less than any of the $\tau_j$, the rating behaves like a mean with weights $\frac{1}{\tau_j^2}$. In the limit as the performances vary much more than any of the $\tau_j$, the rating behaves like a median with weights $\frac{1}{\tau_j}$.
+
+\section{Approximate Bayesian Derivation (needs a total rewrite)}
+
+The kernel of our Bayesian belief on $s_i$ will be a product of logistic pdfs, which can be thought of as a prior times a set of independent measurements centered on $s_i$ with different variances.
 
 The players take part in a ranked event such as a video game challenge or programming contest. We model this as follows: each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The ranking we observe is a total ordering on the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$. According to this model, ties occur with probability zero; we will treat actual ties as half a win and half a loss.
 
@@ -58,7 +94,7 @@ C_1 + \ln f(p_i\mid e) &= C_2 + \ln f(p_i) + \ln \Pr(e\mid p_i)
 
 Differentiate w.r.t. $p_i$ and set to zero:
 \begin{align}
-0 &= \frac{2}{\tau} \left( 1 - \frac {2e^{2(p_i-r_i)/\tau}} {1 + e^{2(p_i-r_i)/\tau}} + W_i - \sum_{j\neq i} \frac {e^2{(p_i-r_j)/\tau}} {1 + e^{2(p_i-r_j)/\tau}} \right)
+0 &= \frac{2}{\tau} \left( 1 - \frac {2e^{2(p_i-r_i)/\tau}} {1 + e^{2(p_i-r_i)/\tau}} + W_i - \sum_{j\neq i} \frac {e^{2(p_i-r_j)/\tau}} {1 + e^{2(p_i-r_j)/\tau}} \right)
 \\Rank_i &= \frac {2} {1 + e^{2(p_i-r_i)/\tau}} + \sum_{j\neq i} \frac {1} {1 + e^{2(p_i-r_j)/\tau}}
 \end{align}
 
