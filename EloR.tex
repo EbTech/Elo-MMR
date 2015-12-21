@@ -28,14 +28,14 @@ Let's focus on the second phase for now: having computed the latest $p_i$ for ea
 r_{i,M} = \frac{1}{M} \sum_k p_{i,k} = \left(1 - \frac{1}{M}\right) r_{i,M-1} +  \frac{1}{M} p_{i,M}
 \end{align}
 
-In addition to being simple, this method has the advantage of being a simple function of the previous rating $r_{i,M-1}$ and the new performance $p_{i,M}$, so there is no need to remember the performance history explicitly. This memorylessness also implies that players who enter a match with the same rating and same number of matches can expect to be treated similarly.
+In addition to being simple, this method has the advantage of being a simple function of the previous rating $r_{i,M-1}$ and the new performance $p_{i,M}$, so there is no need to remember the performance history explicitly. This \emph{memoryless} property also implies that players who enter a match with the same rating and same number of matches can expect to be treated similarly.
 
 However, there are two key problems here. The first is that, as a player accumulates more experience, the relative weight of a new performance approaches $0$. This is because all performances are weighted equally, even ones which are too outdated to be informative about a player's current skill. It corresponds to a model in which a player's true skill is an eternal constant, never changing, and each $p_{i,k}$ is a measurement of this constant. To properly account for a player's lifelong evolution, we wish to place less weight on the oldest performances. The second problem is that the mean is not robust to outliers. A single extreme performance, perhaps due to a power failure if the competition takes place over a web server, will drastically affect a player's rating. Thus, we wish to reduce the weight of outliers. Before we proceed, note that the above equation can be rewritten as
 \begin{align}
 \sum_k 1 (p_{i,k} - r_{i,M}) = 0
 \end{align}
 
-We say that $r_{i,M}$ is a \emph{weighted mean} of the elements $\{p_{i,k}\}_{k=1}^{M}$, each of whom has equal weight, say $1$. If the $p_{i,k}$ are thought of as independent measurements of the present true skill $s_{i,k}$, with Gaussian (normal) noise variances of $\tau_k^2$, treating $p_{i,1}$ as a prior, then the posterior belief over the true skill is a nomal centered at $r_{i,M}$ given by the following equation:
+We say that $r_{i,M}$ is a \emph{weighted mean} of the elements $\{p_{i,k}\}_{k=1}^{M}$, each of whom has equal weight, say $1$. If the $p_{i,k}$ are thought of as independent measurements of the present true skill $s_{i,k}$, with Gaussian (normal) noise variances of $\tau_k^2$, treating $p_{i,1}$ as a prior, then the posterior belief over the true skill is a normal centered at $r_{i,M}$ given by the following equation:
 \begin{align}
 \sum_k \frac{1}{\tau_k^2} (p_{i,k} - r_{i,M}) = 0
 \end{align}
@@ -105,7 +105,7 @@ To maximize this expression, differentiate it w.r.t. $p_i$, divide by 2 and set 
 	- \sum_{j\succeq i}\frac{1}{\tau_j}\left(\frac {e^{2(p_i-r_j)/\tau_j}} {1 + e^{2(p_i-r_j)/\tau_j}} \right)
 \end{align}
 
-The terms in parentheses can be thought of as a measure of surprise at the outcome between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$, with the insertion of two artificial outcomes in which player $i$ wins once and loses once against clones of itself. If the $\tau_j$s were all equal, this equation is equivalent to finding the performance level $p_i$ at which one's expected rank would match player $i$'s actual rank, clones included. Another equivalent presentation, achieved by rearranging terms, is as follows:
+The terms in parentheses can be thought of as a measure of surprise at the outcomes between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$, with the insertion of two artificial outcomes in which player $i$ wins once and loses once against clones of itself. If the $\tau_j$s were all equal, this equation is equivalent to finding the performance level $p_i$ at which one's expected rank would match player $i$'s actual rank, clones included. Another equivalent presentation, achieved by rearranging terms, is as follows:
 
 \begin{align}
 \frac{2}{\tau_i} \tanh\frac {p_i - r_i} {\tau_i} + \sum_{j\neq i}\frac{1}{\tau_j} \tanh\frac {p_i - r_j} {\tau_j} = \sum_{j\prec i} \frac{1}{\tau_j} - \sum_{j\succ i} \frac{1}{\tau_j}
@@ -131,25 +131,34 @@ To maximize this expression, differentiate it w.r.t. $s_i$, divide by 2 and set 
 \\0 &=  \frac{\mu_0-s_i}{\tau_0^2} + \sum_k \frac{1}{\tau_k} \tanh \frac {\mu_k-s_i} {\tau_k}
 \end{align}
 
-Solve for $s_i$ using binary search, and use its value as the new rating $r_i$. Notice the resemblance with the final equation in the first section. The parameters $(\mu_k,\tau_k)$ corresponding to the most recent performance ``measurement" would naturally be the pair $(p_i, \sqrt{\sigma_i^2+\delta^2})$ from the previous section. How these parameters are updated over time is the subject of the next section.
+Solve for $s_i$ using binary search, and use its value as the new rating $r_i$. Notice the resemblance with the final equation in the first section.
 
 \section{Noise, Uncertainty, and Evolution}
 
-Now we may ask, where do the $\tau_k$ values come from? To be written later...
+Now we may ask: where do the $\mu_k,\tau_k$ come from? In our parametrization, $\tau_k$ is proportional but not equal to the variance of a normal or logistic distribution centered at $\mu_k$. It can be shown that a product of normal pdfs with variances $\{\sigma_k^2\}$ corresponds to a normal with variance $1/(\sum_k 1/\sigma_k^2)$. While general products of probability distributions don't have this property, let's define by analogy the \emph{uncertainty} of our product distribution to be $1/(\sum_k 1/\tau_k^2)$. Recall that $\sigma_i$ also represents the uncertainty involved in our belief. For consistency's sake, we would like the following relation to hold:
+\begin{align}
+\frac{1}{\sigma_i^2} &= \sum_k \frac{1}{\tau_k^2}
+\end{align}
 
-$1/\sigma_i^2 = \sum_k 1/\tau_k^2$.
+By manipulating the $\tau_k$ appropriately, $\sigma_i$ will be defined by this equation instead of being a global constant. Each match multiplies the posterior by a logistic distribution centered at $p_i$, corresponding to new information about $s_i$. Here, the term \emph{information} refers to the inverse of uncertainty. As we add information, the uncertainty tends toward zero. As discussed in the first section, we must prevent this in order to respond to a player's evolution over time. To this end, let's say $s_i$ changes between matches by a noise term centered at $0$ with variance $\eta^2$. We could easily model noise as being added continuously over time, as in Brownian motion, but instead let's add this constant lump term right before each match.
 
-Define the \emph{information} contained in this distribution by $I = \sum_k 1/\tau_k^2$. The sum occurs by analogy to Gaussians: if we were to replace the logistic pdfs by Gaussian measurements with the same mean and variance, then their product would be a Gaussian with variance $(\sum_k 1/\tau_k^2)^{-1}$.
+Thus, $s_i$ after this match is equal to $s_i$ before the match, plus a noise term. The prior belief is not identical to the posterior from the previous match: we must take this noise into account. A crude way to approximate its effect would be to increase all of the $\tau_k$. If we want the weight of old matches to decay exponentially in some natural limiting cases, then it makes sense to multiply all of the $\tau_k$ by the same constant $K$. Thus, adding a noise $\eta^2$ corresponds to setting the variances in component $k$ of the belief to $K\tau_k^2$ where:
+\begin{align}
+\frac{1}{\sum_k 1/(K\tau_k^2)} &= \frac{1}{\sum_k 1/\tau_k^2} + \eta^2
+\\ \text{Therefore, }K &= 1 + \eta^2\sum_k 1/\tau_k^2
+\end{align}
 
-However, now we have to add noise to account for changing skills. Let $\sigma^*$ denote a limit. Solve the fixpoint equation:
+In summary, we perform the $K$-correction before a match to get the prior, then compute $p_i$ during the match, and then get the posterior from the prior by appending a logistic term with $\mu_k = p_i$ and $\tau_k = \delta^2$.
+
+The noise level $\eta$ is chosen such that $\sigma_i$ approaches the limit $\sigma^* = 100$ as the number of matches goes to infinity. Setting $1/\sigma_i^2$ to $1/\sigma^*$ both before and after the match yields the fixpoint equation:
 
 \begin{align}
-\frac{1}{(\sigma^*)^2} &= \frac{1}{(\sigma^*)^2+\nu^2} + \frac{1}{\delta^2}(
-\\(\sigma^*)^2 = 
+\frac{1}{\sigma^{*2}} &= \frac{1}{\sigma^{*2} + \eta^2} + \frac{1}{\delta^2}
+\\ \text{Therefore, }\eta^2 &= \frac{1}{1/\sigma^{*2} - 1/\delta^2} - \sigma^{*2}
 \end{align}
 
 \section{Comparisons and Conclusions}
 
-The outlier-reduction behavior can be likened to a presumed purpose of TopCoder's volatility measure: one very strong performance won't change the rating much, but the second or third consecutive strong performance will have a larger effect. Unlike on TopCoder, a very weak performance following a very strong perforance will \emph{not} have a large effect.
+The outlier-reduction behavior can be likened to a presumed purpose of TopCoder's volatility measure: one very strong performance won't change the rating much, but the second or third consecutive strong performance will have a larger effect. Unlike on TopCoder, a very weak performance following a very strong perforance will \emph{not} have a large effect. More to be written later...
 
 \end{document}
