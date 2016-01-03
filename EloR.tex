@@ -15,52 +15,66 @@
 \begin{document}
 \maketitle
 
-The Elo rating system sets out to assign a quantitative measure of the skills of players in a particular activity, such as chess, a video game, or an athletic sport. These ratings can be used to rank players, as well as forecasting the outcome of future matches.
+\section{Introduction}
 
-To make things concrete, let's label the players $1,\ldots,N$. The original Elo system deals with 1v1 zero-sum games with binary (win/lose) outcomes. From Player $i$'s history against other players, Elo derives a rating $r_i$, a real number capturing some measure of the player's skill. $r_i$ increases when player $i$ wins a match, and decreases when they lose. The magnitude of the increase or decrease depends on how ``surprising" the result was. To determine the level of surprise, we need some model of the likelihood of match outcomes between players of known ratings. Typically, the logistic function is used.
+Competition, in the form of sports, tests and games, have always been a part of our history. Whether the aim is pure entertainment, skill improvement, or selection of the best people for a given role, contestants and spectators alike are interested in estimating the relative skills of contestants. Various competition formats, such as tournaments, exist to declare a champion. However, we may be interested in comparing players who have never played directly against one another. Furthermore, there is a great deal of variance in a player's performance, and we may be interested in an aggregate estimate of skill that's based on a player's entire history of games.
 
-Now we describe the setting for the new Elo-R system. Instead of 1v1 matches with win/lose outcomes, we assume a large number of players compete at the task, and the outcome is a total ranking of all the players in the match. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. We observe that $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, iff $p(i) > p(j)$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at the ratings $r_j$ of players that win and lose against $i$. This suggests the following two-phase approach: upon a new match, estimate $p_i$ for each player. Then, update the rating $r_i$ to some sort of collective average of past $p_i$s.
+Skills are easiest to compare when there is a standard quantifiable objective, such as a score on a standardized test or a finishing time in a race.  However, most team sports, as well as games such as chess, have no such measure. Instead, a good player is simply one who can win against other good players. The Elo rating system sets out to assign a quantitative measure of skill in such a scenario. These ratings have little objective meaning, but can be used to rank players relative to one another, as well as forecast the probable outcome of future matches.
+
+To make things concrete, let's label the players $1,\ldots,N$. The original Elo system deals with 1v1 zero-sum games with binary (win/lose) outcomes. Player $i$ has a rating $r_i$, a real number that should be higher the more skilled they are. After two players compete, the loser gives some number of points to the winner, so that the sum of ratings is conserved. The number of points transferred depends on how ``surprising" the outcome was. To determine the level of surprise, we need some model of the likelihood of match outcomes between players of known ratings. Typically, the logistic function is used to model a probability that decays exponentially with the rating difference between the losing and winning player.
+
+Now we describe the setting for the new Elo-R system. Instead of 1v1 matches with win/lose outcomes, we assume a large number of players compete simultaneously at the task, and the outcome is a ranking: a total order among all players in the match.
+
+To model how the outcome came about, suppose player $i$'s true (unknown) skill is $s_i$. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. If $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, then we know that $p_i > p_j$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at $i$'s position in the ranking. This suggests the following two-phase approach: from the match ranking, estimate $p_i$ for each player. Then, update the rating $r_i$ to a weighted average of past $p_i$s. As we'll soon see, less weight will be put on performances that are either outdated or unusual for the player.
 
 \section{Performance Averaging}
 
-Let's focus on the second phase for now: having computed the latest $p_i$ for each player, we want to combine it with past values to get a more precise estimate. To clarify the notation in this section, we add an extra subscript $k$, ranging from $1$ to the number of matches $M$ in which player $i$ has competed, so that $p_{i,k}$ denotes the performance of player $i$ on their $k$th match, and $r_{i,k}$ denotes their rating at this time. The sample mean is perhaps the most obvious statistic to take. That is, let
+Let's focus on the second phase for now: having computed the latest $p_i$, we want to combine it with past performances of the same player to get a more precise estimate of their skill. To clarify the notation in this section, we add an extra subscript $k$, ranging from $1$ to the number of matches $M$ in which player $i$ has competed, so that $p_{i,k}$ denotes the performance of player $i$ on their $k$th match, and $r_{i,k}$ denotes their rating upon completion of the $k$th match. The sample mean is perhaps the most obvious statistic to take. That is, let
 \begin{align}
 r_{i,M} = \frac{1}{M} \sum_k p_{i,k} = \left(1 - \frac{1}{M}\right) r_{i,M-1} +  \frac{1}{M} p_{i,M}
 \end{align}
 
-In addition to being simple, this method has the advantage of being a simple function of the previous rating $r_{i,M-1}$ and the new performance $p_{i,M}$, so there is no need to remember the performance history explicitly. This \emph{memoryless} property also implies that players who enter a match with the same rating and same number of matches can expect to be treated similarly.
+In addition to being simple, this method has the advantage of being a function of only the number of matches $M$, the previous rating $r_{i,M-1}$ and the new performance $p_{i,M}$, so there is no need to remember all of the $p_{i,k}$. We say such a method is \emph{memoryless}.
 
-However, there are two key problems here. The first is that, as a player accumulates more experience, the relative weight of a new performance approaches $0$. This is because all performances are weighted equally, even ones which are too outdated to be informative about a player's current skill. It corresponds to a model in which a player's true skill is an eternal constant, never changing, and each $p_{i,k}$ is a measurement of this constant. To properly account for a player's lifelong evolution, we wish to place less weight on the oldest performances. The second problem is that the mean is not robust to outliers. A single extreme performance, perhaps due to a power failure if the competition takes place over a web server, will drastically affect a player's rating. Thus, we wish to reduce the weight of outliers. Before we proceed, note that the above equation can be rewritten as
+However, there are two key problems here. The first is that, as a player accumulates more experience, the relative weight of a new performance approaches $0$; if an established player improves their skill, it will take a long time for their rating to reflect it. This is because all performances are weighted equally, even those which are too outdated to be informative about a player's current skill. It corresponds to a model in which a player's true skill is an eternal constant, never changing, and each $p_{i,k}$ is a measurement of this constant. To properly account for a player's lifelong evolution, we should put less weight on old performances.
+
+The second problem with the sample mean is lack of robustness against outliers. A single extreme performance, perhaps due to illness or a power failure if the competition takes place over a web server, will drastically affect a player's rating. Thus, we wish to reduce the weight of outliers.
+
+Before we proceed, note that the above equation can be rewritten as
 \begin{align}
-\sum_k 1 (p_{i,k} - r_{i,M}) = 0
+\sum_k w_k(p_{i,k} - r_{i,M}) = 0
 \end{align}
-
-We say that $r_{i,M}$ is a \emph{weighted mean} of the elements $\{p_{i,k}\}_{k=1}^{M}$, each of whom has equal weight, say $1$. If the $p_{i,k}$ are thought of as independent measurements of the present true skill $s_{i,k}$, with Gaussian (normal) noise variances of $\tau_k^2$, treating $p_{i,1}$ as a prior, then the posterior belief over the true skill is a normal centered at $r_{i,M}$ given by the following equation:
+where $w_k = 1$ for all $k$. We say that $r_{i,M}$ is a \emph{weighted mean} of the elements $\{p_{i,k}\}_{k=1}^{M}$ with corresponding weights $\{w_k\}_{k=1}^M$. As a simplifying assumption, let's imagine the $p_{i,k}$ are independent measurements of the present true skill $s_{i,k}$, with Gaussian (normal) noise variances of $\tau_k^2$. If we treat $p_{i,1}$ as the prior, then our posterior belief on the true skill is a normal distribution centered at the weighted mean $r_{i,M}$ given by the following equation:
 \begin{align}
 \sum_k \frac{1}{\tau_k^2} (p_{i,k} - r_{i,M}) = 0
 \end{align}
 
-All we did here is set the weight of $p_{i,k}$ to $1/\tau_k^2$. If the weights (or equivalently, the $\tau_k$s) form a geometric sequence, we maintain the memoryless property. We'll derive the weights later; for now, it's simplest to imagine them decreasing by a constant ratio for each match backward in time.
+All we did here is set $w_k = 1/\tau_k^2$. If the $w_k$s (or equivalently, the $\tau_k$s) form a geometric sequence, we maintain the memoryless property. We'll derive the weights later; for now, it's simplest to imagine them decreasing by a constant ratio for each match backward in time.
 
-In order to bound the effect of any individual outlier, we also require that its weight approach $0$ as it approaches $\pm\infty$. We still want to treat non-outliers in essentially the same way as before, so their weight should be close to $1/\tau_k^2$ for performances close to the weighted mean, which is $r_{i,M}$ by definition. Thus, we opt for a weight of $\frac{\tanh\frac{p_{i,k} - r_{i,M}}{\tau_k}}{\tau_k(p_{i,k} - r_{i,M})}$. This choice will receive additional justification later: essentially, it has to do with assuming the heavy-tailed logistic distribution in place of the Gaussian noise discussed previously. The equation becomes:
+In order to bound the effect of any individual outlier, we also require that $w_k|p_{i,k}|$ approach a positive constant as $p_{i,k}$ approaches $\pm\infty$. We still want to treat non-outliers in essentially the same way as before, so their weight should be close to $1/\tau_k^2$ for performances close to the weighted mean, which is $r_{i,M}$ by definition. To meet these criteria, we opt for
+\begin{align}
+w_k = \frac{1}{\tau_k(p_{i,k} - r_{i,M})} \tanh\frac{p_{i,k} - r_{i,M}}{\tau_k}
+\end{align}
+
+This choice will receive additional justification later: essentially, it comes from modeling performances according to the heavy-tailed logistic distribution in place of the Gaussian noise discussed previously. The equation defining $r_{i,M}$ becomes:
 \begin{align}
 \sum_k \frac {1}{\tau_k} \tanh\frac{p_{i,k} - r_{i,M}}{\tau_k} = 0
 \end{align}
 
-It is monotonic in $r_{i,M}$, which can hence be solved for using binary search. A straightforward linear approximation shows that in the limit as the performances vary much less than any of the $\tau_k$, the rating behaves like a mean with weights $1/\tau_k^2$. In the limit as the performances vary much more than any of the $\tau_k$, the rating behaves like a median with weights $1/\tau_k$. While this equation is not memoryless, all $\tau_k$ corresponding to old performances will be very large and behave like the linear approximation. The sum of these linear terms is itself a linear term where $p_{i,0}$ here is the weighted sum of the old performances, and the new weight $1/\tau_0^2$ is the sum of the old weights:
+It is monotonic in $r_{i,M}$, so it can be solved using binary search. A straightforward linear approximation shows that in the limit as the performances vary much less than any of the $\tau_k$, the rating behaves like a mean with weights $1/\tau_k^2$. In the limit as the performances vary much more than any of the $\tau_k$, the rating behaves like a median with weights $1/\tau_k$. While this equation is not memoryless, all $\tau_k$ corresponding to old performances will be very large and behave like the linear approximation. The sum of these linear terms is itself a linear term where $p_{i,0}$ here is the weighted sum of the old performances, and the new weight $1/\tau_0^2$ is the sum of the old weights:
 \begin{align}
 \frac{p_{i,0} - r_{i,M}}{\tau_0^2} + \sum_k \frac {1}{\tau_k} \tanh\frac{p_{i,k} - r_{i,M}}{\tau_k} = 0
 \end{align}
 
-As a result, we only need to remember a small number of recent performances, and the size of the sum doesn't grow unboundedly with the history. If we decide to remember zero performances, it reverts to the linear memoryless method. Hence, this general formula encapsulates everything we've covered thus far. We will see that our formula is equivalent to maximizing the product of a collection of normal and/or logistic probability density functions (pdfs). $\tau_k^2$ corresponds roughly to the variance, although it differs by slightly different constant factors for the normal and the logistic; we choose to stick to this parametrization in order to maintain the equivalence involved in the linear approximation.
+As a result, we only need to remember a small number of recent performances. Hence, the number of terms in the sum doesn't grow unboundedly with the size of the history. If we decide to remember zero performances, it reverts to the linear memoryless method. Hence, this general formula encapsulates everything we've covered thus far. We will see that our formula is equivalent to maximizing the product of a collection of normal and/or logistic probability density functions (pdfs). $\tau_k^2$ corresponds roughly to the pdf's variance, although it differs by slightly different constant factors for the normal and the logistic; we choose to stick to this parametrization in order to maintain the equivalence involved in the linear approximation.
 
 \section{Approximate Bayesian Derivation}
 
-In general, the kernel of our Bayesian belief on the true skill $s_i$ will be a product of normal and logistic pdfs, which can be thought of as a prior times a set of independent measurements centered on $s_i$ with different variances. Given this belief distribution, the rating $r_i$ is defined as the \emph{maximum a posteriori} (MAP, a.k.a. posterior ``mode") estimate of $s_i$; i.e., the point of maximum density in the belief kernel.
+Now we derive our rating algorithm in full, by treating the rating $r_i$ of player $i$ as a summary of our approximate Bayesian belief over their true skill $s_i$, given all the evidence from past matches. In general, our belief on $s_i$ will be proportional to a product of normal and logistic pdfs. We may think of one of these pdfs as a prior belief, and the others are likelihoods of independent measurements of $s_i$. Given this belief distribution, the rating $r_i$ is defined as the \emph{maximum a posteriori} (MAP, a.k.a. posterior ``mode") estimate of $s_i$; i.e., the point of maximum density in the belief kernel.
 
 Recall the competition model: each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The ranking we observe is a total ordering on the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$. In order to sidestep the issue of modeling ties as a separate event and determining their probability, we will simply treat them as half a win and half a loss; such division will be very straightforward with the formulas we get.
 
-Fix $i$. Let $e$ be the evidence consisting of, for each $j$, whether $i \succ j$ or $i \prec j$. That is, we ignore relations like $j \succ k$ that affect the relative ordering of player pairs which don't include $i$. Our goal is to approximate the posterior distribution of $s_i$ given $e$:
+Fix $i$, the player whose rating we presently compute. Let $e$ be the evidence consisting of, for each $j$, whether $i \succ j$ or $i \prec j$. That is, we ignore relations like $j \succ k$ which affect the relative ordering of player pairs that don't include $i$. Our goal is to approximate the posterior distribution of $s_i$ given $e$:
 \begin{align}
 f(s_i\mid e) \propto f(s_i)\Pr(e\mid s_i) = f(s_i)\int \Pr(e\mid p_i)f(p_i\mid s_i)dp_i
 \end{align}
@@ -70,7 +84,7 @@ Since the integral is hard to evaluate, we take a leap of faith here and treat $
 f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)
 \end{align}
 
-Our update algorithm thus divides into two phases: first, it must determine the player's performance $p_i$ in the match. In the second phase, $p_i$ is used to update the belief distribution on $s_i$, which can be compactly summarized by finding the point $r_i$ that achieves its maximum.
+Our update algorithm thus divides into two phases: first, it must determine the player's performance $p_i$ in the match. In the second phase, $p_i$ is used to update the belief distribution on $s_i$, which is then compactly summarized by finding the point $r_i$ that achieves its maximum.
 
 \subsection{Performance Estimation}
 
@@ -157,7 +171,7 @@ The noise level $\eta$ is chosen such that $\sigma_i$ approaches the limit $\sig
 \\ \text{Therefore, }\eta^2 &= \frac{1}{1/\sigma^{*2} - 1/\delta^2} - \sigma^{*2}
 \end{align}
 
-\section{Comparisons and Conclusions}
+\section{Properties, Comparisons and Conclusions}
 
 The outlier-reduction behavior can be likened to a presumed purpose of TopCoder's volatility measure: one very strong performance won't change the rating much, but the second or third consecutive strong performance will have a larger effect. Unlike on TopCoder, a very weak performance following a very strong perforance will \emph{not} have a large effect. More to be written later...
 
