@@ -93,7 +93,9 @@ To compute the MAP of $p_i$, we must maximize
 f(p_i\mid e) \propto f(p_i) \Pr(e\mid p_i)
 \end{align}
 
-Clearly, $p_i = r_i + (s_i-r_i) + (p_i-s_i)$. The first term is a known constant; the second is a random variable whose variance is approximately (perhaps a bit more than) that of the prior belief on $s_i$; the third is a logistic distribution prescribed by the model. If we replace these by normal random variables with the same mean and variance, then their sum is conveniently also normal. We then approximate the sum by a logistic with the same mean and variance, justified by the fact that most of the variance comes from the logistic term. The model I implemented for Codeforces has $\sigma_i = 100$ (by default; see discussion of new players), $\delta = 250$, and $\tau_i^2 = \sigma_i^2 + \delta^2$,
+Clearly, $p_i = r_i + (s_i-r_i) + (p_i-s_i)$. The first term is a known constant: the player's current rating. We have a prior belief on $s_i$; for the purposes of this section, we approximate it by a logistic random variable with mean $r_i$. We also modeled $p_i$ as a logistic random variable centered at $s_i$. Hence, the second and third terms have mean zero and known variance.
+
+If we approximate the random terms by normal random variables, then their sum is conveniently also normal with a straightforward mean and variance. However, since the terms were originally logistic, we model their sum as another logistic variable with this mean and variance. To make things concrete, the model I implemented for Codeforces has $\sigma_i = 100$ (by default, but see discussion of new players), $\delta = 250$, and $\tau_i^2 = \sigma_i^2 + \delta^2$,
 \begin{align}
 f(s_i) \approx \frac { 2e^{2(s_i-r_i)/\sigma_i} } { \sigma_i\left(1 + e^{2(s_i-r_i)/\sigma_i} \right)^2 }
 \\f(p_i\mid s_i) = \frac { 2e^{2(p_i-s_i)/\delta} } { \delta\left(1 + e^{2(p_i-s_i)/\delta} \right)^2}
@@ -107,6 +109,7 @@ Under these modeling assumptions,
 \\&\propto \frac {e^{2p_i\sum_{j\prec i}1/\tau_j}} {\prod_{j\neq i} 1 + e^{2(p_i-r_j)/\tau_j}}
 \end{align}
 
+Taking logarithms, there exist constants $C_1$ and $C_2$ such that
 \begin{align}
 C_1 + \ln f(p_i\mid e) &= C_2 + \ln f(p_i) + \ln \Pr(e\mid p_i)
 \\&\approx \ln \frac{2}{\tau_i} + (p_i-r_i)\frac{2}{\tau_i} - 2\ln\left(1 + e^{2(p_i-r_i)/\tau_i} \right) + 2p_i\sum_{j\prec i} \frac{1}{\tau_j} - \sum_{j\neq i} \ln\left(1 + e^{2(p_i-r_j)/\tau_j}\right)
@@ -119,7 +122,9 @@ To maximize this expression, differentiate it w.r.t. $p_i$, divide by 2 and set 
 	- \sum_{j\succeq i}\frac{1}{\tau_j}\left(\frac {e^{2(p_i-r_j)/\tau_j}} {1 + e^{2(p_i-r_j)/\tau_j}} \right)
 \end{align}
 
-The terms in parentheses can be thought of as a measure of surprise at the outcomes between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$, with the insertion of two artificial outcomes in which player $i$ wins once and loses once against clones of itself. If the $\tau_j$s were all equal, this equation is equivalent to finding the performance level $p_i$ at which one's expected rank would match player $i$'s actual rank, clones included. Another equivalent presentation, achieved by rearranging terms, is as follows:
+The terms in parentheses can be thought of as a measure of surprise at the outcomes between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$. Well not quite: the sum also contains two artificial outcomes in which player $i$ wins once and loses once against clones of itself. $p_i$ is chosen such that the total surprise from wins is equal to the total surprise from losses.
+
+If the $\tau_j$s were all equal, this equation is equivalent to finding the performance level $p_i$ at which one's expected rank would match player $i$'s actual rank, clones included. An equivalent presentation, achieved by rearranging terms, is as follows:
 
 \begin{align}
 \frac{2}{\tau_i} \tanh\frac {p_i - r_i} {\tau_i} + \sum_{j\neq i}\frac{1}{\tau_j} \tanh\frac {p_i - r_j} {\tau_j} = \sum_{j\prec i} \frac{1}{\tau_j} - \sum_{j\succ i} \frac{1}{\tau_j}
@@ -129,7 +134,7 @@ Use binary search to solve for $p_i$. This defines the \emph{performance} of pla
 
 \subsection{Posterior Maximization}
 
-Recall our approximation $f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)$: the posterior $f(s_i \mid e)$ takes the prior $f(s_i)$ and multiplies it by a new logistic pdf $f(p_i\mid s_i)$. The general form for our posterior will be proportional to a product of normal and logistic pdfs. Since a product of normals is another normal kernel, wlog we assume there is only one normal in the product:
+Recall our approximation $f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)$: the posterior $f(s_i \mid e)$ takes the prior $f(s_i)$ and multiplies it by a new logistic pdf $f(p_i\mid s_i)$. It will inductively be the case that our posterior is proportional to a product of normal and logistic pdfs. Since any product of normal pdfs has a normal kernel, wlog we can assume there is only one normal in the product:
 
 \begin{align}
 f(s_i\mid e) \propto e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_k \frac { e^{2(s_i-\mu_k)/\tau_k} } { \left(1 + e^{2(s_i-\mu_k)/\tau_k} \right)^2 }
@@ -145,7 +150,9 @@ To maximize this expression, differentiate it w.r.t. $s_i$, divide by 2 and set 
 \\0 &=  \frac{\mu_0-s_i}{\tau_0^2} + \sum_k \frac{1}{\tau_k} \tanh \frac {\mu_k-s_i} {\tau_k}
 \end{align}
 
-Solve for $s_i$ using binary search, and use its value as the new rating $r_i$. Notice the resemblance with the final equation in the first section.
+When the $\mu_k$s are the performances of player $i$ in previous matches, this equation is identical to the weighted mean we proposed in the first section. Solve for $s_i$ using binary search, and use its value as the new rating $r_i$.
+
+Of course, the new factor $f(p_i \mid s_i)$ corresponds to a $\tanh$ term with $\mu_k = p_i,\;\tau_k=\delta$. To complete the rating algorithm, all that remains is to define the pre-match prior $f(s_i)$.
 
 \section{Noise, Uncertainty, and Evolution}
 
