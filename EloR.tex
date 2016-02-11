@@ -1,6 +1,8 @@
 \documentclass{article}
 
 \usepackage{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 \usepackage{amsmath}
 \usepackage{geometry}
 \usepackage{verbatim}
@@ -30,7 +32,9 @@ This setting appears in the international programming competition websites Codef
 
 \section{Performance Averaging}
 
-Recall that the outcome of a match consists of a total order ranking among all participating players. To model how the outcome came about, suppose player $i$'s true (unknown) skill is $s_i$. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. If $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, then we know that $p_i > p_j$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at $i$'s position in the ranking. This suggests the following two-phase approach: from the match ranking, estimate $p_i$ for each player. Then, update the rating $r_i$ to a weighted average of past $p_i$s. Note that $s_i,p_i,r_i$ are all measured on a common scale. As we'll soon see, less weight will be put on performances that are either outdated or unusual for the player.
+Recall that the outcome of a match consists of a total order ranking among all participating players. To model how the outcome came about, suppose player $i$'s true (unknown) skill is $s_i$. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. If $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, then we know that $p_i > p_j$. Note that the event $p_i = p_j$ has probability zero. In practice, some games allow ties. In order to sidestep the issue of modeling ties separately, we will simply treat them as half a win and half a loss; such a division will be very straightforward with the formulas we'll get.
+
+While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at $i$'s position in the ranking. This suggests the following two-phase approach: from the match ranking, estimate $p_i$ for each player. Then, update the rating $r_i$ to a weighted average of past $p_i$s. Note that $s_i,p_i,r_i$ are all measured on a common scale. As we'll soon see, less weight will be put on performances that are either outdated or unusual for the player.
 
 Let's focus on the second phase for now: having computed the latest $p_i$, we want to combine it with past performances of the same player to get a more precise estimate of their skill. To clarify the notation in this section, we add an extra subscript $k$, ranging from $1$ to the number of matches $M$ in which player $i$ has competed, so that $p_{i,k}$ denotes the performance of player $i$ on their $k$th match, and $r_{i,k}$ denotes their rating upon completion of the $k$th match. The sample mean is perhaps the most obvious statistic to take. That is, let
 \begin{align}
@@ -75,7 +79,7 @@ As a result, we only need to remember a small number of recent performances. Ins
 
 Now we derive our rating algorithm in full. If a player's true skill is $s_i$, it makes sense to set their rating $r_i$ to our best estimate of $s_i$, given all the evidence from past matches. In general, our belief on $s_i$ will be proportional to a product of normal and logistic pdfs. We may think of one of these pdfs as a prior belief, and the others as likelihoods of independent measurements of $s_i$. Given this belief distribution, the rating $r_i$ is defined as the \emph{maximum a posteriori} (MAP, a.k.a. posterior ``mode") estimate of $s_i$; i.e., the point at which the belief density is maximized.
 
-Recall the competition model: each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The ranking we observe is a total ordering on the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$. Note that the event $p_i = p_j$ has probability zero. Some games do allow ties; in order to sidestep the issue of modeling ties separately, we will simply treat them as half a win and half a loss; such a division will be very straightforward with the formulas we'll get.
+Recall the competition model: each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The ranking we observe is a total ordering on the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$.
 
 Fix $i$, the player whose rating we presently compute. Let $e$ be the evidence consisting of, for each $j$, whether $i \succ j$ or $i \prec j$. That is, we ignore relations like $j \succ k$ which affect the relative ordering of player pairs that don't include $i$. Our goal is to approximate the posterior distribution of $s_i$ given $e$:
 \begin{align}
@@ -130,7 +134,7 @@ The terms in parentheses can be thought of as a measure of surprise at the outco
 If the $\tau_j$s were all equal, this is equivalent to finding the performance level $p_i$ at which one's expected rank would match player $i$'s actual rank, clones included. An equivalent presentation, achieved by rearranging terms, is as follows:
 
 \begin{align}
-\frac{2}{\tau_i} \tanh\frac {p_i - r_i} {\tau_i} + \sum_{j\neq i}\frac{1}{\tau_j} \tanh\frac {p_i - r_j} {\tau_j} = \sum_{j\prec i} \frac{1}{\tau_j} - \sum_{j\succ i} \frac{1}{\tau_j}
+\sum_{j\preceq i}\frac{1}{\tau_j}\left( \tanh\frac {p_i - r_j} {\tau_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\tau_j}\left( \tanh\frac {p_i - r_j} {\tau_j} + 1 \right) = 0
 \end{align}
 
 Use binary search to solve for $p_i$. This defines the \emph{performance} of player $i$ in the match.
@@ -189,7 +193,7 @@ My Codeforces model uses $\delta = 250$ and $\sigma^* = 100$, yielding a noise o
 
 \section{Properties, Comparisons and Conclusions}
 
-TODO. Also, consider including pseudocode.
+TODO.
 
 The rating is a monotonic function of the list of past performances.
 
@@ -197,7 +201,22 @@ If you swap two performances in the list, the rating goes up if the better perfo
 
 The performance $p_i$ is measured in the same units as rating, and has the property that within a given contest, a higher ranking contestant has higher $p_i$ than a lower ranking one. (in case of ties, a higher-rated contestant has slightly higher $p_i$)
 
+\begin{algorithm}
+\caption{$update(i)$}
+\label{alg:update}
+\begin{algorithmic}
+\STATE $K := 1 + \eta^2/\sigma_i^2$
+\FORALL{$k$}
+\STATE $\tau_k := \sqrt{K} \tau_k$
+\ENDFOR
+\STATE $p_i := $ SOLVE $\sum_{j\preceq i}\frac{1}{\tau_j}\left( \tanh\frac {p_i - r_j} {\tau_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\tau_j}\left( \tanh\frac {p_i - r_j} {\tau_j} + 1 \right) = 0$
+\STATE Append logistic($p_i,\delta$) to the list of pdfs
+\STATE $r_i := $ SOLVE $\frac{\mu_0-r_i}{\tau_0^2} + \sum_k \frac{1}{\tau_k} \tanh \frac {\mu_k-r_i} {\tau_k} = 0$
+\STATE $\sigma_i := 1 / \sqrt{\sum_k 1/\tau_k^2}$
+\end{algorithmic}
+\end{algorithm}
+
 \bibliographystyle{plain}
-\bibliography{elo}
+\bibliography{Elo}
 
 \end{document}
