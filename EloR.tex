@@ -1,5 +1,6 @@
 \documentclass{article}
 
+\usepackage{natbib}
 \usepackage{amsmath}
 \usepackage{geometry}
 \usepackage{verbatim}
@@ -19,15 +20,17 @@
 
 Competition, in the form of sports, games and examinations, have been with us before the dawn of human history. Whether the aim is pure entertainment, skill improvement, or selection of the best people for a given role, contestants and spectators alike are interested in estimating the relative skills of contestants. Various competition formats, such as tournaments, exist to declare a champion. However, we may be interested in comparing players who rarely, if ever, play directly against one another. When there is substantial variance in a player's performance, we may be interested in an aggregate estimate of skill based on the player's entire history of games.
 
-Skills are easiest to compare when there is a standard quantifiable objective, such as a score on a standardized test or a completion time in a race.  However, most team sports, as well as games such as chess, have no such measure. Instead, a good player is simply one who can win against other good players. The Elo rating system sets out to assign a quantitative measure of skill in such a scenario. These ratings are on an arbitrary scale with little objective meaning, but can be used to rank players relative to one another, as well as to forecast the probable outcome of future matches.
+Skills are easiest to compare when there is a standard quantifiable objective, such as a score on a standardized test or a completion time in a race.  However, most team sports, as well as games such as chess, have no such measure. Instead, a good player is simply one who can frequently win against other good players. The Elo rating system assigns a quantitative measure of skill in such a scenario. Typically, an average player is  rated 1500, while a top player may exceed 2500. The scale is arbitrary, but can be used to rank players relative to one another, as well as to forecast the probable outcome of future matches.
 
 To make things concrete, let's label the players $1,\ldots,N$. The original Elo system deals with 1v1 zero-sum games with binary (win/lose) outcomes. Player $i$ has a rating $r_i$, a real number that should be higher the more skilled they are. After two players compete, the loser gives some number of points to the winner, so that the sum of ratings is conserved. The number of points transferred depends on how ``surprising" the outcome was. To determine the level of surprise, we need some model of the likelihood of match outcomes between players of known ratings. The logistic function is a common and well-studied choice: in this model, the outcome probability decays exponentially with the rating difference between the losing and winning player.
 
-Without going into details on Elo, let's introduce a more general setting for the new Elo-R system. Instead of 1v1 matches with win/lose outcomes, we assume a setting in which any number of players compete simultaneously at the task, and the outcome is a ranking: a total order among all players in the match. That is, we recognize which player came in 1st place, 2nd, 3rd, etc. We ignore the relative margins of victory, as they depend on details of the game that may be difficult to model; if the number of players is large, the ranking should encapsulate most of the information about victory margins simply by differences in ranking.
+Elo, and variants such as Glicko, are popular choices in the 1v1 setting where each match has a winner and loser. Now let's consider a more general setting in which any number of players compete simultaneously at a task, and the outcome is a ranking: a total order among all players in the match. That is, we recognize which player came in 1st place, 2nd, 3rd, etc. We ignore the relative margins of victory, as they depend on details of the game that may be difficult to model; if the number of players is large, the ranking should encapsulate most of the information about victory margins simply by differences in ranking.
 
-To model how the outcome came about, suppose player $i$'s true (unknown) skill is $s_i$. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. If $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, then we know that $p_i > p_j$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at $i$'s position in the ranking. This suggests the following two-phase approach: from the match ranking, estimate $p_i$ for each player. Then, update the rating $r_i$ to a weighted average of past $p_i$s. As we'll soon see, less weight will be put on performances that are either outdated or unusual for the player.
+This setting appears in the international programming competition websites Codeforces \cite{Codeforces} and TopCoder \cite{TopCoder}. Each publishes its own rating system, but without much theoretical justification to accompany the derivations. By founding Elo-R upon a more rigorous probabilistic model, we achieve better properties in practice as well. Compared with the Codeforces system, Elo-R achieves faster convergence, more robustness against unusual performances, and less inflation. Compared with the TopCoder system, Elo-R achieves more robustness and retains monotonicity, in the sense that it would never help one's rating to have performed worse in a match. The latter problem has been studied in the analysis of \cite{forivsektheoretical}. Furthermore, Elo-R retains efficient computability and a level of simplicity that's roughly on par with the other systems.
 
 \section{Performance Averaging}
+
+Recall that the outcome of a match consists of a total order ranking among all participating players. To model how the outcome came about, suppose player $i$'s true (unknown) skill is $s_i$. Player $i$'s performance in the match can be viewed as a number $p_i$, drawn from a logistic distribution centered at $s_i$. If $i$ beat $j$ in the match rankings, a result we denote as $i \succ j$, then we know that $p_i > p_j$. While we can't measure $s_i$ directly, it's possible to get a fairly accurate reading on $p_i$ by looking at $i$'s position in the ranking. This suggests the following two-phase approach: from the match ranking, estimate $p_i$ for each player. Then, update the rating $r_i$ to a weighted average of past $p_i$s. Note that $s_i,p_i,r_i$ are all measured on a common scale. As we'll soon see, less weight will be put on performances that are either outdated or unusual for the player.
 
 Let's focus on the second phase for now: having computed the latest $p_i$, we want to combine it with past performances of the same player to get a more precise estimate of their skill. To clarify the notation in this section, we add an extra subscript $k$, ranging from $1$ to the number of matches $M$ in which player $i$ has competed, so that $p_{i,k}$ denotes the performance of player $i$ on their $k$th match, and $r_{i,k}$ denotes their rating upon completion of the $k$th match. The sample mean is perhaps the most obvious statistic to take. That is, let
 \begin{align}
@@ -156,34 +159,45 @@ If all but the last $M$ matches for each player are merged, and all binary searc
 
 \section{Noise, Uncertainty, and Evolution}
 
-We now know how to compute $p_i$ for a given match, and how to compute $r_i$ from the general form of the posterior belief over $s_i$. It remains to link these steps by building the posterior belief corresponding to a history of $p_i$s. For new players, we can consider assigning either a logistic or normal prior. Since we want fast convergence, but also believe that extremely high ratings should take time to earn, we opt for a normal prior with $\mu_0 = 1500$ and $\tau_0 = 350$.
+We now know how to compute $p_i$ from a match's rankings, and how to compute $r_i$ from the general form of the posterior belief over $s_i$. It remains to link these steps by building the posterior belief corresponding to a history of $p_i$s. For new players, we can consider assigning either a logistic or normal prior. Since we want fast convergence, but also believe that extremely high ratings should take time to earn, we opt for a normal prior with $\mu_0 = 1500$ and $\tau_0 = 350$. We can think of this as the ``posterior" belief in any player's skill upon completing zero matches.
 
-As previously discussed, we need to model changes in a player's skill between matches: to form the prior for the present match, take the posterior from the previous match and add a noise term (i.e. reduce the weights). Once we have the new prior $f(s_i)$, getting a new posterior is a simple matter of multiplying $f(s_i)$ by $f(p_i \mid s_i)$. The latter is a logistic term with $\mu_k = p_i,\;\tau_k=\delta$.
+In the general case, we wish to go from the posterior distribution after $M-1$ matches, which we'll denote by $f'(s_i)$; to the prior distribution just before the $M$th match, denoted by $f(s_i)$; and finally to the posterior distribution after the $M$th match, denoted by $f(s_i \mid e)$. Here $e$ denotes the evidence from the $M$th match.
 
-Now we may ask: where do the $\mu_k,\tau_k$ come from? In our parametrization, $\tau_k$ is proportional but not equal to the variance of a normal or logistic distribution centered at $\mu_k$. It can be shown that a product of normal pdfs with variances $\{\sigma_k^2\}$ corresponds to a normal with variance $1/(\sum_k 1/\sigma_k^2)$. While general products of probability distributions don't have this property, let's define by analogy the \emph{uncertainty} of our product distribution to be $1/(\sum_k 1/\tau_k^2)$. Recall that $\sigma_i$ also represents the uncertainty involved in our belief. For consistency's sake, we would like the following relation to hold:
+As previously discussed, we need to model changes in a player's skill between matche. Although $f'(s_i)$ and $f(s_i)$ are based upon the same body of evidence, they are not identical: $f(s_i)$ has more uncertainty because $s_i$ was changed by a noise term in the interim between the two matches. Once we have $f(s_i)$, estimating $f(s_i \mid e)$ is a simple matter of multiplying $f(s_i)$ by $f(p_i \mid s_i)$. The latter is a logistic term with $\mu_k = p_i,\;\tau_k=\delta$, where $p_i$ is computed as above and $\delta$ is a specified constant.
+
+How should we model the increase in uncertainty between $f'(s_i)$ and $f(s_i)$? It can be shown that a product of normal pdfs with variances $\{\sigma_k^2\}$ corresponds to a normal with variance $1/(\sum_k 1/\sigma_k^2)$. While general products of probability distributions don't have this property, let's define by analogy the \emph{uncertainty} of our normal-logistic product distributions to be $1/(\sum_k 1/\tau_k^2)$. Recall when we introduced the constant $\sigma_i$ to represent the uncertainty in our belief. With our new definition of uncertainty, $\sigma_i$ is no longer a constant but is instead given by:
 \begin{align}
 \frac{1}{\sigma_i^2} &= \sum_k \frac{1}{\tau_k^2}
 \end{align}
 
-By manipulating the $\tau_k$ appropriately, $\sigma_i$ will be defined by this equation instead of being a global constant. Each match multiplies the posterior by a logistic distribution centered at $p_i$, corresponding to new information about $s_i$. Here, the term \emph{information} refers to the inverse of uncertainty. As we add information, the uncertainty tends toward zero. As discussed in the first section, we must prevent this in order to respond to a player's evolution over time. To this end, let's say $s_i$ changes between matches by a noise term centered at $0$ with variance $\eta^2$. We could easily model noise as being added continuously over time, as in Brownian motion, but instead let's add this constant lump term right before each match.
+When we multiply $f(s_i)$ by the logistic pdf $f(p_i \mid s_i)$, the latter corresponds to new information about $s_i$. Here, the term \emph{information} refers to the inverse of uncertainty. If we continue to add information, the uncertainty will tend toward zero. As discussed in the first section, we must prevent this in order to respond to a player's evolution over time. To this end, let's say $s_i$ changes between matches by a noise term centered at $0$ with uncertainty $\eta^2$. If we want the amount of noise to increase with physical time, we could model it as Brownian motion. I chose instead to add a constant lump term right before each match.
 
-Thus, $s_i$ after this match is equal to $s_i$ before the match, plus a noise term. The prior belief is not identical to the posterior from the previous match: we must take this noise into account. A crude way to approximate its effect would be to increase all of the $\tau_k$. If we want the weight of old matches to decay exponentially in some natural limiting cases, then it makes sense to multiply all of the $\tau_k$ by the same constant $K$. Thus, adding a noise $\eta^2$ corresponds to setting the variances in component $k$ of the belief to $K\tau_k^2$ where:
+Thus, $s_i$ after the $M$th match is equal to $s_i$ before the match, plus a noise term. Deriving $f(s_i)$ from $f'(s_i)$ amounts to accounting for this noise. A crude way to approximate its effect would be to increase all of the $\tau_k$. If we want the weight of old matches to decay exponentially in some natural limiting cases, then it makes sense to multiply all of the $\tau_k$ by the same constant $K$. Furthermore, in analogy to additivity of variances, $K$ should be chosen in such a way that the belief uncertainty is increased by $\eta^2$. Thus, if $f'(s_i)$ has a factor with uncertainty $\tau_k$, then $f(s_i)$ has the same factor but with its uncertainty changed to $K\tau_k^2$ where:
 \begin{align}
 \frac{1}{\sum_k 1/(K\tau_k^2)} &= \frac{1}{\sum_k 1/\tau_k^2} + \eta^2
 \\ \text{Therefore, }K &= 1 + \eta^2\sum_k 1/\tau_k^2
 \end{align}
 
-In summary, we perform the $K$-correction before a match to get the prior, then compute $p_i$ during the match, and then get the posterior from the prior by appending a logistic term with $\mu_k = p_i$ and $\tau_k = \delta^2$.
-
-The noise level $\eta$ is chosen such that $\sigma_i$ approaches the limit $\sigma^* = 100$ as the number of matches goes to infinity. Setting $1/\sigma_i^2$ to $1/\sigma^*$ both before and after the match yields the fixpoint equation:
+The noise constant $\eta$ is chosen such that $\sigma_i$ approaches the limiting constant $\sigma^*$ as the number of matches goes to infinity. Setting $1/\sigma_i^2$ to $1/\sigma^*$ both before and after the match yields the fixpoint equation:
 
 \begin{align}
 \frac{1}{\sigma^{*2}} &= \frac{1}{\sigma^{*2} + \eta^2} + \frac{1}{\delta^2}
 \\ \text{Therefore, }\eta^2 &= \frac{1}{1/\sigma^{*2} - 1/\delta^2} - \sigma^{*2}
 \end{align}
 
+My Codeforces model uses $\delta = 250$ and $\sigma^* = 100$, yielding a noise of $\eta \approx 43.64$. Our uncertainty $\sigma_i$ about a new player is 350, which asymptotically approaches 100 as they gain experience. In order to publish low ratings for new players, we can write $r_i - 2(\sigma_i - \sigma^*)$ for the published rating in place of $r_i$. Thus, a new player's published rating is $1500 - 2(350-100) = 1000$.
+
 \section{Properties, Comparisons and Conclusions}
 
-The outlier-reduction behavior can be likened to a presumed purpose of TopCoder's volatility measure: one very strong performance won't change the rating much, but the second or third consecutive strong performance will have a larger effect. Unlike on TopCoder, a very weak performance following a very strong perforance will \emph{not} have a large effect. More to be written later...
+TODO. Also, consider including pseudocode.
+
+The rating is a monotonic function of the list of past performances.
+
+If you swap two performances in the list, the rating goes up if the better performance moves forward in time, and down if the better performance moves backward.
+
+The performance $p_i$ is measured in the same units as rating, and has the property that within a given contest, a higher ranking contestant has higher $p_i$ than a lower ranking one. (in case of ties, a higher-rated contestant has slightly higher $p_i$)
+
+\bibliographystyle{plain}
+\bibliography{elo}
 
 \end{document}
