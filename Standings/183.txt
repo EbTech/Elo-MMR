@@ -15,7 +15,7 @@ romanandreev 13 13
 al13n 14 14
 vot 15 15
 Igor_Kudryashov 16 16
-homo_sapiens 17 17
+Edvard 17 17
 DStepanenko 18 18
 GlebsHP 19 19
 Baz93 20 20
@@ -42,5 +42,5 @@ myar 39 40
 AndreySiunov 41 41
 SkyHawk 42 45
 Malinovsky239 42 45
-fastblood 42 45
 AlexDmitriev 42 45
+fastblood 42 45

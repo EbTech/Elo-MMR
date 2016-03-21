@@ -103,11 +103,13 @@ void simulateCodeforcesHistory()
     map<string, Player> players;
     
     // 2011 ends at round 139, 2013 ends at round 379, 2015 ends at round 612
-    for (int roundNum = 1; roundNum <= 616; ++roundNum)
+    for (int roundNum = 1; roundNum <= 655; ++roundNum)
     {
         if (roundNum==575 || roundNum==589 || roundNum==594 || roundNum==595
             || roundNum==597 || roundNum==598 || roundNum==600 || roundNum==609
-            || roundNum==612 || roundNum==616)
+            || roundNum==612 || roundNum==616 || roundNum==620 || roundNum==622
+            || roundNum==628 || roundNum==630 || roundNum==632 || roundNum==636
+            || roundNum==637 || roundNum==638 || roundNum==644)
             continue;
         
         // read the standings

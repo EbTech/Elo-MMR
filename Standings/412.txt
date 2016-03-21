@@ -1,5 +1,5 @@
 94
-masterOK 1 1
+ipavlov 1 1
 overtroll 2 2
 LHiC 3 3
 i_love_dima 4 4
@@ -25,7 +25,7 @@ HASP 23 23
 audin1000 24 24
 MikleM2 25 25
 ASverdlov 26 26
-grikukan 27 27
+gritukan 27 27
 gskhirtladze 28 28
 Gregory_The_Great 29 29
 ser398 30 30
@@ -41,7 +41,7 @@ Zidni 39 39
 Nezhdan23 40 40
 Andrewsha 41 41
 LipAnn 42 42
-dragonic 43 43
+I_hate_ACM 43 43
 dmitry_prh 44 44
 solonkovda 45 45
 mailo102 46 46
@@ -74,7 +74,7 @@ Sekten 72 72
 linazh 73 73
 maksme 74 74
 agrishutin 75 75
-narek1110 76 76
+Memesi 76 76
 lesorub 77 77
 zorro 78 78
 dmitiykh 79 79

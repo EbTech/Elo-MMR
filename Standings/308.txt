@@ -23,8 +23,8 @@ Aksenov239 21 21
 levlam 22 22
 WhiteCrow 23 23
 marcina007 24 24
-vot 25 26
 darnley 25 26
+vot 25 26
 Baz93 27 27
 cerealguy 28 28
 ilyakor 29 29
@@ -40,7 +40,7 @@ piob 38 38
 niyaznigmatul 39 39
 VArtem 40 40
 evgentu 41 41
-slycelote 42 45
-Copymaster 42 45
-yaro 42 45
 anton 42 45
+yaro 42 45
+Copymaster 42 45
+slycelote 42 45

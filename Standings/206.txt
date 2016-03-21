@@ -6,7 +6,7 @@ NALP 4 4
 stgatilov 5 5
 Gerald 6 6
 Ra16bit 7 7
-homo_sapiens 8 8
+Edvard 8 8
 Seyaua 9 9
 subscriber 10 10
 eik0u 11 11

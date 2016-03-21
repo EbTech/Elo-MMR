@@ -98,8 +98,8 @@ OKOKOK 96 96
 romanov.andrey 97 97
 alexej 98 98
 cheptil 99 99
-yulya3102 100 101
 DanDrago 100 101
+yulya3102 100 101
 kostya_by 102 102
 Ksunya 103 103
 lyrics 104 104
@@ -125,5 +125,5 @@ platonov 123 123
 hlahuhkln 124 124
 IHomutovsky 125 125
 zermx_011 126 126
-Sta 127 128
 galiver 127 128
+Sta 127 128

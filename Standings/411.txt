@@ -4,7 +4,7 @@ Frifon 2 2
 gskhirtladze 3 3
 yurboss 4 4
 vient 5 5
-masterOK 6 6
+ipavlov 6 6
 n_makeenkov 7 7
 sereja589 8 8
 skrydg 9 9
@@ -47,7 +47,7 @@ SanTelvanny 45 45
 AARumyancev 46 46
 spirid 47 47
 ASverdlov 48 48
-grikukan 49 49
+gritukan 49 49
 sammycolt42 50 50
 elluZion 51 51
 dmitiykh 52 52
@@ -80,7 +80,7 @@ haku 78 78
 agrishutin 79 79
 maksme 80 80
 Voodoo_men 81 81
-narek1110 82 82
+Memesi 82 82
 katya_mineeva 83 83
 Penchekrak 84 84
 krylovgv97 85 85
@@ -122,7 +122,7 @@ andrushayew 120 120
 IgordOS 121 121
 dronperminov 122 122
 i_love_nam 123 123
-dragonic 124 124
+I_hate_ACM 124 124
 Keinori 125 125
 AlexandrNikolaev 126 126
 dmitriev179 127 127
