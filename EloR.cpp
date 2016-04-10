@@ -101,7 +101,7 @@ struct Player
 void simulateCodeforcesHistory()
 {
     map<string, Player> players;
-    
+
     // 2011 ends at round 139, 2013 ends at round 379, 2015 ends at round 612
     for (int roundNum = 1; roundNum <= 655; ++roundNum)
     {
@@ -111,7 +111,7 @@ void simulateCodeforcesHistory()
             || roundNum==628 || roundNum==630 || roundNum==632 || roundNum==636
             || roundNum==637 || roundNum==638 || roundNum==644)
             continue;
-        
+
         // read the standings
         stringstream ssFileName;
         ssFileName << "Standings/" << roundNum << ".txt";
@@ -121,7 +121,7 @@ void simulateCodeforcesHistory()
         standingsFile >> N;
         cerr << "Processing Codeforces Round " << roundNum;
         cerr << " with " << N << " contestants..." << endl;
-        
+
         vector<string> names(N);
         vector<int> lo(N), hi(N);
         vector<Rating> compRatings;
@@ -130,23 +130,23 @@ void simulateCodeforcesHistory()
         {
             standingsFile >> names[i] >> lo[i] >> hi[i];
             --lo[i]; --hi[i];
-            
+
             Player& player = players[names[i]];
             Rating& r = player.posterior;
             double compVar = r.sig*r.sig + sig_noise*sig_noise + sig_perf*sig_perf;
             compRatings.emplace_back(r.mu, sqrt(compVar));
         }
         standingsFile.close();
-        
+
         // begin rating updates
         for (int i = 0; i < N; ++i)
         {
             Player& player = players[names[i]];
             player.add_noise_uniform();
-            
+
             double perf = performance(compRatings, i, lo[i], hi[i]);
             player.perfs.emplace_back(perf, sig_perf);
-            
+
             player.prevRating = player.conservativeRating();
             player.updatePosterior();
             player.maxRating = max(player.maxRating, player.conservativeRating());
@@ -167,7 +167,7 @@ void simulateCodeforcesHistory()
     cout << "Mean rating.mu = " << (sumRatings/players.size()) << endl;
     sort(conservativeRatings.begin(), conservativeRatings.end());
     reverse(conservativeRatings.begin(), conservativeRatings.end());
-    
+
     array<int,NUM_TITLES> titleCount = {};
     int titleID = NUM_TITLES - 1;
     for (tuple<int,string,int,int,int>& entry: conservativeRatings)
@@ -189,7 +189,30 @@ void simulateCodeforcesHistory()
     }
 }
 
+void testRobustness()
+{
+    Player player;
+    for (int i = 0; i < 1000; ++i)
+    {
+        player.add_noise_uniform();
+        player.perfs.emplace_back(1000, sig_perf);
+        player.updatePosterior();
+    }
+    double mean = 1000;
+    double w = (sig_limit*sig_limit + sig_noise*sig_noise) / (sig_limit*sig_limit + sig_noise*sig_noise + sig_perf*sig_perf);
+    for (int i = 0; i < 31; ++i)
+    {
+        cout << int(mean+0.5) << ",";
+        //cout << i << ' ' << player.conservativeRating() << endl;
+        mean += w * (3000 - mean);
+        player.add_noise_uniform();
+        player.perfs.emplace_back(3000, sig_perf);
+        player.updatePosterior();
+    }
+}
+
 int main()
 {
-    simulateCodeforcesHistory(); // takes about 40 mins on my PC
+    testRobustness();
+    //simulateCodeforcesHistory(); // takes about 40 mins on my PC
 }
