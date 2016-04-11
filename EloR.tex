@@ -12,7 +12,7 @@
 
 \title{Elo-R Competition Rating System}
 \author{Aram Ebtekar}
-%\date{}
+\date{April 10, 2016}
 
 \begin{document}
 \maketitle
@@ -207,6 +207,9 @@ In order to give new players lower ratings from which to work upwards, we can pu
 \STATE $\eta^2 := 1 / \left( 1/\sigma^{*2} - 1/\delta^2 \right) - \sigma^{*2}$
 \FORALL{players $i$}
 \STATE Initialize the list $\langle( \mu_{i,\_},\tau_{i,\_} )\rangle$ with one element $(1500, 350)$
+\STATE $r_i := 1500$
+\STATE $\sigma_i := 350$
+\STATE $\delta_i := \sqrt{\sigma_i^2 + \eta^2 + \delta^2}$
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
@@ -260,7 +263,7 @@ Had we tried to perform outlier reduction in a memoryless fashion, we would cont
 
 After six consecutive matches with $p_i = 3000$, the rating is 1875 and very unstable (even though $\sigma_i$ is unchanged!). The system is no longer sure which to trust: the extensive history at level 1000, or the smaller number of recent matches at level 3000. Depending on what comes next, the player's rating can very quickly fall toward 1000 or rise toward 3000. However, note that in either case, the change will not overshoot, say to 5000, unless enough new evidence is accumulated at that level. As the $p_i=3000$ streak continues, the seventh match on the blue curve jumps by a whopping 566 points. As the player's rating converges to 3000, the old $p_i = 1000$ data acquires outlier status, thus speeding convergence.
 
-In contrast, while a system such as Codeforces does not compute $p_i$ values in quite in the same way, we can obtain a good approximation by removing outlier reduction from Elo-R, effectively treating the performances to be averaged as normal instead of logistic measurements. This makes the system effectively memoryless, since it turns out that each match simply moves the rating about 16\% closer to the new $p_i$ value, independent of the history. With this change, we obtain the orange curve, which jumps a whopping 320 points at the very first performance. Indeed, there is no limit: if you could find players whose ratings are extremely high, and beat them even once, your rating would take arbitrarily large leaps. Note that this is not quite true of TopCoder, which incorporates a hack that caps the maximum rating change; if TopCoder's update formula demand too large a change, the cap kicks in. In contrast, Elo-R's cap is a natural and smooth consequence of its update formula and is sensitive to whether a change is charting new territory, or merely confirming a plausible hypothesis.
+In contrast, while a system such as Codeforces does not compute $p_i$ values in quite in the same way, we can obtain a good approximation by removing outlier reduction from Elo-R, effectively treating the performances to be averaged as normal instead of logistic measurements. This makes the system effectively memoryless, since it turns out that each match simply moves the rating about 16\% closer to the new $p_i$ value, independent of the history. With this change, we obtain the orange curve, which jumps a whopping 320 points at the very first performance. Indeed, there is no limit: if you could find players whose ratings are extremely high, and beat them even once, your rating would take arbitrarily large leaps. Note that this is not quite true of TopCoder, which incorporates a hack that caps the maximum rating change: if TopCoder's update formula demands too large a change, the cap kicks in. In contrast, Elo-R's cap is a natural and smooth consequence of its update formula and is sensitive to whether a change is charting new territory, or merely confirming a plausible hypothesis.
 
 Notwithstanding arguments that a high rating ought to properly be earned over multiple matches rather than a single fluke, the other danger is that these observations also hold in reverse: one bad day on Codeforces can seriously damage one's rating and negate several rounds of steady progress. By using heavy-tailed logistic distributions everywhere, Elo-R understands that unusually high or low performances do occasionally occur, and one round in isolation is never a reliable signal.
 
