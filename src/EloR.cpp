@@ -22,26 +22,22 @@ const double sig_newbie = 350; // uncertainty for a new player
 const double sig_noise = sqrt( 1.0 / (1.0/sig_limit/sig_limit - 1.0/sig_perf/sig_perf)
                                - sig_limit*sig_limit );
 
-struct Rating
-{
+struct Rating {
     double mu; // mean of skill belief
     double sig; // uncertainty of skill belief
     Rating(double m, double s) : mu(m), sig(s) {} // create player
 };
 
-ostream& operator<<(ostream& os, const Rating& r)
-{
+ostream& operator<<(ostream& os, const Rating& r) {
     os << int(r.mu) << "+/-" << int(r.sig);
     return os;
 }
 
 // returns something near the mean if the ratings are consistent; near the median if they're far apart
 // offC and offM are constant and slope offsets, respectively
-double robustMean(const vector<Rating>& ratings, double offC = 0, double offM = 0)
-{
+double robustMean(const vector<Rating>& ratings, double offC = 0, double offM = 0) {
     double lo = -1000, hi = 5000;
-    while (hi - lo > 1e-9)
-    {
+    while (hi - lo > 1e-9) {
         double mid = (lo + hi) / 2;
         double sum = offC + offM * mid;
         for (const Rating& r : ratings)
@@ -56,8 +52,7 @@ double robustMean(const vector<Rating>& ratings, double offC = 0, double offM = 
 
 // ratings is a list of the participants, ordered from first to last place
 // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-double performance(vector<Rating> ratings, int id, int lo, int hi)
-{
+double performance(vector<Rating> ratings, int id, int lo, int hi) {
     int N = ratings.size();
     assert(0 <= lo && lo <= id && id <= hi && hi <= N-1);
     double offset = 0;
@@ -69,69 +64,44 @@ double performance(vector<Rating> ratings, int id, int lo, int hi)
     return robustMean(ratings, offset);
 }
 
-struct Player
-{
+struct Player {
     vector<Rating> perfs;
     Rating strongPrior; // future optimization: if perfs gets too long, merge results into strongPrior
     Rating posterior;
     int prevRating, maxRating, prevContest;
+    
     // apply noise to one variable for which we have many estimates
-    void add_noise_uniform()
-    {
+    void add_noise_uniform() {
         double decay = sqrt(1.0 + sig_noise*sig_noise/posterior.sig/posterior.sig);
         strongPrior.sig *= decay;
         for (Rating& r : perfs)
             r.sig *= decay;
     }
-    void updatePosterior()
-    {
+    
+    void updatePosterior() {
         double sigInvSq = 1.0 / strongPrior.sig / strongPrior.sig;
         double mu = robustMean(perfs, -strongPrior.mu*sigInvSq, sigInvSq);
         for (const Rating& r : perfs)
             sigInvSq += 1.0 / r.sig / r.sig;
         posterior = Rating(mu, 1.0 / sqrt(sigInvSq));
     }
-    int conservativeRating() const // displayed rating
-    {
+    
+    int conservativeRating() const // displayed rating {
         return int(posterior.mu - 2*(posterior.sig - sig_limit) + 0.5);
     }
     Player() : maxRating(0), strongPrior(1500,sig_newbie), posterior(1500,sig_newbie) { }
 };
-
-/*bool is_individual(int roundNum)
-{
-    stringstream ssFileName;
-    ssFileName << "Standings2/" << roundNum << ".txt";
-    ifstream standingsFile;
-    standingsFile.open(ssFileName.str());
-    
-    int N;
-    standingsFile >> N;
-    
-    string line;
-    bool valid = true;
-    getline(standingsFile, line);
-    for (int i = 0; i < N; ++i)
-    {
-        getline(standingsFile, line);
-        valid &= count(line.begin(), line.end(), ' ') == 2;
-    }
-    if (!valid) cerr << "INVALIDATING Codeforces Round " << roundNum << endl;
-    return valid;
-}*/
 
 void simulateCodeforcesHistory()
 {
     map<string, Player> players;
 
     // 2011 ends at round 139, 2013 ends at round 379, 2015 ends at round 612
-    for (int roundNum : contests)
-    {
+    for (int roundNum : contests) {
         // read the standings
         stringstream ssFileName;
         ssFileName << "../standings/" << roundNum << ".txt";
-        ifstream standingsFile;
-        standingsFile.open(ssFileName.str());
+        ifstream standingsFile(ssFileName.str());
         int N; string title;
         standingsFile >> N;
         getline(standingsFile, title);
@@ -142,8 +112,7 @@ void simulateCodeforcesHistory()
         vector<int> lo(N), hi(N);
         vector<Rating> compRatings;
         compRatings.reserve(N);
-        for (int i = 0; i < N; ++i)
-        {
+        for (int i = 0; i < N; ++i) {
             standingsFile >> names[i] >> lo[i] >> hi[i];
             --lo[i]; --hi[i];
 
@@ -155,8 +124,7 @@ void simulateCodeforcesHistory()
         standingsFile.close();
 
         // begin rating updates
-        for (int i = 0; i < N; ++i)
-        {
+        for (int i = 0; i < N; ++i) {
             Player& player = players[names[i]];
             player.add_noise_uniform();
 
@@ -173,8 +141,7 @@ void simulateCodeforcesHistory()
     // output the result
     double sumRatings = 0;
     vector<tuple<int,string,int,int,int,int> > conservativeRatings;
-    for (pair<const string,Player>& entry : players)
-    {
+    for (pair<const string,Player>& entry : players) {
         Player& player = entry.second;
         Rating& r = player.posterior;
         conservativeRatings.push_back(make_tuple(player.conservativeRating(), entry.first,
@@ -187,18 +154,16 @@ void simulateCodeforcesHistory()
 
     array<int,NUM_TITLES> titleCount = {};
     int titleID = NUM_TITLES - 1;
-    for (tuple<int,string,int,int,int,int>& entry: conservativeRatings)
-    {
-        while (get<0>(entry) < bounds[titleID])
+    for (tuple<int,string,int,int,int,int>& entry: conservativeRatings) {
+        while (get<0>(entry) < bounds[titleID]) {
             --titleID;
+        }
         ++titleCount[titleID];
     }
-    for (titleID = NUM_TITLES - 1; titleID >= 0; --titleID)
-    {
+    for (titleID = NUM_TITLES - 1; titleID >= 0; --titleID) {
         cout << bounds[titleID] << " " << titles[titleID] << " x " << titleCount[titleID] << endl;
     }
-    for (tuple<int,string,int,int,int,int>& entry: conservativeRatings)
-    {
+    for (tuple<int,string,int,int,int,int>& entry: conservativeRatings) {
         int delta = get<0>(entry) - get<3>(entry);
         cout << setw(4) << get<0>(entry) << "(";
         cout << setw(4) << get<2>(entry) << ")";
@@ -209,19 +174,16 @@ void simulateCodeforcesHistory()
     }
 }
 
-void testRobustness()
-{
+void testRobustness() {
     Player player;
-    for (int i = 0; i < 1000; ++i)
-    {
+    for (int i = 0; i < 1000; ++i) {
         player.add_noise_uniform();
         player.perfs.emplace_back(1000, sig_perf);
         player.updatePosterior();
     }
     double mean = 1000;
     double w = (sig_limit*sig_limit + sig_noise*sig_noise) / (sig_limit*sig_limit + sig_noise*sig_noise + sig_perf*sig_perf);
-    for (int i = 0; i < 31; ++i)
-    {
+    for (int i = 0; i < 31; ++i) {
         cout << int(mean+0.5) << ",";
         //cout << i << ' ' << player.conservativeRating() << endl;
         mean += w * (3000 - mean);
