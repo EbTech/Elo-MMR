@@ -68,22 +68,33 @@ def save_contest_standings(contests, directory):
                 standings.append((handle, rank))
                 tie_intervals[rank] = r
         
-        with open(f"{directory}/{contest}.txt","w+") as standings_file:
+        with open(f"{directory}/{contest}.txt", "w+") as standings_file:
             standings_file.write(f"{len(standings)} {title}\n")
             for handle, rank in standings:
                 standings_file.write(f"{handle} {rank} {tie_intervals[rank]}\n")
         print(f"Standings saved to {contest}.txt")
 
+def save_contests(contests, file):
+    with open(file, "w+") as contests_file:
+        contests_file.write(f"{len(contests)}\n")
+        for contest in contests:
+            contests_file.write(f"{contest}\n")
+    print(f"List of contests saved to {file}")
+
+def get_contests(file):
+    contests_file = open(file, 'r')
+    return [int(contest) for contest in contests_file][1:]
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--pages', type=int, default=12,
+    parser.add_argument('--pages', type=int, default=1,
                         help='Number of pages of users whose histories to search.')
 
     args = parser.parse_args()
     
-    from rated_contests import all_contests
-    #contests = get_rated_contests(args.pages)
-    #save_contest_standings(all_contests, "../standings")
+    # all_contests = get_contests("../data/all_contests.txt")
+    contests = get_rated_contests(args.pages)
+    save_contest_standings(contests, "../standings")
 
