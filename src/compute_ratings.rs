@@ -6,12 +6,13 @@ use std::fs::File;
 use std::io;
 use std::str;
 
-const NUM_TITLES: usize = 10;
-const TITLE_BOUND: [i32; NUM_TITLES] = [-999,1000,1250,1500,1750,2000,2150,2300,2500,2800];
-const TITLE: [&str; NUM_TITLES] = ["Ne","Pu","Sp","Ex","CM","Ma","IM","GM","IG","LG"];
+const NUM_TITLES: usize = 11;
+const TITLE_BOUND: [i32; NUM_TITLES] = [-999,1000,1200,1400,1600,1800,2000,2150,2300,2500,2800];
+const TITLE: [&str; NUM_TITLES] = ["Ne","Pu","Ap","Sp","Ex","CM","Ma","IM","GM","IG","LG"];
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
+const SIX_MONTHS_AGO: usize = 1100;
 
 struct Scanner<R> {
     reader: R,
@@ -67,7 +68,7 @@ fn get_contests() -> Vec<usize> {
     }
     
     assert_eq!(team_contests.len(), 17);
-    assert_eq!(solo_contests.len(), 910);
+    assert_eq!(solo_contests.len(), 912);
     solo_contests
 }
 
@@ -173,8 +174,8 @@ fn simulate_contest(players: &mut HashMap<String, Player>, contest: usize) {
     let filename = format!("../standings/{}.txt", contest);
     let mut scan = scanner_from_file(&filename);
     let num_contestants = scan.token::<usize>();
-    scan.buf_iter.all(|_| true);
-    println!("Processing contest {} with {} rated contestants...", contest, num_contestants);
+    let title = scan.buf_iter.by_ref().collect::<Vec<_>>().join(" ");
+    println!("Processing {} contestants in contest/{}: {}", num_contestants, contest, title);
     
     let mut results = Vec::with_capacity(num_contestants);
     let mut all_ratings = Vec::with_capacity(num_contestants + 1);
@@ -216,7 +217,9 @@ struct RatingData {
 
 fn print_ratings(players: &HashMap<String, Player>) {
     use io::Write;
-    let mut out = writer_to_file("../data/CFratings.txt");
+    let mut out = writer_to_file("../data/CFratings_temp.txt");
+    let recent_contests: HashSet<usize> = get_contests().into_iter()
+                         .skip_while(|&i| i != SIX_MONTHS_AGO).collect();
     
     let mut sum_ratings = 0.0;
     let mut rating_data = Vec::with_capacity(players.len());
@@ -235,11 +238,13 @@ fn print_ratings(players: &HashMap<String, Player>) {
             handle,
             last_contest,
             last_perf,
-            last_delta
+            last_delta,
         });
         
-        if let Some(title_id) = (0..NUM_TITLES).rev().find(|&i| cur_rating >= TITLE_BOUND[i]) {
-            title_count[title_id] += 1;
+        if recent_contests.contains(&last_contest) {
+            if let Some(title_id) = (0..NUM_TITLES).rev().find(|&i| cur_rating >= TITLE_BOUND[i]) {
+                title_count[title_id] += 1;
+            }
         }
     }
     rating_data.sort_unstable_by_key(|data| -data.cur_rating);
@@ -250,8 +255,15 @@ fn print_ratings(players: &HashMap<String, Player>) {
         writeln!(out, "{} {} x {}", TITLE_BOUND[i], TITLE[i], title_count[i]).ok();
     }
     
+    let mut rank = 0;
     for data in rating_data {
-        write!(out, "{:4}({:4})", data.cur_rating, data.max_rating).ok();
+        if recent_contests.contains(&data.last_contest) {
+            rank += 1;
+            write!(out, "{:6}", rank).ok();
+        } else {
+            write!(out, "{:>6}", "-").ok();
+        }
+        write!(out, " {:4}({:4})", data.cur_rating, data.max_rating).ok();
         write!(out, " {:<26}contest/{:4}: ", data.handle, data.last_contest).ok();
         writeln!(out, "perf ={:5}, delta ={:4}", data.last_perf, data.last_delta).ok();
     }

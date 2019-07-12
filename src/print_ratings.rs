@@ -11,9 +11,9 @@ fn main() {
     let buf_file = io::BufReader::new(file);
 
     for line in buf_file.lines().map(|l| l.expect("Failed file read")) {
-        if &line[4..5] == "(" {
-            let rating = line[0..4].trim().to_owned();
-            let handle = line[10..34].trim().to_owned();
+        if &line[11..12] == "(" {
+            let rating = line[7..11].trim().to_owned();
+            let handle = line[17..41].trim().to_owned();
             ratings.insert(handle, rating);
         }
     }
