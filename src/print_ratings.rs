@@ -21,8 +21,8 @@ fn main() {
     let (stdin, stdout) = (io::stdin(), io::stdout());
     let mut out = io::BufWriter::new(stdout.lock());
     for handle in stdin.lock().lines().map(|l| l.expect("Failed stdin read")) {
-	    if handle == "QUIT" {
-		    break;
+	    if handle == "FLUSH" {
+		    out.flush().ok();
 	    }
         let rating = ratings.get(&handle).map(|r| r.as_str()).unwrap_or("");
         writeln!(out, "{}", rating).ok();

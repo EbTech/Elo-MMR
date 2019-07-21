@@ -8,7 +8,7 @@
 \usepackage{verbatim}
 \usepackage{tabularx}
 \usepackage{graphicx}
-\usepackage{bbm} % just for the indicator variable \mathbbm{1}
+\usepackage{amsfonts} % just for the indicator variable \mathbb{I}
 
 \title{Elo-R Competition Rating System}
 \author{Aram Ebtekar}
@@ -18,6 +18,10 @@
 \maketitle
 
 \section{Introduction}
+
+This paper describes the Elo-R rating system, designed for use in programming competitions. In Section 1, we derive the algorithm from Bayesian first principles, as an approximate posterior belief distribution. In Section 2, we justify the algorithm by more intuitive means. We ultimately end up with exactly the same algorithm, so the reader who is less interested in theoretical justifications may skip directly to Section 2.
+
+The "R" in the name may stand for "Ranked", as it operates on game outcomes given as a rank-ordered list of players; or it may stand for "Robust", as the system is designed to be robust to outlier performances, like someone having an off day.
 
 Competitions, in the form of sports, games and examinations, have been with us since antiquity. Whether the purpose is entertainment, training, or selection for a particular role, contestants and spectators alike are interested in estimating the relative skills of contestants. Various competition formats, such as tournaments, exist to declare a champion. However, we may be interested in comparing players who rarely, if ever, play directly against one another. When there is substantial variance in a player's performance, we may be interested in an aggregate estimate of skill based on the player's entire history of games.
 
@@ -83,7 +87,7 @@ Now we derive the rating algorithm in full, beginning with a Bayesian model. If 
 r_i = \arg\max_{s_i} f(s_i\mid e)
 \end{align}
 
-\begin{center} \includegraphics[scale=0.35]{images/HMMlabeled.png} \end{center}
+\begin{center} \includegraphics[scale=0.35]{../images/HMMlabeled.png} \end{center}
 
 Our model is essentially a Hidden Markov process. The above figure illustrates a slice of the causal network corresponding to a match with two participants; the match itself is bounded by gray lines, with a few predecessor and successor nodes included for clarity. Each player $i$ performs at level $p_i$, drawn independently from a logistic distribution centered at $s_i$. The values of $s_i$ and $p_i$ are hidden. The observable evidence $e$ is a ranking of all the $p_i$s, i.e., a total ordering of the players based on their performances: $i$ outranks $j$, written $i \succ j$, iff $p_i > p_j$. In the two-player example, this simply tells us which player won. Note that we discard additional information about player scores, which are difficult to model and depend heavily on the specifics of the contest.
 
@@ -132,7 +136,7 @@ C + \ln f(p_i\mid e) &= \ln f(p_i) + \ln \Pr(e\mid p_i)
 
 To maximize this expression, differentiate it w.r.t. $p_i$, divide by 2 and set to zero:
 \begin{align}
-0 &= \frac{1}{\delta_i}\left(1 - \frac {2e^{2(p_i-r_i)/\delta_i}} {1 + e^{2(p_i-r_i)/\delta_i}} \right) + \sum_{j\neq i}\frac{1}{\delta_j}\left(\mathbbm{1}(j\prec i) - \frac {e^{2(p_i-r_j)/\delta_j}} {1 + e^{2(p_i-r_j)/\delta_j}} \right)
+0 &= \frac{1}{\delta_i}\left(1 - \frac {2e^{2(p_i-r_i)/\delta_i}} {1 + e^{2(p_i-r_i)/\delta_i}} \right) + \sum_{j\neq i}\frac{1}{\delta_j}\left(\mathbb{I}(j\prec i) - \frac {e^{2(p_i-r_j)/\delta_j}} {1 + e^{2(p_i-r_j)/\delta_j}} \right)
 \\&= \sum_{j\preceq i}\frac{1}{\delta_j}\left(\frac {1} {1 + e^{2(p_i-r_j)/\delta_j}} \right)
 	- \sum_{j\succeq i}\frac{1}{\delta_j}\left(\frac {e^{2(p_i-r_j)/\delta_j}} {1 + e^{2(p_i-r_j)/\delta_j}} \right)
 \\&\propto \sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r_j} {\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r_j} {\delta_j} + 1 \right)
@@ -259,7 +263,7 @@ Imagine a player who performs very consistently over a long period of time, repe
 
 How does each rating system respond to the first such surprise occurrence? Elo-R treats the new result as a fluke, an outlier that ought to be ignored. The player gains 48 points; as a result of the parameters we set, this is the maximum possible for an experienced player as $p_i \rightarrow \infty$. In practice, ratings may change by more than 48, as the maximum depends on existing fluctuations in their history; here we're looking at the extreme example of a player with a history of always performing at exactly $p_i = 1000$.
 
-\begin{center} \includegraphics[scale=0.5]{images/ResponsePlot.png} \end{center}
+\begin{center} \includegraphics[scale=0.5]{../images/ResponsePlot.png} \end{center}
 
 Had we tried to perform outlier reduction in a memoryless fashion, we would continue to increase the rating by 48 per match, oblivious to the possibility that the player truly did experience a sudden improvement. In Elo-R, the outlier status of a performance is treated as tentative. If later matches support the hypothesis of having improved, the rating will increase by an additional 63 points, followed by over 100 points in each of the third and following matches, as plotted by the blue curve above.
 
