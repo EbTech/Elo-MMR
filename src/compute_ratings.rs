@@ -7,7 +7,7 @@ use std::io;
 use std::str;
 
 const NUM_TITLES: usize = 11;
-const TITLE_BOUND: [i32; NUM_TITLES] = [-999,1000,1200,1400,1600,1800,2000,2150,2300,2500,2800];
+const TITLE_BOUND: [i32; NUM_TITLES] = [-999,1000,1200,1400,1600,1800,2000,2200,2400,2700,3000];
 const TITLE: [&str; NUM_TITLES] = ["Ne","Pu","Ap","Sp","Ex","CM","Ma","IM","GM","IG","LG"];
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
