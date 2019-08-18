@@ -12,7 +12,7 @@ const TITLE: [&str; NUM_TITLES] = ["Ne","Pu","Ap","Sp","Ex","CM","Ma","IM","GM",
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
-const SIX_MONTHS_AGO: usize = 1107;
+const SIX_MONTHS_AGO: usize = 1131;
 
 struct Scanner<R> {
     reader: R,
@@ -68,7 +68,7 @@ fn get_contests() -> Vec<usize> {
     }
     
     assert_eq!(team_contests.len(), 17);
-    assert_eq!(solo_contests.len(), 917);
+    assert_eq!(solo_contests.len(), 925);
     solo_contests
 }
 

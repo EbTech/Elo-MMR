@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     
-    # contests = get_rated_contests(args.pages)
-    contests = get_contests("../data/all_contests.txt")[-2:]
+    contests = get_rated_contests(args.pages)[-3:]
+    # contests = get_contests("../data/all_contests.txt")[-2:]
     save_contest_standings(contests, "../standings")
 
