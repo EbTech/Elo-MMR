@@ -68,7 +68,7 @@ fn get_contests() -> Vec<usize> {
     }
     
     assert_eq!(team_contests.len(), 17);
-    assert_eq!(solo_contests.len(), 925);
+    assert_eq!(solo_contests.len(), 948);
     solo_contests
 }
 
