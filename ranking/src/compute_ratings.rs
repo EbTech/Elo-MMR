@@ -1,5 +1,6 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
+use rayon::prelude::*;
 use std::cmp::max;
 use std::collections::{VecDeque, HashSet, HashMap};
 use std::fs::File;
@@ -22,7 +23,7 @@ struct Scanner<R> {
 
 impl<R: io::BufRead> Scanner<R> {
     fn new(reader: R) -> Self {
-        Self { reader, buf_str: Vec::new(), buf_iter: "".split_ascii_whitespace() }
+        Self { reader, buf_str: vec![], buf_iter: "".split_ascii_whitespace() }
     }
     fn token<T: str::FromStr>(&mut self) -> T {
         loop {
@@ -49,7 +50,7 @@ fn writer_to_file(filename: &str) -> io::BufWriter<std::fs::File> {
     io::BufWriter::new(file)
 }
 
-fn get_contests() -> Vec<usize> {
+pub fn get_contests() -> Vec<usize> {
     let mut team_contests = HashSet::new();
     let mut solo_contests = Vec::new();
     
@@ -72,6 +73,22 @@ fn get_contests() -> Vec<usize> {
     solo_contests
 }
 
+fn read_results(contest: usize) -> (String, Vec<(String, usize, usize)>) {
+    let filename = format!("../standings/{}.txt", contest);
+    let mut scan = scanner_from_file(&filename);
+    let num_contestants = scan.token::<usize>();
+    let title = scan.buf_iter.by_ref().collect::<Vec<_>>().join(" ");
+    let results: Vec<(String, usize, usize)> = (0..num_contestants).map(|i| {
+        let handle = scan.token::<String>();
+        let rank_lo = scan.token::<usize>() - 1;
+        let rank_hi = scan.token::<usize>() - 1;
+        assert!(rank_lo <= i && i <= rank_hi && rank_hi < num_contestants);
+        (handle, rank_lo, rank_hi)
+    }).collect();
+
+    (title, results)
+}
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 struct Rating {
     mu: f64,
@@ -87,8 +104,8 @@ impl Default for Rating {
     }
 }
 
-#[derive(Default)]
-struct Player {
+#[derive(Default, Clone)]
+pub struct Player {
     normal_factor: Rating,
     logistic_factors: VecDeque<Rating>,
     approx_posterior: Rating,
@@ -115,7 +132,7 @@ impl Player {
     fn recompute_posterior(&mut self) {
         let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
         let logistic_vec = self.logistic_factors.iter().cloned().collect::<Vec<_>>();
-        let mu = robust_mean(&logistic_vec, -self.normal_factor.mu*sig_inv_sq, sig_inv_sq);
+        let mu = robust_mean(&logistic_vec, None, -self.normal_factor.mu*sig_inv_sq, sig_inv_sq);
         for &factor in &self.logistic_factors {
             sig_inv_sq += factor.sig.powi(-2);
         }
@@ -143,12 +160,12 @@ impl Player {
 
 // returns something near the mean if the ratings are consistent; near the median if they're far apart
 // offC and offM are constant and slope offsets, respectively
-fn robust_mean(all_ratings: &[Rating], off_c: f64, off_m: f64) -> f64 {
+fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: f64) -> f64 {
     let (mut lo, mut hi) = (-1000.0, 4500.0);
     while hi - lo > 1e-9 {
         let mid = 0.5 * (lo + hi);
         let mut sum = off_c + off_m * mid;
-        for &rating in all_ratings {
+        for &rating in all_ratings.iter().chain(extra.map(|i| &all_ratings[i])) {
             sum += ((mid - rating.mu) / rating.sig).tanh() / rating.sig;
         }
         if sum > 0.0 {
@@ -162,48 +179,43 @@ fn robust_mean(all_ratings: &[Rating], off_c: f64, off_m: f64) -> f64 {
 
 // ratings is a list of the participants, ordered from first to last place
 // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-fn performance(better: &[Rating], worse: &[Rating], all: &[Rating]) -> f64 {
+fn performance(better: &[Rating], worse: &[Rating], all: &[Rating], extra: Option<usize>) -> f64 {
     let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
     let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
-    robust_mean(all, pos_offset - neg_offset, 0.0)
+    robust_mean(all, extra, pos_offset - neg_offset, 0.0)
 }
 
-fn simulate_contest(players: &mut HashMap<String, Player>, contest: usize) {
+pub fn simulate_contest(players: &mut HashMap<String, Player>, contest: usize) {
     let sig_noise = ( (SIG_LIMIT.powi(-2) - SIG_PERF.powi(-2)).recip() - SIG_LIMIT.powi(2) ).sqrt();
     
-    let filename = format!("../standings/{}.txt", contest);
-    let mut scan = scanner_from_file(&filename);
-    let num_contestants = scan.token::<usize>();
-    let title = scan.buf_iter.by_ref().collect::<Vec<_>>().join(" ");
-    println!("Processing {} contestants in contest/{}: {}", num_contestants, contest, title);
-    
-    let mut results = Vec::with_capacity(num_contestants);
-    let mut all_ratings = Vec::with_capacity(num_contestants + 1);
-    for _ in 0..num_contestants {
-        let handle = scan.token::<String>();
-        let rank_lo = scan.token::<usize>() - 1;
-        let rank_hi = scan.token::<usize>() - 1;
-        results.push((handle.clone(), rank_lo, rank_hi));
-        
-        let player = players.entry(handle).or_default();
+    let (title, results) = read_results(contest);
+    println!("Processing {} contestants in contest/{}: {}", results.len(), contest, title);
+
+    let mut players_copy: Vec<Player> = results.par_iter().map(|&(ref handle, _, _)| {
+        players.get(handle).cloned().unwrap_or_default()
+    }).collect();
+
+    let all_ratings: Vec<Rating> = players_copy.par_iter_mut().map(|player| {
         player.add_noise_uniform(sig_noise);
         let rating = player.approx_posterior;
-        all_ratings.push(Rating { mu: rating.mu, sig: rating.sig.hypot(SIG_PERF)  } );
-    }
+        Rating { mu: rating.mu, sig: rating.sig.hypot(SIG_PERF)  }
+    }).collect();
     
     // begin rating updates
-    for (i, (handle, lo, hi)) in results.into_iter().enumerate() {
-        assert!(lo <= i && i <= hi && hi < num_contestants);
-        let extra_rating = all_ratings[i];
-        all_ratings.push(extra_rating);
-        let perf = performance(&all_ratings[0..lo], &all_ratings[hi+1..num_contestants], &all_ratings);
-        all_ratings.pop();
+    players_copy.par_iter_mut().enumerate().for_each(|(i, player)| {
+        let (_, lo, hi) = results[i];
         
-        let player = players.get_mut(&handle).expect("Couldn't find player");
+        let perf = performance(&all_ratings[..lo],
+                               &all_ratings[hi+1..],
+                               &all_ratings, Some(i));
         player.add_performance(perf);
         player.last_contest = contest;
-    }
+    });
     // end rating updates
+ 
+    for ((handle, _, _), player) in results.into_iter().zip(players_copy) {
+        players.insert(handle, player);
+    }
 }
 
 struct RatingData {
@@ -215,7 +227,7 @@ struct RatingData {
     last_delta: i32,
 }
 
-fn print_ratings(players: &HashMap<String, Player>) {
+pub fn print_ratings(players: &HashMap<String, Player>) {
     use io::Write;
     let mut out = writer_to_file("../data/CFratings_temp.txt");
     let recent_contests: HashSet<usize> = get_contests().into_iter()
@@ -224,7 +236,7 @@ fn print_ratings(players: &HashMap<String, Player>) {
     let mut sum_ratings = 0.0;
     let mut rating_data = Vec::with_capacity(players.len());
     let mut title_count = vec![0; NUM_TITLES];
-    for (handle, player) in players {
+    for (handle, player) in players { // non-determinism comes from ordering of players
         sum_ratings += player.approx_posterior.mu;
         let cur_rating = player.conservative_rating();
         let max_rating = player.max_rating;
@@ -267,13 +279,4 @@ fn print_ratings(players: &HashMap<String, Player>) {
         write!(out, " {:<26}contest/{:4}: ", data.handle, data.last_contest).ok();
         writeln!(out, "perf ={:5}, delta ={:4}", data.last_perf, data.last_delta).ok();
     }
-}
-
-fn main() {
-    // simulates the entire history of Codeforces, runs on my laptop in two hours
-    let mut players = HashMap::<String, Player>::new();
-    for contest in get_contests() {
-        simulate_contest(&mut players, contest);
-    }
-    print_ratings(&players);
 }
