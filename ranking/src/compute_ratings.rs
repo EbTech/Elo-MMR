@@ -10,9 +10,10 @@ use std::str;
 const NUM_TITLES: usize = 11;
 const TITLE_BOUND: [i32; NUM_TITLES] = [-999,1000,1200,1400,1600,1800,2000,2200,2400,2700,3000];
 const TITLE: [&str; NUM_TITLES] = ["Ne","Pu","Ap","Sp","Ex","CM","Ma","IM","GM","IG","LG"];
+const MU_NEWBIE: f64 = 1500.0; // rating for a new player
+const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
-const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
 const SIX_MONTHS_AGO: usize = 1131;
 
 struct Scanner<R> {
@@ -78,11 +79,15 @@ fn read_results(contest: usize) -> (String, Vec<(String, usize, usize)>) {
     let mut scan = scanner_from_file(&filename);
     let num_contestants = scan.token::<usize>();
     let title = scan.buf_iter.by_ref().collect::<Vec<_>>().join(" ");
+
+    let mut seen_handles = HashSet::with_capacity(num_contestants);
     let results: Vec<(String, usize, usize)> = (0..num_contestants).map(|i| {
         let handle = scan.token::<String>();
         let rank_lo = scan.token::<usize>() - 1;
         let rank_hi = scan.token::<usize>() - 1;
+
         assert!(rank_lo <= i && i <= rank_hi && rank_hi < num_contestants);
+        assert!(seen_handles.insert(handle.clone()));
         (handle, rank_lo, rank_hi)
     }).collect();
 
@@ -98,7 +103,7 @@ struct Rating {
 impl Default for Rating {
     fn default() -> Self {
         Rating {
-            mu: 1500.0,
+            mu: MU_NEWBIE,
             sig: SIG_NEWBIE,
         }
     }
@@ -158,23 +163,31 @@ impl Player {
     }
 }
 
-// returns something near the mean if the ratings are consistent; near the median if they're far apart
-// offC and offM are constant and slope offsets, respectively
+// Teturns something near the mean if the ratings are consistent; near the median if they're far apart.
+// offC and offM are constant and slope offsets, respectively. Uses a hybrid of binary search
+// (to converge in the worst-case) and Newton's method (for speed in the typical case).
 fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: f64) -> f64 {
-    let (mut lo, mut hi) = (-1000.0, 4500.0);
-    while hi - lo > 1e-9 {
-        let mid = 0.5 * (lo + hi);
-        let mut sum = off_c + off_m * mid;
+    let mut guess = MU_NEWBIE;
+    let mut max_delta = 1024.0;
+    loop {
+        let mut sum = off_c + off_m * guess;
+        let mut sum_prime = off_m;
         for &rating in all_ratings.iter().chain(extra.map(|i| &all_ratings[i])) {
-            sum += ((mid - rating.mu) / rating.sig).tanh() / rating.sig;
+            let incr = ((guess - rating.mu) / rating.sig).tanh() / rating.sig;
+            sum += incr;
+            sum_prime += rating.sig.powi(-2) - incr * incr
         }
-        if sum > 0.0 {
-            hi = mid;
-        } else {
-            lo = mid;
+        let decr = (sum / sum_prime).max(-max_delta).min(max_delta);
+        guess -= decr;
+        if sum.abs() < 1e-12 {
+            return guess;
+        }
+
+        max_delta *= 0.75;
+        if max_delta < 1e-9 {
+            println!("SLOW CONVERGENCE: g={} s={} s'={} d={}", guess, sum, sum_prime, decr);
         }
     }
-    0.5 * (lo + hi)
 }
 
 // ratings is a list of the participants, ordered from first to last place
@@ -185,24 +198,36 @@ fn performance(better: &[Rating], worse: &[Rating], all: &[Rating], extra: Optio
     robust_mean(all, extra, pos_offset - neg_offset, 0.0)
 }
 
+pub fn get_players_by_ref_mut<'a>(players: &'a mut HashMap<String, Player>,
+                                  results: &[(String,usize,usize)]) -> Vec<&'a mut Player> {
+    // Make sure the players exist, initializing with a default rating if necessary.
+    results.iter().for_each(|&(ref handle, _, _)| {
+        players.entry(handle.clone()).or_default();
+    });
+
+    // Produce mut references to all the requested players. The handles MUST be distinct.
+    results.iter().map(|&(ref handle, _, _)| {
+        let player = players.get_mut(handle).unwrap() as *mut _;
+        unsafe { &mut *player }
+    }).collect()
+}
+
 pub fn simulate_contest(players: &mut HashMap<String, Player>, contest: usize) {
     let sig_noise = ( (SIG_LIMIT.powi(-2) - SIG_PERF.powi(-2)).recip() - SIG_LIMIT.powi(2) ).sqrt();
     
     let (title, results) = read_results(contest);
     println!("Processing {} contestants in contest/{}: {}", results.len(), contest, title);
 
-    let mut players_copy: Vec<Player> = results.par_iter().map(|&(ref handle, _, _)| {
-        players.get(handle).cloned().unwrap_or_default()
-    }).collect();
+    let mut players_ref = get_players_by_ref_mut(players, &results);
 
-    let all_ratings: Vec<Rating> = players_copy.par_iter_mut().map(|player| {
+    let all_ratings: Vec<Rating> = players_ref.par_iter_mut().map(|player| {
         player.add_noise_uniform(sig_noise);
         let rating = player.approx_posterior;
         Rating { mu: rating.mu, sig: rating.sig.hypot(SIG_PERF)  }
     }).collect();
     
-    // begin rating updates
-    players_copy.par_iter_mut().enumerate().for_each(|(i, player)| {
+    // The computational bottleneck is the ratings updates here
+    players_ref.par_iter_mut().enumerate().for_each(|(i, player)| {
         let (_, lo, hi) = results[i];
         
         let perf = performance(&all_ratings[..lo],
@@ -211,11 +236,6 @@ pub fn simulate_contest(players: &mut HashMap<String, Player>, contest: usize) {
         player.add_performance(perf);
         player.last_contest = contest;
     });
-    // end rating updates
- 
-    for ((handle, _, _), player) in results.into_iter().zip(players_copy) {
-        players.insert(handle, player);
-    }
 }
 
 struct RatingData {
