@@ -1,7 +1,7 @@
 44 CROC 2016 - Final Round [Private, For Onsite Finalists Only]
 tourist 1 1
 vepifanov 2 2
-AlexDmitriev 3 3
+riadwaw 3 3
 PavelKunyavskiy 4 4
 Merkurev 5 5
 VArtem 6 6
@@ -19,8 +19,8 @@ Arterm 17 17
 Zlobober 18 18
 Edvard 19 20
 Kostroma 19 20
-Um_nik 21 22
 savinov 21 22
+Um_nik 21 22
 Kaban-5 23 23
 darnley 24 24
 aid 25 25

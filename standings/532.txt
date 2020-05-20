@@ -24,8 +24,8 @@ Tarjan 22 22
 Random Heroes 23 23
 Moscow SU Trinity 24 25
 abacaba*0.(6) 24 25
-Billy Bones 26 27
 Hexaraccoon 26 27
+Billy Bones 26 27
 Yet Another Team 28 28
 BananaIsBack 29 29
 Frozen Heart 30 30
@@ -37,8 +37,8 @@ Dream Team #322 35 35
 Ural FU Dandelion 36 36
 Two is odder than three 37 37
 stansilav 38 38
-MIPT: Nom@ds 39 40
 true pain 39 40
+MIPT: Nom@ds 39 40
 SPbSU Trawa 41 41
 2 unusual 42 42
 Phantom Menace Lite 43 43
@@ -101,8 +101,8 @@ Kant FU 99 99
 Johny Drop table! 100 100
 Technosphere@Mail.ru 101 101
 C++ vs Java 102 104
-nabz 102 104
 Cupcakes 102 104
+nabz 102 104
 Taurida NU: tyamgin 105 105
 SSU 42 106 106
 Букард кодерс 107 107
@@ -119,22 +119,22 @@ bayesian conspiracy 117 117
 Moscow SU: Codehorses 118 118
 Topspin 119 119
 Participants 120 120
-Cup-cup 121 122
 FedyuninV 121 122
-Hellish Coders 123 124
+Cup-cup 121 122
 NArFU 123 124
+Hellish Coders 123 124
 Культурная столица 125 125
 fml31-ad 126 126
 Dry rice 127 127
 Lobster and Capybara 128 128
 Понтовый пирожок 129 129
 DM 130 130
-Samal Zhel 131 132
 Ruby_coders 131 132
+Samal Zhel 131 132
 AUA: entrepreneurs 133 133
 Healthy person team 134 134
-Tomsk PU: Lion 135 136
 DroppingOutIsOk 135 136
+Tomsk PU: Lion 135 136
 Foxes 137 137
 Taurida NU: Golden Darkness 138 138
 PhTS + AG 139 139
@@ -160,8 +160,8 @@ Kunkka_and_Tide 158 158
 Beaver 2.28 159 159
 Pickled Cabbage 160 160
 HSE.random.sample 161 161
-no_fantasy 162 163
 Ulyanovsk STU: Батюшки 162 163
+no_fantasy 162 163
 Dead Locks Society 164 164
 UA Баклажаны 165 165
 MEMES 166 166
@@ -182,21 +182,21 @@ ITMO University - 6 180 180
 Go to pub 181 182
 Balls of wrath 181 182
 Annbelov_team 183 183
-Andrey Nefedov and Sergey Sidorov 184 185
 SpumoteTeam 184 185
-Belarus Team 186 187
+Andrey Nefedov and Sergey Sidorov 184 185
 2007  MCL: Eva 186 187
+Belarus Team 186 187
 Никитух 188 188
 ZAEDU 189 189
-Саратовский ГУ 190 191
 Society 190 191
+Саратовский ГУ 190 191
 Friendship Is A Magic 192 192
 KPTeam 193 193
 Karma_police 194 194
 DI 195 195
 АлтГТУ10 196 196
-Свирепые еноты 197 198
 Asleep coders 197 198
+Свирепые еноты 197 198
 Kafka 199 199
 Ex abrupto 200 200
 Everything is blurry... What i...is there ice all around me? 201 201
@@ -206,8 +206,8 @@ Pskov SU 17 204 204
 Chaos 205 205
 NU: Black Kex 206 206
 Pavel Durov 207 209
-Мы прошли 207 209
 azazaza 207 209
+Мы прошли 207 209
 Novosibirsk SU: CONSTeam 210 210
 Ne Geksui 211 211
 Belarusian SU: Dugu Taki 212 212
@@ -215,14 +215,14 @@ Paranoid Android 213 213
 Сebuka 214 214
 ПсковГУ: мистер Лебовски 215 215
 Sad_team 216 216
-Ice Tea 217 219
 Stibadium 217 219
 A+B 217 219
+Ice Tea 217 219
 Dumb and Dumber 220 220
 sorry_Frozen_Heart 221 222
 ALPHA 221 222
-Surrender at 20 223 224
 L64 223 224
+Surrender at 20 223 224
 Без зелёного не торт. 225 225
 WARDENCLYFFE 226 226
 Mikuru beam 227 227
@@ -243,23 +243,23 @@ bakurits 241 242
 Tatiana Borisova 241 242
 Tomsk PU: Do submit, will be accepted! 243 243
 HamBalls 244 244
-Criterion 245 246
 OneTwoThree 245 246
+Criterion 245 246
 alone 247 249
 Прикарпатский НУ 247 249
 Botan and FishKOH 247 249
 Motherlovers 250 250
 Bitsulya 251 251
-MSHRC 252 253
 MSU StarPers 252 253
+MSHRC 252 253
 Experimental 254 254
 Moscow SU: P2X 255 255
 Тюменский ГУ 1.5 256 256
 Morituri 257 257
 Rumter 258 258
 Rote Armee Fraktion 259 259
-Ilya 260 261
 Tshirtland SU: Footbolkaholics 260 261
+Ilya 260 261
 MaxIM 262 262
 ITMO University: CodeSharks 263 263
 untitled.cpp 264 264
@@ -294,9 +294,9 @@ osu 292 292
 Moscow SU Nrise 293 293
 iddqd 294 294
 Tomsk PU: Counting Stars 295 295
+UTIA 296 298
 Buratino 296 298
 UzhNU : beavers 13 296 298
-UTIA 296 298
 konvpalto 299 299
 Pinsks bitchs 300 300
 Stavropol #1 301 301
@@ -317,14 +317,14 @@ mda) 315 315
 Исполинский посох Приапа 316 316
 null 317 318
 TI CHO VALCHARA???? 317 318
+Saratov SU 100 319 326
+Bananas 319 326
 Тема и Юра 319 326
 iON 319 326
-changed later 319 326
-Two brothers 319 326
-Physmath 319 326
-Bananas 319 326
 We_love_RAF 319 326
-Saratov SU 100 319 326
+changed later 319 326
+Physmath 319 326
+Two brothers 319 326
 The Crazy Insane Flying Monkey Space Invaders 327 327
 Coopers 328 328
 SvyatTeam 329 329
@@ -338,55 +338,55 @@ Moscow SU: Tomsk 336 336
 Koks Dreams 337 337
 Snipx 338 339
  338 339
-Voronezh State U: Dolphins 340 341
 ag-one 340 341
-WeWantTShirt 342 348
+Voronezh State U: Dolphins 340 341
 Li2 342 348
 AIR 342 348
-(-°□°)- ┬─┬ 342 348
+HardBrains 342 348
+WeWantTShirt 342 348
 ShAsl 342 348
 Maximum AC 342 348
-HardBrains 342 348
-KD team 349 390
-ROXteam 349 390
-veritas 349 390
-Hello 349 390
+(-°□°)- ┬─┬ 342 348
 Snowy Cube 349 390
-Legen_dary! 349 390
-NirvanA 349 390
-C4R 349 390
-adygprog.ru 349 390
-bs42 349 390
-Undefined behaviour 349 390
-Synergy 349 390
-tgb 349 390
 Tarkan 349 390
-Игнатьев Алексей 349 390
-Дальневосточный ГУ Путей Сообщения: Forever Alone 349 390
-Altai STU PILI 349 390
-Александр Денисов 349 390
-abacaba 349 390
-─=≡Σ((( つ•̀ω•́)つ 349 390
-Stavropol #0 349 390
-Coders from Hell 349 390
-Hedgehogs 349 390
-lssol 349 390
-#YOLO 349 390
-Grill 349 390
-Both Coding for One Eating 349 390
-Alesha 349 390
-dvadauna 349 390
-Aliens 349 390
-deep_coder 349 390
-Korchevately 349 390
-ABC 349 390
-Param-pam-pam 349 390
-Omerta 349 390
-Отдельный разговор 349 390
-KorFiniUm 349 390
-Q_Qruza 349 390
+veritas 349 390
 liceum one: vase of grace 349 390
-Vseross Namba Van 349 390
+ROXteam 349 390
+Legen_dary! 349 390
+abacaba 349 390
+Александр Денисов 349 390
+KD team 349 390
+Hello 349 390
+tgb 349 390
+Synergy 349 390
+Grill 349 390
+Param-pam-pam 349 390
+Both Coding for One Eating 349 390
+C4R 349 390
+Дальневосточный ГУ Путей Сообщения: Forever Alone 349 390
+#YOLO 349 390
+Omerta 349 390
+KorFiniUm 349 390
+dvadauna 349 390
+─=≡Σ((( つ•̀ω•́)つ 349 390
 cvm 349 390
+Stavropol #0 349 390
 Котельва team 349 390
+Hedgehogs 349 390
+Q_Qruza 349 390
+Coders from Hell 349 390
+bs42 349 390
+Vseross Namba Van 349 390
+Alesha 349 390
+Отдельный разговор 349 390
+ABC 349 390
+lssol 349 390
+Korchevately 349 390
+Игнатьев Алексей 349 390
+Aliens 349 390
+Altai STU PILI 349 390
+NirvanA 349 390
+deep_coder 349 390
+adygprog.ru 349 390
+Undefined behaviour 349 390
 Беляши 391 391

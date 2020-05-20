@@ -5,8 +5,8 @@ Kenny_HORROR 3 3
 scott_wu 4 4
 ikatanic 5 5
 voover 6 6
-Alex_2oo8 7 8
 SnapDragon 7 8
+Alex_2oo8 7 8
 ACRush 9 9
 Igor_Kudryashov 10 10
 gojira 11 11
@@ -35,5 +35,5 @@ ralekseenkov 33 33
 Anarivu 34 34
 srnth 35 35
 AnnKats93 36 36
-balakrishnan 37 38
 vlady 37 38
+balakrishnan 37 38

@@ -99,8 +99,8 @@ The Worms 97 97
 vlad107 98 98
 Pointless Patty 99 99
 Karma_police 100 100
-ITMO University - 6 101 102
 Moscow IPT Tragona 101 102
+ITMO University - 6 101 102
 mda) 103 103
 ┏( ^‿​^)┛┗(✪。✪  )┓ 104 104
 stojan9000 105 105
@@ -124,8 +124,8 @@ mm 122 122
 deNULL 123 123
 Dry rice 124 124
 ─=≡Σ((( つ•̀ω•́)つ 125 125
-2 unusual 126 127
 SvyatTeam 126 127
+2 unusual 126 127
 KantKillers 128 128
 Society 129 129
 Johny Drop table! 130 130
@@ -195,10 +195,10 @@ KFU Cesium 137.1 193 193
 Buratino 194 194
 MSU Tashkent 195 195
 Назарбаев Университет: Ultimate Procrastinators 196 196
-MIPT: Nom@ds 197 200
-abacaba 197 200
-Two Broke Guys 197 200
 Hedgehogs 197 200
+abacaba 197 200
+MIPT: Nom@ds 197 200
+Two Broke Guys 197 200
 Naughties 201 201
 Moscow SU Nrise 202 202
 Coopers 203 203
@@ -224,17 +224,17 @@ Mr. Mystic Crayfish and the guy who loves unicorns 222 222
 Понтовый пирожок 223 223
 Прикарпатский НУ 224 224
 Annbelov_team 225 225
-Игнатьев Алексей 226 227
 VNTU_from1995 226 227
+Игнатьев Алексей 226 227
 ПсковГУ: мистер Лебовски 228 229
 AUA: entrepreneurs 228 229
 SevGU_Triumvirate 230 230
 Silver Beam 231 231
-Cup-cup 232 233
 NRU HSE: Paradigm 232 233
+Cup-cup 232 233
 Гришутин, ты где? 234 234
-Q_Qruza 235 236
 KBTU #5: NA 235 236
+Q_Qruza 235 236
 Li2 237 237
 SpumoteTeam 238 238
 pshteam 239 239
@@ -247,13 +247,13 @@ Undefined behaviour 245 245
 no_fantasy 246 246
 deep_coder 247 247
 UTIA 248 248
-Pinsks bitchs 249 251
 VK Cup: Ufa team 249 251
 TUIT Urgench Branch: Team Minions 249 251
+Pinsks bitchs 249 251
 DI 252 252
 R-Raki 253 253
-Kant FU: Pashka and Deniska 254 255
 WeWantTShirt 254 255
+Kant FU: Pashka and Deniska 254 255
 Skobaneva 256 256
 MID OR FEED 257 257
 SPbSU 37 258 258
@@ -267,8 +267,8 @@ LNU VVT 265 265
 Dumb and Dumber 266 266
 RD 267 267
 Per aspera ad astra 268 268
-bs42 269 270
 SkyAlgorithm 269 270
+bs42 269 270
 Lyceum67_Togliatty 271 271
 (-°□°)- ┬─┬ 272 272
 Forever alone 273 273
@@ -285,16 +285,16 @@ ezpz 281 284
 Novosibirsk SU: Mishootka 281 284
 Полтора землекопа 285 286
 $КАзКо$ 285 286
-Omerta 287 288
 abacaba 287 288
+Omerta 287 288
 MIPT: Oxedyt 289 289
 Ah? What? Where? 290 290
 MEMES 291 291
 L64 292 292
 Bashuk Bros. 293 293
 Спорышев 294 294
-Saint Kitts and Nevis 295 296
 Dr Pepper 295 296
+Saint Kitts and Nevis 295 296
 Тюменский ГУ 1.5 297 297
 Tea with bread 298 298
 HSE Cancer 299 299
@@ -317,8 +317,8 @@ A+B 315 315
 Green cake 316 316
 Both Coding for One Eating 317 317
 ShAsl 318 318
-Andrey Nefedov and Sergey Sidorov 319 320
 MSU Tashkent 319 320
+Andrey Nefedov and Sergey Sidorov 319 320
 Artyom[] 321 321
 konvpalto 322 322
 Participants 323 323
@@ -334,8 +334,8 @@ Cat++ 332 332
 Logic Zeppelins 333 333
 makeTeam(sevak.avet, Ne0n25); 334 334
 Butterfly 335 335
-Criterion 336 337
 CU7lsE 336 337
+Criterion 336 337
 невероятный морж 338 338
 Rumter 339 339
 Aliens 340 340
@@ -347,13 +347,13 @@ veritas 345 345
 TI CHO VALCHARA???? 346 347
 FedyuninV 346 347
 Grill 348 348
-julsa 349 350
 Snipx 349 350
+julsa 349 350
+SPbSU: Двое из ларца 351 353
 Experimental 351 353
 More Smoked Leet Chicken 351 353
-SPbSU: Двое из ларца 351 353
-Ural FU: Kreygasm 354 355
 НИУ ИТМО: kris13 354 355
+Ural FU: Kreygasm 354 355
 PhTS + AG 356 356
 $xXx$_$SWAG$_$xXx$ 357 357
 АлтГТУ10 358 358
@@ -363,17 +363,17 @@ Param-pam-pam 360 361
 Snowy Cube 362 362
 Everything is blurry... What i...is there ice all around me? 363 363
 AlexBurkov 364 364
-ALPHA 365 366
 Bak-Balebak 365 366
+ALPHA 365 366
 Legen_dary! 367 367
 HardBrains 368 368
 dvadauna 369 369
-ZhNV 370 371
 Так интереснее 370 371
+ZhNV 370 371
 RussianPoop 372 372
-Alesha 373 375
-manatee+nimloth 373 375
 RFSLF 373 375
+manatee+nimloth 373 375
+Alesha 373 375
 Flareon 376 376
 Vseross Namba Van 377 377
 Stibadium 378 378
@@ -384,24 +384,24 @@ Double Jack 382 382
 Адыгея01 383 383
 Pskov SU 17 384 384
 K-131: ChiKa 385 385
-Отдельный разговор 386 387
 Александр Денисов 386 387
+Отдельный разговор 386 387
 Synergy 388 389
 2007  MCL: Eva 388 389
-SPb SU: Red Pandas 390 391
 Stavropol #1 390 391
+SPb SU: Red Pandas 390 391
 Мы прошли 392 392
 We_love_RAF 393 393
 Ilya 394 394
-Bugful Defile 395 397
 tgb 395 397
 ABC 395 397
+Bugful Defile 395 397
 No named 398 399
 Girls T-shirts 398 399
 Свирепые еноты 400 400
 SofaPolitics 401 401
-who_is_your_daddy 402 403
 МФТИ 402 403
+who_is_your_daddy 402 403
 null 404 404
 Зеленый торт 405 405
 Mikhail Amirov 406 406
@@ -417,17 +417,17 @@ Moscow SU: Tomsk 415 415
 Pickled Cabbage 416 417
 (((ZK10))) 416 417
 Folders 418 418
-foobar 419 421
-DiAmond 419 421
 Mziuri 777 419 421
+DiAmond 419 421
+foobar 419 421
 I 422 422
 Sverdlovsk 423 423
 Geeksman 424 424
 DM 425 425
-vovapolu 426 427
 Kunkka_and_Tide 426 427
-BuryatSU 428 429
+vovapolu 426 427
 ISTU: ELP 428 429
+BuryatSU 428 429
 Saratov SU: Chadin, Baybakov 430 430
 Oops 431 431
 TATU 432 432
@@ -441,8 +441,8 @@ i put on my robe and my wizard hat... 439 439
 Сладкий Принц 440 441
 RR 440 441
 SUSU: VMI 442 442
-Weaver 443 444
 AIR 443 444
+Weaver 443 444
 AltSTU #3 445 445
 SPBSUT Spacetime 446 446
 256мб 447 447
@@ -453,8 +453,8 @@ alexeykuzmin0 451 453
 Hesoyam 451 453
 Хотим футболку 451 453
 MyHater 454 454
-Novosibirsk SU: CONSTeam 455 456
 unpredictable 455 456
+Novosibirsk SU: CONSTeam 455 456
 Наш Любимый Чай 457 457
 petrsu_apelsin 458 458
 Tentacles 459 459
@@ -472,48 +472,48 @@ Cheburashka 470 470
 Нешубуршащий шубуршунчик 471 471
 78 ¯_(ツ)_¯ 472 472
 ___Lama___ 473 473
-SonniL 474 475
 Aperture Science: We do what me must because we can 474 475
+SonniL 474 475
 Double Mid 476 476
 ой_все 477 477
+AL2K 478 480
 НИУ ИТМО: Jakarta 478 480
 Young and Cheeky 478 480
-AL2K 478 480
 Koala and Johnson 481 481
 ( ͡° ͜ʖ ͡°) 2Guys1VKCup 482 482
-Gravichesnok 483 484
 Saratov SU: CatsForces 483 484
+Gravichesnok 483 484
+MIPT: otdamsya_Ibragimu 485 487
 #YOLO 485 487
 Georgia Tech 485 487
-MIPT: otdamsya_Ibragimu 485 487
-No! 488 490
-Samara SU 1 488 490
 std::string get_name(int*＆) 488 490
-Мы смотрим сериал Красавица 491 492
+Samara SU 1 488 490
+No! 488 490
 Астраханский ГУ 491 492
-alone 493 494
+Мы смотрим сериал Красавица 491 492
 LWTeam 493 494
-Team name 495 496
+alone 493 494
 AltSTU #2 495 496
+Team name 495 496
 cyber 497 497
 C++ programmer 498 498
-BSU FAMCS: BROFORCE 499 501
-tsypko team 499 501
 FxForward 499 501
+tsypko team 499 501
+BSU FAMCS: BROFORCE 499 501
 DailyD 502 502
-Abstraction 503 504
 pmartynov 503 504
+Abstraction 503 504
 bpa 505 505
-Ростов-team 506 508
 А что? А вдруг! 506 508
+Ростов-team 506 508
 Kentucky Wildcats 506 508
 ArtemkaPRO 509 509
 GandL 510 511
 Beast 510 511
 Xisorz 512 512
 Jack and John 513 513
-darkraven 514 515
 HyperCube 514 515
+darkraven 514 515
 undefined 516 517
 Wanywhand 516 517
 Easy 518 518
@@ -523,60 +523,60 @@ The dumbys 519 521
 Borsch 522 522
 Singing_Cucumber 523 524
 ag-one 523 524
-NirvanA 525 526
 bloodseeker 525 526
+NirvanA 525 526
 Team 527 527
 SosashkaTeam 528 529
 Plekhanov REU : Bath salt 528 529
-прищепка 530 531
 Sa2n6yA 530 531
-TeamSpeedingWhite 532 533
+прищепка 530 531
 Bots 532 533
+TeamSpeedingWhite 532 533
 Lumberjacks 534 534
-ONPU_LightSCribe 535 536
 abcd 535 536
-! 537 538
+ONPU_LightSCribe 535 536
 PhTL: #NULL 537 538
+! 537 538
 MIPT: TARDIS 539 540
 Stupid Zergs 539 540
 teamName 541 542
 Stigma 541 542
 Light cat and dark Vader 543 543
+Vnezapno 544 546
 GA 544 546
 GlHf 544 546
-Vnezapno 544 546
-m0nger 547 548
 Кек 547 548
-H-A-N 549 552
-Астральные кабачки 549 552
+m0nger 547 548
 Systematic_Chaos 549 552
 Sanja 549 552
+Астральные кабачки 549 552
+H-A-N 549 552
 Mom says we are the best 553 553
 Тупой и еще умнее 554 554
 TEK 555 556
 2 индуса без Сёрежи 555 556
 The cult of the bush 557 558
 Latent programmers 557 558
-Zero Fiber 559 560
 MSUCE-team 559 560
-1 048 576 561 565
-Volgograd SU: Reactive windows 561 565
-some_random_letters 561 565
+Zero Fiber 559 560
 new command 561 565
+some_random_letters 561 565
 New team 561 565
+Volgograd SU: Reactive windows 561 565
+1 048 576 561 565
 Who is the best?! 566 566
-Noobs 567 568
 Goosee 567 568
+Noobs 567 568
 Izhevsk STU: SebAndRo 569 569
-SunShower 570 572
-RISE 570 572
 NU: Black Kex 570 572
+RISE 570 572
+SunShower 570 572
 no less than 14 and no more than 23 573 575
-SERGES_REAL_CO 573 575
 TKTL 573 575
+SERGES_REAL_CO 573 575
+TvSU: Applied math and cybernetics 576 578
 WideLab 576 578
 Crisp Idea 576 578
-TvSU: Applied math and cybernetics 576 578
 aan93 579 580
 happy team 579 580
 WhitePower 581 581
@@ -587,18 +587,18 @@ UrFU:SoftKittens 585 585
 271 586 586
 Go 587 587
 Botan and FishKOH 588 588
-111vad111 589 591
 DS 589 591
 Team OTS 589 591
-Внуки Даля 592 593
+111vad111 589 591
 Pomski 592 593
+Внуки Даля 592 593
 oo 594 594
 Один в поле воин 595 597
 LASM Coders 595 597
 Randomize1024 595 597
 Тема и Юра 598 600
-Sorry Never Sorry 598 600
 Skyline 598 600
+Sorry Never Sorry 598 600
 Palace revolution 601 601
 ONU_Feuerbach 602 602
 RBLI $322 603 603
@@ -606,8 +606,8 @@ Ledgelogs in tho dautra 604 605
 van_Kalsing 604 605
 SUST_Oniruddho 606 606
 just married 607 607
--1.#IND 608 609
 Сrumbs in the bed 608 609
+-1.#IND 608 609
 We_are_the_champions 610 610
 UXP5m4ouJvQ= 611 611
 Ulyanovsk STU:Alone 612 612
@@ -626,8 +626,8 @@ cholashiq 624 624
 Дальневосточный ГУ Путей Сообщения: Forever Alone 625 625
 KAI 626 626
 ОКА - 3 627 627
-Sirius 628 629
 Python 628 629
+Sirius 628 629
 ОК 630 630
 MIET: Pancakes 631 631
 NRU HSE: top AMIS and mid SE 632 632
@@ -638,286 +638,286 @@ sample 636 636
 50 оттенков бело-синего 637 637
 S_Team 638 639
 Slon 638 639
-Dev 640 647
+Ulyanovsk STU: TRU 640 647
+CodeBros 640 647
+anton24 640 647
+Team 640 647
+Друзь не прошел 640 647
 Сebuka 640 647
 ХАВК 640 647
-Team 640 647
-Ulyanovsk STU: TRU 640 647
-anton24 640 647
-CodeBros 640 647
-Друзь не прошел 640 647
-Andryxa 648 921
-Dust in the wind 648 921
-Anchovies 648 921
-«Wake up, Neo. The matrix has you» [Perm SU] 648 921
-Pandas 648 921
-H8 648 921
-jurki 648 921
-TeamKaribd 648 921
-Wolf Messing 648 921
-fly 648 921
-Opera 648 921
-Я тут мимо проходил 648 921
-One and alone 648 921
-Koks Dreams 648 921
-Evil Deeds 648 921
-Winx 648 921
-Botsmann Design Studio 648 921
-Бухой фонд №1 648 921
-Afghan hounds 648 921
-RoboLab 648 921
-March cats 648 921
-C++ 648 921
-Avilumi 648 921
-bloodbound 648 921
-D. R. A. 648 921
-KAN AirLines (N) 648 921
-Шелдонард 648 921
-Empatika 648 921
-CoolGuy 648 921
-Голубой АМТЭК 648 921
-Dreamteam 648 921
-CHUVSU.IVT[0] 648 921
-Владислав и Ростислав Нестеровы 648 921
-MIPT::Yegor 648 921
-BKTL_9 648 921
-Уральский ФУ: Perfect bastards 648 921
-sergey.spr 648 921
-fyfy 648 921
-Edvards_try 648 921
-walker96 648 921
-КиТ 648 921
-Quckly Team 648 921
-Упоротость 648 921
-Bézier curve 648 921
-Breaking Byte 648 921
-Ural FU Alexis Sánchez 648 921
-Team_007 648 921
-Майонез 648 921
-KD team 648 921
-KANT 648 921
-DNIWE 648 921
-SPB Proga 648 921
-69 648 921
-P R O G A B O Y Z 648 921
-WantToEat 648 921
-Aroma 648 921
-команда ф 648 921
-The Gentlemen 648 921
-justMe 648 921
-Сиськи в конце 648 921
-IntegraL 648 921
-Wit.ai 648 921
-half-Jews 648 921
-ACCA 648 921
-ROXteam 648 921
-Nagibators228 648 921
-Allah coders 648 921
-Moscow SU 010101 648 921
-TheEncoders 648 921
-Samurai Shodown Team 648 921
-Tktl 648 921
-Participants 648 921
-davkhech 648 921
-Белые тапочки 648 921
-PINKY and THE BRAIN 648 921
-Inbetweener 648 921
-Double Rainbow. 648 921
-FCIS ASU: zetamoo sons 648 921
-FeDotA 648 921
-WoW Code! 648 921
-VNTU_Destructor 648 921
-taschery 648 921
-developer 648 921
-TPCIT_2 648 921
-Alea jacta est 648 921
-Сердитые бобры 648 921
-Potatos gona potate 648 921
-ZigZack 648 921
-Mandarine 648 921
-2ez4rtz 648 921
-MataVix 648 921
-XenonTeam 648 921
-DreamTeam 648 921
-SERN 648 921
-Sloths 648 921
-2120 648 921
-Buryat_SU: Girls 648 921
-Tiger armada 648 921
-SamSU 648 921
-КНУ им.Шевченка: Flaming tomatoes 648 921
-NSPolecat 648 921
-Alternatively-talented 648 921
-KostikBigOne Team 648 921
-All about that bass 648 921
-VHK 648 921
-attack 648 921
-Blue Dogs 648 921
-Archan 648 921
-Sapsan 648 921
-Immortals 648 921
-3 div 2 KaTe 648 921
-insane brothers 648 921
-UrFU SESC Team 648 921
-selling garage 648 921
-The One 648 921
-lic83Ufa 648 921
-Lazybit 648 921
-Just for Fun 648 921
-Сарай 648 921
-YP_team 648 921
-Silver arrow 648 921
-ACARTS 648 921
-только я 648 921
-LittleSun 648 921
-Dark Horse 648 921
-dark_matters 648 921
-team_? 648 921
-Cheesecake 648 921
-Some Te(a)(rn)? 648 921
-(^_^) 648 921
-Swimming Pools 648 921
-Vector 648 921
-BITH Crew 648 921
-Crash and Smash 648 921
-Purple Trip 648 921
-Quadracycle of Singularity 648 921
-MariaKate 648 921
+Dev 640 647
+Kharkiv NU: BS11 648 921
+Ololophone 648 921
+_Kirito 648 921
 GG 648 921
+Cherburators 648 921
+SoloApmath 648 921
+AzazaevTeam 648 921
+LazerClub 648 921
+team_05 648 921
+Кварцевый резонатор 648 921
 neuron 648 921
 blackmetalbox 648 921
-LazerClub 648 921
+Crazy_perceptron 648 921
 Just for hair dryer 648 921
-pair(рыжий, рыжий); 648 921
 SpongeBoBs team 648 921
-Школьнички 648 921
-MESI TEAM 648 921
-9@ 648 921
+Arck-tm 648 921
+the-russian-ivan 648 921
+Сарай 648 921
+BITH Crew 648 921
+Only12zzz 648 921
 YarSU 4 648 921
 Purple chalk 648 921
-_Kirito 648 921
-FSAIT 648 921
-BJteam 648 921
-Ololophone 648 921
-Crazy_perceptron 648 921
-Secret 648 921
-Кварцевый резонатор 648 921
-Arck-tm 648 921
- 648 921
-Shower 648 921
-crazysun 648 921
-TJK-HKL Prof 648 921
-team_05 648 921
-отшельник 648 921
-MyTeam 648 921
-WhiteHorse 648 921
-Codenauticals 648 921
-GoodOff_Team 648 921
-SoloApmath 648 921
-Kidulya 648 921
-Big Riotous Team 648 921
-Rabid_Pandas_ONU 648 921
-AzazaevTeam 648 921
-Микроволновка 648 921
-Inversion 648 921
-SPbSTU: Mechatronics LAB 648 921
-Космос это главное 648 921
-SoulOfFidget 648 921
-Baku MSU 1 648 921
-Tigerrrrr 648 921
-thelastsurvivor 648 921
-Жирики.pas 648 921
-team_ivm 648 921
-bete_bet_diymeli 648 921
-Virys 648 921
-Kharkiv NU: BS11 648 921
+только я 648 921
+9@ 648 921
 TSU: Team 1 648 921
-Pilaf 648 921
-Omrigan 648 921
-Orangle 9 nine 648 921
-Polar Bears 648 921
-NoNAME 648 921
-Some_team 648 921
-Cherburators 648 921
-Only12zzz 648 921
-One button 648 921
-the-russian-ivan 648 921
-Crazy guys 648 921
-frzngn 648 921
-team122312423 648 921
-DVS 648 921
-чирифири 648 921
-We and relax 648 921
-Ouroboros 648 921
-trust and communication 648 921
-P2PCoW 648 921
-BMSTU: Barmalei 648 921
-Me 648 921
-S - Stimulus 648 921
-Кроссовок любви найти любовь мне помоги 648 921
-Cheto tam 648 921
-oldCompany 648 921
-Team DCP 648 921
-Pioneer 2.0 648 921
-Котяшик^_^ 648 921
-Aburto 648 921
-Pomidorissimo 648 921
-The red borsch 648 921
-lssol 648 921
-Roger that! 648 921
-premiumvalera69bestganster1999 648 921
-Petuskal 648 921
-Surgut Team 648 921
-VNTU_byte8 648 921
-jkdsgjksdjg 648 921
-Innovators 648 921
-fr3y 648 921
-TNU: Hello Kitty 648 921
-Winners 648 921
-Power of Burning Steel of Heav...Thunderstorm Fire (PBSHMTF) 648 921
-GS 648 921
-Thunderbolt 648 921
-Тараз КТЛ: _Catwalk_ 648 921
-РЕМШ при АГУ: Golden domes 648 921
-Sievra 648 921
-[LNU]LaMeR 648 921
-UUDDLRLRBA 648 921
-TSUACE 648 921
-Bolashak 648 921
-IceFire 648 921
-Reckless Harry Potters 648 921
-Lesunchas 648 921
-Уральский ФУ: ProgramSector 648 921
-love love 648 921
-Ursu 648 921
-Пельмени 648 921
-snake13 648 921
-gamezars 648 921
-калиостро 648 921
-Farhit 648 921
-OTL 648 921
-Два с ИБАСа 648 921
-Бивни крокодила 648 921
-Neo-comand 648 921
-Baikal National University Of Economics and Low 648 921
-PyschPyschTeam 648 921
-IronMax 648 921
-pop999 648 921
-Chip and Dale 648 921
-Выберете название команды 648 921
-knockdown 648 921
-WIHAB 648 921
-lalka 648 921
 Penguins 648 921
-One_First 648 921
-Mav 648 921
 WLP 648 921
-OnTheKitchen 648 921
-Chebs 648 921
+pair(рыжий, рыжий); 648 921
+РЕМШ при АГУ: Golden domes 648 921
+Жирики.pas 648 921
+ZigZack 648 921
+fr3y 648 921
+FSAIT 648 921
 Vintik and Shpuntik 648 921
-Еще одна команда 648 921
+thelastsurvivor 648 921
+VNTU_Destructor 648 921
+Blue Dogs 648 921
+3 div 2 KaTe 648 921
+Alternatively-talented 648 921
+The One 648 921
+Космос это главное 648 921
+dark_matters 648 921
+IceFire 648 921
+Swimming Pools 648 921
+Chip and Dale 648 921
+Sapsan 648 921
+The red borsch 648 921
+Rabid_Pandas_ONU 648 921
+Kidulya 648 921
+калиостро 648 921
+Уральский ФУ: ProgramSector 648 921
+Big Riotous Team 648 921
+jkdsgjksdjg 648 921
+Lazybit 648 921
+XenonTeam 648 921
+SERN 648 921
+MyTeam 648 921
+Bolashak 648 921
+[LNU]LaMeR 648 921
+BMSTU: Barmalei 648 921
+Sloths 648 921
+OTL 648 921
+OnTheKitchen 648 921
 Leap of Faith 648 921
+Surgut Team 648 921
+Alea jacta est 648 921
+TNU: Hello Kitty 648 921
+WantToEat 648 921
+Wit.ai 648 921
+lssol 648 921
+Aburto 648 921
+VNTU_byte8 648 921
 6O4com 648 921
-Кыргызско-Российский СУ: Бишкектен Балдар 648 921
+Participants 648 921
+Innovators 648 921
+snake13 648 921
+Pioneer 2.0 648 921
+Team DCP 648 921
+knockdown 648 921
+2120 648 921
+Еще одна команда 648 921
+Mav 648 921
+Orangle 9 nine 648 921
+Tigerrrrr 648 921
+P R O G A B O Y Z 648 921
+Бивни крокодила 648 921
+Edvards_try 648 921
+Сердитые бобры 648 921
+trust and communication 648 921
+team122312423 648 921
+We and relax 648 921
+pop999 648 921
+team_ivm 648 921
 Duet 648 921
+Some_team 648 921
+Roger that! 648 921
+Chebs 648 921
+Котяшик^_^ 648 921
+Omrigan 648 921
+Nagibators228 648 921
+Майонез 648 921
+D. R. A. 648 921
+Power of Burning Steel of Heav...Thunderstorm Fire (PBSHMTF) 648 921
+justMe 648 921
+GS 648 921
+69 648 921
+Virys 648 921
+BJteam 648 921
+IronMax 648 921
+Aroma 648 921
+Polar Bears 648 921
+Crazy guys 648 921
+Pomidorissimo 648 921
+UUDDLRLRBA 648 921
+ 648 921
+MESI TEAM 648 921
+Thunderbolt 648 921
+Team_007 648 921
+TJK-HKL Prof 648 921
+Winners 648 921
+Микроволновка 648 921
+Школьнички 648 921
+Codenauticals 648 921
+oldCompany 648 921
+Владислав и Ростислав Нестеровы 648 921
+«Wake up, Neo. The matrix has you» [Perm SU] 648 921
+C++ 648 921
+MIPT::Yegor 648 921
+отшельник 648 921
+Opera 648 921
+love love 648 921
+Ural FU Alexis Sánchez 648 921
+Lesunchas 648 921
+KAN AirLines (N) 648 921
+Empatika 648 921
+Тараз КТЛ: _Catwalk_ 648 921
+чирифири 648 921
+Sievra 648 921
+SoulOfFidget 648 921
+CoolGuy 648 921
+Afghan hounds 648 921
+Бухой фонд №1 648 921
+Avilumi 648 921
+Vector 648 921
+IntegraL 648 921
+Evil Deeds 648 921
+RoboLab 648 921
+Tktl 648 921
+Winx 648 921
+Уральский ФУ: Perfect bastards 648 921
+Samurai Shodown Team 648 921
+fly 648 921
+TeamKaribd 648 921
+PyschPyschTeam 648 921
+Neo-comand 648 921
+Quadracycle of Singularity 648 921
+Dust in the wind 648 921
+Кыргызско-Российский СУ: Бишкектен Балдар 648 921
+Farhit 648 921
+SPB Proga 648 921
+ACCA 648 921
+One and alone 648 921
+Allah coders 648 921
+H8 648 921
+YP_team 648 921
+sergey.spr 648 921
+March cats 648 921
+LittleSun 648 921
+TSUACE 648 921
+DNIWE 648 921
+Petuskal 648 921
+lalka 648 921
+Cheesecake 648 921
+Я тут мимо проходил 648 921
+UrFU SESC Team 648 921
+Wolf Messing 648 921
+Два с ИБАСа 648 921
+КиТ 648 921
+One_First 648 921
+walker96 648 921
+team_? 648 921
+Dreamteam 648 921
+Baikal National University Of Economics and Low 648 921
+Pandas 648 921
+Выберете название команды 648 921
+Белые тапочки 648 921
+Bézier curve 648 921
+insane brothers 648 921
+Anchovies 648 921
+Silver arrow 648 921
+TPCIT_2 648 921
+WIHAB 648 921
+CHUVSU.IVT[0] 648 921
+attack 648 921
+Tiger armada 648 921
+Шелдонард 648 921
+All about that bass 648 921
+Голубой АМТЭК 648 921
+DreamTeam 648 921
+КНУ им.Шевченка: Flaming tomatoes 648 921
+developer 648 921
+2ez4rtz 648 921
+Ursu 648 921
+Crash and Smash 648 921
+MataVix 648 921
+gamezars 648 921
+Mandarine 648 921
+DVS 648 921
+ACARTS 648 921
+The Gentlemen 648 921
+Пельмени 648 921
+Purple Trip 648 921
+FeDotA 648 921
+(^_^) 648 921
+Reckless Harry Potters 648 921
+Some Te(a)(rn)? 648 921
+bete_bet_diymeli 648 921
+Cheto tam 648 921
+Pilaf 648 921
+Кроссовок любви найти любовь мне помоги 648 921
+taschery 648 921
+davkhech 648 921
+S - Stimulus 648 921
+Ouroboros 648 921
+Me 648 921
+P2PCoW 648 921
+MariaKate 648 921
+premiumvalera69bestganster1999 648 921
+TheEncoders 648 921
+Double Rainbow. 648 921
+Moscow SU 010101 648 921
+Dark Horse 648 921
+selling garage 648 921
+Сиськи в конце 648 921
+One button 648 921
+half-Jews 648 921
+ROXteam 648 921
+WhiteHorse 648 921
+Potatos gona potate 648 921
+frzngn 648 921
+Just for Fun 648 921
+Quckly Team 648 921
+NoNAME 648 921
+Baku MSU 1 648 921
+команда ф 648 921
+Immortals 648 921
+lic83Ufa 648 921
+Shower 648 921
+Archan 648 921
+KANT 648 921
+Koks Dreams 648 921
+BKTL_9 648 921
+VHK 648 921
+SPbSTU: Mechatronics LAB 648 921
+Andryxa 648 921
+Inbetweener 648 921
+GoodOff_Team 648 921
+Botsmann Design Studio 648 921
+crazysun 648 921
+fyfy 648 921
+KostikBigOne Team 648 921
+bloodbound 648 921
+WoW Code! 648 921
+NSPolecat 648 921
+FCIS ASU: zetamoo sons 648 921
+Inversion 648 921
+Secret 648 921
+Упоротость 648 921
+Buryat_SU: Girls 648 921
+PINKY and THE BRAIN 648 921
+jurki 648 921
+KD team 648 921
+Breaking Byte 648 921
+SamSU 648 921
 Tvorojok i petushok 922 922

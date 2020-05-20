@@ -36,8 +36,8 @@ Comeback asshole 34 34
 Гранат и виноград 35 35
 Huyaris 36 36
 MIPT Amethysts 37 37
-Ural FU: Keksik 38 39
 Tropical Antifreeze 38 39
+Ural FU: Keksik 38 39
 Two Donuts 40 40
 C2D Elite 41 41
 Aslandukov Team 42 42
@@ -98,5 +98,5 @@ zayaz_team 96 98
 Moscow SU: Codehorses 96 98
 MLTeam 96 98
 Квартира 605 99 101
-101dream 99 101
 Кочегары и плотники 99 101
+101dream 99 101

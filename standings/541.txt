@@ -89,22 +89,22 @@ WA_42 87 87
 wow_such_team 88 88
 Topspin 89 89
 pshteam 90 90
-Technosphere@Mail.ru 91 96
-Affluence 91 96
-Без зелёного не торт. 91 96
 Armatura Nikolaevna 91 96
-Phantom Menace Lite 91 96
 Per aspera ad astra 91 96
+Phantom Menace Lite 91 96
+Affluence 91 96
+Technosphere@Mail.ru 91 96
+Без зелёного не торт. 91 96
+true pain 97 109
+DI 97 109
+Arlans 97 109
+Morituri 97 109
+bububu 97 109
+null 97 109
+Kafka 97 109
+inf and oo 97 109
 A+B 97 109
-Tomsk AU 97 109
 ┏( ^‿​^)┛┗(✪。✪  )┓ 97 109
 ПсковГУ: мистер Лебовски 97 109
 Slava Shklyaev 97 109
-Morituri 97 109
-null 97 109
-bububu 97 109
-DI 97 109
-Kafka 97 109
-inf and oo 97 109
-true pain 97 109
-Arlans 97 109
+Tomsk AU 97 109

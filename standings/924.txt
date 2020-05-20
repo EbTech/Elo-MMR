@@ -78,8 +78,8 @@ logn div 4 76 76
 N00Bz 77 78
 Tyumen IU: the Keepers of the Snark 77 78
 biased force 79 79
-BSU: Middle Miocene 80 81
 Wrong Way 80 81
+BSU: Middle Miocene 80 81
 How to change the name? 82 82
 Mishootka 83 83
 tergi 84 84
@@ -111,8 +111,8 @@ Something 109 109
 Nostalgia 110 110
 Фиаско в квадрате 111 111
 Abstraction free 112 112
-Шангарята™ 113 114
 release v23.5.0 113 114
+Шангарята™ 113 114
 Психоделический камушек 115 115
 ITMO 3 116 116
 Ural FU: Mushrooms-6 117 118
@@ -122,8 +122,8 @@ fgadfgsdfga 120 120
 Ты забыл про бульон! 121 121
 IITU ART 0.666 122 122
 Розовый слон 123 123
-maks1906 124 125
 Лицей ФТШ: Travelling Salesmen 124 125
+maks1906 124 125
 NaVi 126 126
 MPSU: MOPS-1 127 127
 AnyWay 128 128
@@ -138,20 +138,20 @@ SPb AU Semiconductor Bistructures 135 135
 Dreamscape 137 137
 Just Memes 138 139
 Phantom Streak 138 139
-让Doncha和我们在一起 140 141
 ostankov 140 141
+让Doncha和我们在一起 140 141
 Fast animals 142 142
 ДВФУ: Карманный динозавр 143 143
 ComradeMike 144 144
 Jebaited 145 145
-Moscow SU #2109 146 147
 Пепе хееендс 146 147
+Moscow SU #2109 146 147
 Международные отцы 148 148
 OnTheWayToVSU 149 149
 Pink fairies 150 150
 Unikum228 151 151
-LNU_DnO 152 153
 Камень 152 153
+LNU_DnO 152 153
 Ambulance 154 155
 VilcheuskiTeam 154 155
 untitled 156 156
@@ -178,12 +178,12 @@ AHDRIYKO 176 176
 (ツ) Опять Бшка (ツ) 177 177
 Shubochkinas team 178 178
 Gomel-0.(6) 179 179
-TheEnd 180 181
 Батончик 180 181
+TheEnd 180 181
 Saratovets and geometer 182 182
 VS_in_VK 183 183
-Sometimes Lucky 184 185
 AlkoMavl 184 185
+Sometimes Lucky 184 185
 Томский ПУ: Совиные истории 186 186
 Ural FU: Funcakes 187 187
 Pretrained Hedgehogs 188 188
@@ -191,8 +191,8 @@ Society 189 189
 owiwi 190 190
 MUR-MUR 191 191
 ¯_(ツ)_¯ 192 192
-U+1F46B 193 194
 очень сложно, до свидания! 193 194
+U+1F46B 193 194
 rtz fanbois 195 195
 despair 196 196
 Choose Life 197 197
@@ -203,10 +203,10 @@ Ural FU: Adventure Kode 201 201
 AC_Hunter 202 202
 Road To VK Final 203 203
 2K 204 204
-OMS 205 206
 неадекватные неадекваты в неадеквате 205 206
-#501 in Qualification 207 208
+OMS 205 206
 1543-11 207 208
+#501 in Qualification 207 208
 Twix Sticks 209 209
 LNU TM 210 211
 We want T-shirts 210 211
@@ -223,11 +223,11 @@ FeelsAloneMan 220 221
 буду твоим пёсиком 222 222
 MayBeLast 223 224
 СШ 37 + СШ 15 223 224
-Beak_and_Feathers 225 226
 Solty 225 226
-SPbAU: maximumSHOT team 227 229
+Beak_and_Feathers 225 226
 a legendary fiasco of incredible scale 227 229
 PENTESTERS FROM MOGILEV 227 229
+SPbAU: maximumSHOT team 227 229
 #БельгискийОгурец 230 230
 Barberry 231 231
 _ 232 232
@@ -255,11 +255,11 @@ BSU + MIPT: Foxes 253 253
 TeamMedium 254 254
 Rabotyagi 2007 255 255
 0.(6) of PetrSU QA 256 256
-Квазиарный предикат 257 258
 Bellatrix 257 258
+Квазиарный предикат 257 258
 jesushelp 259 259
-Одноглазый ёжик и слепой крот 260 261
 FeyechkiDIHT 260 261
+Одноглазый ёжик и слепой крот 260 261
 MAXN_TUIT 262 262
 Team Name 263 263
 Lun 2 264 264
@@ -336,8 +336,8 @@ neurominers 332 332
 T.A.T.K.A. 335 335
 Pineapple 336 336
 VVE L3VE R4$HAD + M@HMU|) 337 337
-Less Than Just Friends 338 339
 tipyy 338 339
+Less Than Just Friends 338 339
 Kekwastaken 340 340
 FSociety 341 341
 Дети маминой подруги 342 342
@@ -349,8 +349,8 @@ Perm branch of HSE: MDA 347 347
 Propala sobaka 348 348
 Avadakedaura 349 349
 Who said I cant win solo 350 350
-Madokami and Black Tulip 351 352
 Юля, не злись на Игоря! 351 352
+Madokami and Black Tulip 351 352
 Antoshka 353 353
 Flying cows 354 354
 TLE 355 355
@@ -359,8 +359,8 @@ AKYL 357 357
 Aho-Corasick Boy Band 358 358
 Teammate 404 Not Found 359 359
 Tensor Trolley 360 360
-237_team 361 362
 Random_People 361 362
+237_team 361 362
 Aniteam 363 363
 SPbAU #-1 364 364
 Последний раз я участвовал в матбоях в седьмом классе 365 365

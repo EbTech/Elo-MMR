@@ -98,18 +98,18 @@ UzhNU_Brainiacs 96 96
 preceq 97 97
 Amise 98 98
 markysha 99 99
-Ukulele 100 101
 black redredredred 100 101
+Ukulele 100 101
 Блоки Петра Лёгкого 102 102
 Tomato juice 103 103
-Samara: Last VK Cup 104 105
 Ovoshi 104 105
+Samara: Last VK Cup 104 105
 Sunflodile 106 106
 CEKC EHOT 107 107
 Wild_Hamster 108 108
 Munientibus hic et illic canentes carmina ad Lenin 109 109
-Берляндский ГУ: Пылающие помидоры 110 111
 MLW 110 111
+Берляндский ГУ: Пылающие помидоры 110 111
 Синтаксический сахарок 112 112
 Pyoes Huliganski 113 113
 Team 801 114 114
@@ -121,8 +121,8 @@ South Ural SU: VMI#1x0.(6) 118 118
 Rainbow - Kode 120 120
 Ех professo 121 121
 vegetable chicken 122 122
-MAI #5 123 124
 wiqwiwqioio 123 124
+MAI #5 123 124
 Criterion 125 125
 WhereIsVlfom 126 126
 All We Need is Weed 127 127
@@ -149,8 +149,8 @@ axax 147 148
 Эчпочман 147 148
 Sojourners 149 149
 Moscow SU: Codehorses 150 152
-My Life For T-shirts 150 152
 Kazan FU: Just b|b|b| 150 152
+My Life For T-shirts 150 152
 ;DROP TABLE USERS; 153 153
 rep777sprint 154 154
 Algoritmus 155 155
@@ -166,8 +166,8 @@ SorryLemieux 164 164
 Thành phố Hồ Chí Minh 165 165
 Violet Moon 166 167
 Белорусский ГУ: Но это не точно 166 167
-MSHP: The Excited Frustration: Silky Programmer 168 169
 lloro sense espines 168 169
+MSHP: The Excited Frustration: Silky Programmer 168 169
 butchkatechka 170 170
 Торжественно клянусь, что замышляю только шалость 171 171
 without_any_hope 172 172
@@ -178,16 +178,16 @@ hse: niggor 176 177
 Космический мусор 176 177
 Timitrium 178 178
 Соляный 179 179
-Outeast 180 181
 Three of us 180 181
+Outeast 180 181
 DEESHCH 182 182
-Blagoi Pituh 183 184
 400c5c1b02d1fe138afe8d3a3553c8...d6a94cf588569ade49ce9c897ed 183 184
+Blagoi Pituh 183 184
 Jekerphils 185 185
 KBTU Almost BigInteger 186 186
 Ruberoid becomes more expensive 187 187
-бротюни 188 189
 HSE: for leaving from dubki 188 189
+бротюни 188 189
 Durio 190 190
 NRU HSE: Fit Chicks 191 191
 Zewa Deluxe 192 192
@@ -199,8 +199,8 @@ A+B 196 197
 Sek_da_pomislq 198 198
 TisheLaps 199 199
 PetrSU Табуретка 200 200
-6 Seconds 201 202
 Hard-to-Find 201 202
+6 Seconds 201 202
 Credo 203 203
 KhNURE˂11^2 204 205
 Поменяю название потом (льющимся) 204 205
@@ -208,29 +208,29 @@ Danny-Daniel 206 206
 Poohlyash_ТаТаРиН Team 207 208
 Rocket Guys 207 208
 High Style 209 209
-Team Rocket 210 211
 Say No to Tourism 210 211
+Team Rocket 210 211
+XanaX 212 214
 Haters 212 214
 banana wap 212 214
-XanaX 212 214
 Карп и Корасик 215 215
-Last but not least 216 218
 No shavuha 216 218
 Brtuj 216 218
+Last but not least 216 218
 Princess Luna is the best pony 219 220
 ДВФУ: пакет насвая 219 220
 Happy Tree Friends 221 221
-Summer Style Bamboo leaves 66,67% 222 224
 UBTUIT: NonStop 222 224
 LAREBUTIBRIK AU 222 224
+Summer Style Bamboo leaves 66,67% 222 224
 BatyrGym3000 225 225
 Без Валеры 226 226
 untitledteam1 227 228
 Novosib Reunion 227 228
 toxzi 229 229
-Ой, всё! 230 232
 Snowy Cube 230 232
 Keks-in-law 230 232
+Ой, всё! 230 232
 SPbAU:) 233 235
 Yahoo knows him and He does not know Yahoo 233 235
 *** 233 235
@@ -249,10 +249,10 @@ Bulbasaur 246 247
 The Crazy Insane Flying Monkey Space Invaders 248 249
 Болгарский Медведь 248 249
 Legendary Greencoders 250 250
-aqaq 251 254
 Black hole 251 254
 Ned DAG ned 251 254
 Astral Squash 251 254
+aqaq 251 254
 NaN 255 255
 42NA 256 257
 maks1906 256 257
@@ -319,8 +319,8 @@ BLACK SIEMENS 317 317
 Just polyte 318 318
 ФКН каждый день 319 319
 normalno 320 320
-Психоделический камешек 321 322
 Боты 321 322
+Психоделический камешек 321 322
 В тушу уделаем 323 323
 KFU #inf 324 324
 Команда имени Д. Стетхема 325 326
@@ -330,8 +330,8 @@ New School 328 329
 Название 328 329
 Томск ПУ 1 330 330
 PetrSU Bublic 331 331
-Samara U: Haters Fan Club 332 333
 U+1F46B 332 333
+Samara U: Haters Fan Club 332 333
 VMKTeam 334 334
 МАМОЧКА НА САНОЧКАХ 335 335
 NU Retired 336 336
@@ -341,30 +341,30 @@ ANIME SQUAD 339 339
 Wrong Way 340 340
 Maybe Next Time 341 341
 Computer Science LUL 342 342
-Бескультурная столица 343 369
-URANUS 343 369
-Одноногий лысый конь 343 369
+Eiffel Fighters 343 369
 надо придумать потом 343 369
-13BD 343 369
 pyteam++ 343 369
 vsemploho 343 369
+Ипаба 343 369
+13BD 343 369
+Бескультурная столица 343 369
+Одноногий лысый конь 343 369
 Senior Washers 343 369
+grdnvvvt 343 369
 МФТИ Наблюдатели 343 369
 pair{math,cristina} 343 369
-Eiffel Fighters 343 369
-grdnvvvt 343 369
 Chessmaster 343 369
-Twicelab 343 369
 47:Chromosomes 343 369
 Новая копанда 343 369
-BatyasTeam 343 369
-BubbleSort 343 369
-Пресноводные скаты 343 369
+Twicelab 343 369
 MUR 343 369
-OMS 343 369
+Пресноводные скаты 343 369
 aloe aloe 343 369
-MexMatychi 343 369
+OMS 343 369
+BatyasTeam 343 369
 Flexible_Code 343 369
-Ипаба 343 369
+BubbleSort 343 369
+MexMatychi 343 369
 лицей ФТШ: Princess of the Universe 343 369
+URANUS 343 369
 Uporniki 2.0 343 369

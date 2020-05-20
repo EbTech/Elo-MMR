@@ -1,7 +1,7 @@
 45 Croc Champ 2013 - Finals
 tourist 1 1
 Egor 2 2
-abacabadabacaba 3 3
+eatmore 3 3
 vepifanov 4 4
 rng_58 5 5
 Kenny_HORROR 6 6
@@ -40,7 +40,7 @@ piob 38 38
 niyaznigmatul 39 39
 VArtem 40 40
 evgentu 41 41
-anton 42 45
-yaro 42 45
 Copymaster 42 45
+anton 42 45
 slycelote 42 45
+yaro 42 45
