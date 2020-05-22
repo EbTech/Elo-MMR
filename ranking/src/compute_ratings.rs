@@ -160,12 +160,15 @@ impl Player {
         for rating in &mut self.logistic_factors {
             rating.sig *= decay;
         }
+
+        // Update the variance, avoiding an expensive call to recompute_posterior().
+        // Note that we don't update the mode, which may have changed slightly.
         self.approx_posterior.sig *= decay;
     }
 
     fn recompute_posterior(&mut self) {
         let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
-        let logistic_vec = self.logistic_factors.iter().cloned().collect::<Vec<_>>();
+        let logistic_vec: Vec<Rating> = self.logistic_factors.iter().cloned().collect();
         let mu = robust_mean(
             &logistic_vec,
             None,
@@ -179,9 +182,10 @@ impl Player {
             mu,
             sig: sig_inv_sq.recip().sqrt(),
         };
+        self.max_rating = max(self.max_rating, self.conservative_rating());
     }
 
-    fn add_performance(&mut self, perf: f64) {
+    fn push_performance(&mut self, perf: f64) {
         if self.logistic_factors.len() == 50_000 {
             let logistic = self.logistic_factors.pop_front().unwrap();
             let wn = self.normal_factor.sig.powi(-2);
@@ -193,9 +197,6 @@ impl Player {
             mu: perf,
             sig: SIG_PERF,
         });
-
-        self.recompute_posterior();
-        self.max_rating = max(self.max_rating, self.conservative_rating());
     }
 
     fn conservative_rating(&self) -> i32 {
@@ -242,7 +243,7 @@ fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: 
 
 // ratings is a list of the participants, ordered from first to last place
 // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-fn performance(better: &[Rating], worse: &[Rating], all: &[Rating], extra: Option<usize>) -> f64 {
+fn compute_performance(better: &[Rating], worse: &[Rating], all: &[Rating], extra: Option<usize>) -> f64 {
     let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
     let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
     robust_mean(all, extra, pos_offset - neg_offset, 0.0)
@@ -296,13 +297,14 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest:
         .for_each(|(i, player)| {
             let (_, lo, hi) = results[i];
 
-            let perf = performance(
+            let perf = compute_performance(
                 &all_ratings[..lo],
                 &all_ratings[hi + 1..],
                 &all_ratings,
                 Some(i),
             );
-            player.add_performance(perf);
+            player.push_performance(perf);
+            player.recompute_posterior();
             player.last_contest = contest;
         });
 }
@@ -365,7 +367,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>) {
     .ok();
 
     for i in (0..NUM_TITLES).rev() {
-        writeln!(out, "{} {} x {}", TITLE_BOUND[i], TITLE[i], title_count[i]).ok();
+        writeln!(out, "{} {} x{:6}", TITLE_BOUND[i], TITLE[i], title_count[i]).ok();
     }
 
     let mut rank = 0;
