@@ -4,124 +4,11 @@ use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::fs::File;
-use std::io;
-use std::str;
 
-const NUM_TITLES: usize = 11;
-const TITLE_BOUND: [i32; NUM_TITLES] = [
-    -999, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2700, 3000,
-];
-const TITLE: [&str; NUM_TITLES] = [
-    "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
-];
 const MU_NEWBIE: f64 = 1500.0; // rating for a new player
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
-const SIX_MONTHS_AGO: usize = 1262;
-
-struct Scanner<R> {
-    reader: R,
-    buffer: Vec<String>,
-}
-
-impl<R: io::BufRead> Scanner<R> {
-    fn new(reader: R) -> Self {
-        Self {
-            reader,
-            buffer: vec![],
-        }
-    }
-
-    fn token<T: str::FromStr>(&mut self) -> T {
-        loop {
-            if let Some(token) = self.buffer.pop() {
-                return token.parse().ok().expect("Failed parse");
-            }
-            let mut input = String::new();
-            self.reader.read_line(&mut input).expect("Failed read");
-            self.buffer = input.split_whitespace().rev().map(String::from).collect();
-        }
-    }
-}
-
-fn scanner_from_file(filename: &str) -> Scanner<io::BufReader<std::fs::File>> {
-    let file = File::open(filename).expect("Input file not found");
-    Scanner::new(io::BufReader::new(file))
-}
-
-fn writer_to_file(filename: &str) -> io::BufWriter<std::fs::File> {
-    let file = std::fs::File::create(filename).expect("Output file not found");
-    io::BufWriter::new(file)
-}
-
-pub fn get_contests() -> Vec<usize> {
-    let mut team_contests = HashSet::new();
-    let mut solo_contests = Vec::new();
-
-    let mut scan = scanner_from_file("../data/team_contests.txt");
-    for _ in 0..scan.token::<usize>() {
-        let contest = scan.token::<usize>();
-        team_contests.insert(contest);
-    }
-
-    scan = scanner_from_file("../data/all_contests.txt");
-    for _ in 0..scan.token::<usize>() {
-        let contest = scan.token::<usize>();
-        if !team_contests.contains(&contest) {
-            solo_contests.push(contest);
-        }
-    }
-
-    assert_eq!(team_contests.len(), 17);
-    assert_eq!(solo_contests.len(), 1039);
-    solo_contests
-}
-
-fn read_results(contest: usize) -> (String, Vec<(String, usize, usize)>) {
-    let filename = format!("../standings/{}.txt", contest);
-    let mut scan = scanner_from_file(&filename);
-    let num_contestants = scan.token::<usize>();
-    let title = scan.buffer.drain(..).rev().collect::<Vec<_>>().join(" ");
-
-    let mut seen_handles = HashMap::with_capacity(num_contestants);
-    let results: Vec<(String, usize, usize)> = (0..num_contestants)
-        .map(|i| {
-            let handle = scan.token::<String>();
-            let rank_lo = scan.token::<usize>() - 1;
-            let rank_hi = scan.token::<usize>() - 1;
-
-            assert!(rank_lo <= i && i <= rank_hi && rank_hi < num_contestants);
-            if let Some(j) = seen_handles.insert(handle.clone(), i) {
-                // A hack to deal with unexplained duplicate contestants
-                if contest == 447 || contest == 472 || contest == 615 {
-                    println!(
-                        "WARNING: contest {} has duplicate user {} at ranks {} and {}",
-                        contest,
-                        handle,
-                        j + 1,
-                        i + 1
-                    );
-                    let handle = handle + "_clone";
-                    assert!(seen_handles.insert(handle.clone(), i).is_none());
-                    return (handle, rank_lo, rank_hi);
-                }
-
-                panic!(
-                    "Contest {} has duplicate user {} at ranks {} and {}",
-                    contest,
-                    handle,
-                    j + 1,
-                    i + 1
-                );
-            }
-            (handle, rank_lo, rank_hi)
-        })
-        .collect();
-
-    (title, results)
-}
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 struct Rating {
@@ -249,16 +136,8 @@ fn compute_performance(better: &[Rating], worse: &[Rating], all: &[Rating], extr
     robust_mean(all, extra, pos_offset - neg_offset, 0.0)
 }
 
-pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest: usize) {
+pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, results: &[(String, usize, usize)]) {
     let sig_noise = ((SIG_LIMIT.powi(-2) - SIG_PERF.powi(-2)).recip() - SIG_LIMIT.powi(2)).sqrt();
-
-    let (title, results) = read_results(contest);
-    println!(
-        "Processing {} contestants in contest/{}: {}",
-        results.len(),
-        contest,
-        title
-    );
 
     // Make sure the players exist, initializing newcomers with a default rating
     results.iter().for_each(|&(ref handle, _, _)| {
@@ -305,9 +184,12 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest:
             );
             player.push_performance(perf);
             player.recompute_posterior();
-            player.last_contest = contest;
+            //TODO: player.last_contest = contest;
         });
 }
+
+// TODO: does everything below here belong in a separate file?
+// Consider refactoring out the write target and the selection of recent contests.
 
 struct RatingData {
     cur_rating: i32,
@@ -318,11 +200,23 @@ struct RatingData {
     last_delta: i32,
 }
 
-pub fn print_ratings(players: &HashMap<String, RefCell<Player>>) {
-    use io::Write;
-    let mut out = writer_to_file("../data/CFratings_temp.txt");
-    let recent_contests: HashSet<usize> = get_contests()
+pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usize]) {
+    const NUM_TITLES: usize = 11;
+    const TITLE_BOUND: [i32; NUM_TITLES] = [
+        -999, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2700, 3000,
+    ];
+    const TITLE: [&str; NUM_TITLES] = [
+        "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
+    ];
+    const SIX_MONTHS_AGO: usize = 1262;
+
+    use std::io::Write;
+    let filename = "../data/CFratings_temp.txt";
+    let file = std::fs::File::create(filename).expect("Output file not found");
+    let mut out = std::io::BufWriter::new(file);
+    let recent_contests: HashSet<usize> = contests
         .into_iter()
+        .copied()
         .skip_while(|&i| i != SIX_MONTHS_AGO)
         .collect();
 
