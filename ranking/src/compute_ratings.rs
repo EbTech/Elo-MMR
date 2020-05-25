@@ -1,5 +1,6 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
+use super::read_codeforces::Contest;
 use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
@@ -113,7 +114,7 @@ fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: 
         } else {
             lo = guess;
         }
-        
+
         if sum.abs() < 1e-11 {
             return next;
         }
@@ -130,22 +131,28 @@ fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: 
 
 // ratings is a list of the participants, ordered from first to last place
 // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-fn compute_performance(better: &[Rating], worse: &[Rating], all: &[Rating], extra: Option<usize>) -> f64 {
+fn compute_performance(
+    better: &[Rating],
+    worse: &[Rating],
+    all: &[Rating],
+    extra: Option<usize>,
+) -> f64 {
     let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
     let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
     robust_mean(all, extra, pos_offset - neg_offset, 0.0)
 }
 
-pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, results: &[(String, usize, usize)]) {
+pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest: &Contest) {
     let sig_noise = ((SIG_LIMIT.powi(-2) - SIG_PERF.powi(-2)).recip() - SIG_LIMIT.powi(2)).sqrt();
 
     // Make sure the players exist, initializing newcomers with a default rating
-    results.iter().for_each(|&(ref handle, _, _)| {
+    contest.standings.iter().for_each(|&(ref handle, _, _)| {
         players.entry(handle.clone()).or_default();
     });
 
     // Store guards so that the cells can be released later
-    let mut guards: Vec<RefMut<Player>> = results
+    let mut guards: Vec<RefMut<Player>> = contest
+        .standings
         .iter()
         .map(|&(ref handle, _, _)| players.get(handle).unwrap().borrow_mut())
         .collect();
@@ -174,7 +181,7 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, results:
         .par_iter_mut()
         .enumerate()
         .for_each(|(i, player)| {
-            let (_, lo, hi) = results[i];
+            let (_, lo, hi) = contest.standings[i];
 
             let perf = compute_performance(
                 &all_ratings[..lo],
@@ -184,7 +191,7 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, results:
             );
             player.push_performance(perf);
             player.recompute_posterior();
-            //TODO: player.last_contest = contest;
+            player.last_contest = contest.id;
         });
 }
 
@@ -215,7 +222,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
     let file = std::fs::File::create(filename).expect("Output file not found");
     let mut out = std::io::BufWriter::new(file);
     let recent_contests: HashSet<usize> = contests
-        .into_iter()
+        .iter()
         .copied()
         .skip_while(|&i| i != SIX_MONTHS_AGO)
         .collect();

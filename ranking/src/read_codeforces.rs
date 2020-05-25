@@ -1,13 +1,10 @@
-use std::fs::File;
-use std::io;
-use std::str;
-use std::collections::{HashSet, HashMap};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "status")]
-enum CodeforcesPacket<T> {
+enum CFResponse<T> {
     OK { result: T },
     FAILED { comment: String },
 }
@@ -15,118 +12,122 @@ enum CodeforcesPacket<T> {
 /// Result of API call: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
-struct RatingChange {
-    contestId: u64,
+struct CFRatingChange {
+    contestId: usize,
     contestName: String,
     handle: String,
-    rank: u64,
-    ratingUpdateTimeSeconds: u64,
-    oldRating: i64,
-    newRating: i64,
+    rank: usize,
+    ratingUpdateTimeSeconds: usize,
+    oldRating: i32,
+    newRating: i32,
 }
 
-struct Scanner<R> {
-    reader: R,
-    buffer: Vec<String>,
+#[derive(Serialize, Deserialize)]
+pub struct Contest {
+    pub id: usize,
+    pub name: String,
+    pub standings: Vec<(String, usize, usize)>,
 }
 
-impl<R: io::BufRead> Scanner<R> {
-    fn new(reader: R) -> Self {
-        Self {
-            reader,
-            buffer: vec![],
-        }
-    }
+use std::convert::TryFrom;
+impl TryFrom<Vec<CFRatingChange>> for Contest {
+    type Error = String;
 
-    fn token<T: str::FromStr>(&mut self) -> T {
-        loop {
-            if let Some(token) = self.buffer.pop() {
-                return token.parse().ok().expect("Failed parse");
+    fn try_from(json_contest: Vec<CFRatingChange>) -> Result<Self, Self::Error> {
+        let first_change = json_contest.get(0).ok_or("Empty standings")?;
+        let id = first_change.contestId;
+        let name = first_change.contestName.clone();
+
+        let mut lo_rank = json_contest.len() + 1;
+        let mut hi_rank = json_contest.len() + 1;
+        let mut seen_handles = HashMap::with_capacity(json_contest.len());
+        let mut standings: Vec<(String, usize, usize)> = Vec::with_capacity(json_contest.len());
+
+        for (i, mut change) in json_contest.into_iter().enumerate().rev() {
+            if id != change.contestId {
+                return Err(format!(
+                    "Inconsistent contests ids {} and {}",
+                    id, change.contestId
+                ));
             }
-            let mut input = String::new();
-            self.reader.read_line(&mut input).expect("Failed read");
-            self.buffer = input.split_whitespace().rev().map(String::from).collect();
-        }
-    }
-}
-
-fn scanner_from_file(filename: &str) -> Scanner<io::BufReader<std::fs::File>> {
-    let file = File::open(filename).expect("Input file not found");
-    Scanner::new(io::BufReader::new(file))
-}
-
-pub fn get_contests() -> Vec<usize> {
-    let mut team_contests = HashSet::new();
-    let mut solo_contests = Vec::new();
-
-    let mut scan = scanner_from_file("../data/team_contests.txt");
-    for _ in 0..scan.token::<usize>() {
-        let contest = scan.token::<usize>();
-        team_contests.insert(contest);
-    }
-
-    scan = scanner_from_file("../data/all_contests.txt");
-    for _ in 0..scan.token::<usize>() {
-        let contest = scan.token::<usize>();
-        if !team_contests.contains(&contest) {
-            solo_contests.push(contest);
-        }
-    }
-
-    assert_eq!(team_contests.len(), 17);
-    assert_eq!(solo_contests.len(), 1039);
-    solo_contests
-}
-
-pub fn read_results(contest: usize) -> (String, Vec<(String, usize, usize)>) {
-    /*
-    TODO: Replace the current reading code to instead make all Codeforces API calls in parallel.
-          Then erase all the Scanner stuff above. Here's a non-parallel example:
-
-    let url = format!("https://codeforces.com/api/contest.ratingChanges?contestId={}", contest);
-    let response = reqwest::blocking::get(&url).expect("HTTP error");
-    let packet: CodeforcesPacket<Vec<RatingChange>> = response.json().expect("JSON parsing error");
-    */
-
-    let filename = format!("../standings/{}.txt", contest);
-    let mut scan = scanner_from_file(&filename);
-    let num_contestants = scan.token::<usize>();
-    let title = scan.buffer.drain(..).rev().collect::<Vec<_>>().join(" ");
-
-    let mut seen_handles = HashMap::with_capacity(num_contestants);
-    let results: Vec<(String, usize, usize)> = (0..num_contestants)
-        .map(|i| {
-            let handle = scan.token::<String>();
-            let rank_lo = scan.token::<usize>() - 1;
-            let rank_hi = scan.token::<usize>() - 1;
-
-            assert!(rank_lo <= i && i <= rank_hi && rank_hi < num_contestants);
-            if let Some(j) = seen_handles.insert(handle.clone(), i) {
-                // A hack to deal with unexplained duplicate contestants
-                if contest == 447 || contest == 472 || contest == 615 {
-                    println!(
-                        "WARNING: contest {} has duplicate user {} at ranks {} and {}",
-                        contest,
-                        handle,
-                        j + 1,
-                        i + 1
-                    );
-                    let handle = handle + "_clone";
-                    assert!(seen_handles.insert(handle.clone(), i).is_none());
-                    return (handle, rank_lo, rank_hi);
+            if name != change.contestName {
+                return Err(format!(
+                    "Inconsistent contest names {} and {}",
+                    name, change.contestName
+                ));
+            }
+            while let Some(j) = seen_handles.insert(change.handle.clone(), i) {
+                // I don't know why but contests 447,472,615 have duplicate users
+                if !(id == 447 || id == 472 || id == 615) {
+                    return Err(format!(
+                        "Duplicate user {} at positions {} and {}",
+                        change.handle, i, j
+                    ));
                 }
-
-                panic!(
-                    "Contest {} has duplicate user {} at ranks {} and {}",
-                    contest,
-                    handle,
-                    j + 1,
-                    i + 1
+                println!(
+                    "WARNING @ {}: duplicate user {} at positions {} and {}",
+                    id, change.handle, i, j
                 );
+                change.handle += "_clone";
             }
-            (handle, rank_lo, rank_hi)
-        })
-        .collect();
 
-    (title, results)
+            if lo_rank == change.rank {
+                if !(lo_rank < i + 2 && i < hi_rank) {
+                    return Err(format!(
+                        "Position {} is not between ranks {} and {}",
+                        i + 1,
+                        lo_rank,
+                        hi_rank
+                    ));
+                }
+            } else {
+                if !(change.rank < lo_rank && lo_rank == i + 2) {
+                    return Err(format!("Invalid start of rank {}", lo_rank));
+                }
+                hi_rank = lo_rank;
+                lo_rank = change.rank;
+            }
+
+            standings.push((change.handle, lo_rank - 1, hi_rank - 2));
+        }
+        standings.reverse();
+
+        Ok(Self {
+            id,
+            name,
+            standings,
+        })
+    }
+}
+
+pub fn get_contest_ids() -> Vec<usize> {
+    let filename = "../json/all_contests.txt";
+    let contests_json = std::fs::read_to_string(&filename).expect("Failed file read");
+    serde_json::from_str(&contests_json).expect("Invalid contests JSON")
+}
+
+pub fn read_results(contest_id: usize) -> Contest {
+    let filename = format!("../json/{}.txt", contest_id);
+
+    match std::fs::read_to_string(&filename) {
+        Ok(cached_json) => serde_json::from_str(&cached_json).expect("Invalid cached JSON"),
+        Err(_) => {
+            // The contest doesn't appear in our cache, so request it from the Codeforces API.
+            let url = format!(
+                "https://codeforces.com/api/contest.ratingChanges?contestId={}",
+                contest_id
+            );
+            let response = reqwest::blocking::get(&url).expect("HTTP error");
+            let packet: CFResponse<Vec<CFRatingChange>> =
+                response.json().expect("JSON parsing error");
+            let contest = match packet {
+                CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
+                CFResponse::FAILED { comment } => panic!(comment),
+            };
+
+            let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
+            std::fs::write(&filename, cached_json).expect("Failed to write to cache");
+            contest
+        }
+    }
 }
