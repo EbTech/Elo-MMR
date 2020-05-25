@@ -1,6 +1,7 @@
-Instructions to refresh ratings:
-- python3 crawl_CF.py
-- Add output contest numbers and updated count to add_contests.txt
-- Update contest count in the assert of compute_ratings.rs
-- rustc -O compute_ratings.rs
-- ./compute_ratings
+Instructions to compute ratings after installing Rust:
+- cd ranking/
+- cargo run
+
+data/contest_ids.txt tells the program which contests to look for in cache/
+You can populate the corresponding cache/ entries manually with your own contests.
+If the corresponding cache/ entry doesn't exist, the program searches Codeforces for it.

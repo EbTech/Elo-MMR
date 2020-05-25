@@ -2,22 +2,21 @@ mod compute_ratings;
 mod read_codeforces;
 
 use compute_ratings::{print_ratings, simulate_contest};
-use read_codeforces::{get_contest_ids, read_results};
+use read_codeforces::{get_contest_ids, get_contest};
 use std::collections::HashMap;
 
+/// simulates the entire history of Codeforces, runs on my laptop in 25 minutes
 fn main() {
-    // simulates the entire history of Codeforces, runs on my laptop in 24 minutes
-    let contest_ids = get_contest_ids();
     let mut players = HashMap::new();
-    for &contest_id in &contest_ids {
-        let contest = read_results(contest_id);
+    for contest_id in get_contest_ids() {
+        let contest = get_contest(contest_id);
         println!(
-            "Processing {} contestants in contest/{}: {}",
+            "Processing {:5} contestants in contest/{:4}: {}",
             contest.standings.len(),
             contest.id,
             contest.name
         );
         simulate_contest(&mut players, &contest);
     }
-    print_ratings(&players, &contest_ids);
+    print_ratings(&players, &get_contest_ids());
 }

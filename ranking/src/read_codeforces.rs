@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
+/// General response from the Codeforces API
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "status")]
@@ -9,7 +11,7 @@ enum CFResponse<T> {
     FAILED { comment: String },
 }
 
-/// Result of API call: https://codeforces.com/apiHelp/methods#contest.ratingChanges
+/// API documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
 struct CFRatingChange {
@@ -22,6 +24,7 @@ struct CFRatingChange {
     newRating: i32,
 }
 
+/// Represents the outcome of a contest
 #[derive(Serialize, Deserialize)]
 pub struct Contest {
     pub id: usize,
@@ -29,7 +32,7 @@ pub struct Contest {
     pub standings: Vec<(String, usize, usize)>,
 }
 
-use std::convert::TryFrom;
+/// Check the integrity of our API response and convert it into a more convenient format
 impl TryFrom<Vec<CFRatingChange>> for Contest {
     type Error = String;
 
@@ -100,17 +103,21 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     }
 }
 
+/// Get a list of all the contest IDs in chronological order
 pub fn get_contest_ids() -> Vec<usize> {
-    let filename = "../json/all_contests.txt";
-    let contests_json = std::fs::read_to_string(&filename).expect("Failed file read");
-    serde_json::from_str(&contests_json).expect("Invalid contests JSON")
+    let filename = "../json/contest_ids.json";
+    let contests_json = std::fs::read_to_string(&filename).expect("Failed to read contest IDs");
+    serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON")
 }
 
-pub fn read_results(contest_id: usize) -> Contest {
-    let filename = format!("../json/{}.txt", contest_id);
+/// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
+/// json/ directly, that will be used. This way, you can process your own custom contests.
+/// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
+pub fn get_contest(contest_id: usize) -> Contest {
+    let filename = format!("../json/{}.json", contest_id);
 
     match std::fs::read_to_string(&filename) {
-        Ok(cached_json) => serde_json::from_str(&cached_json).expect("Invalid cached JSON"),
+        Ok(cached_json) => serde_json::from_str(&cached_json).expect("Failed to read cache"),
         Err(_) => {
             // The contest doesn't appear in our cache, so request it from the Codeforces API.
             let url = format!(
@@ -119,7 +126,7 @@ pub fn read_results(contest_id: usize) -> Contest {
             );
             let response = reqwest::blocking::get(&url).expect("HTTP error");
             let packet: CFResponse<Vec<CFRatingChange>> =
-                response.json().expect("JSON parsing error");
+                response.json().expect("Failed to parse Codeforces API response as JSON");
             let contest = match packet {
                 CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
                 CFResponse::FAILED { comment } => panic!(comment),
