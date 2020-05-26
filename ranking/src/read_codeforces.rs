@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
+use std::path::Path;
 
 /// General response from the Codeforces API
 #[allow(non_snake_case)]
@@ -105,18 +106,18 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 
 /// Get a list of all the contest IDs in chronological order
 pub fn get_contest_ids() -> Vec<usize> {
-    let filename = "../json/contest_ids.json";
-    let contests_json = std::fs::read_to_string(&filename).expect("Failed to read contest IDs");
+    let ids_file = Path::new("../data/contest_ids.json");
+    let contests_json = std::fs::read_to_string(&ids_file).expect("Failed to read contest IDs");
     serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON")
 }
 
 /// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
-pub fn get_contest(contest_id: usize) -> Contest {
-    let filename = format!("../json/{}.json", contest_id);
+pub fn get_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
+    let cache_file = cache_dir.as_ref().join(format!("{}.json", contest_id));
 
-    match std::fs::read_to_string(&filename) {
+    match std::fs::read_to_string(&cache_file) {
         Ok(cached_json) => serde_json::from_str(&cached_json).expect("Failed to read cache"),
         Err(_) => {
             // The contest doesn't appear in our cache, so request it from the Codeforces API.
@@ -133,7 +134,7 @@ pub fn get_contest(contest_id: usize) -> Contest {
             };
 
             let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
-            std::fs::write(&filename, cached_json).expect("Failed to write to cache");
+            std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
             contest
         }
     }

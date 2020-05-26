@@ -9,7 +9,7 @@ use std::collections::HashMap;
 fn main() {
     let mut players = HashMap::new();
     for contest_id in get_contest_ids() {
-        let contest = get_contest(contest_id);
+        let contest = get_contest("../cache", contest_id);
         println!(
             "Processing {:5} contestants in contest/{:4}: {}",
             contest.standings.len(),
