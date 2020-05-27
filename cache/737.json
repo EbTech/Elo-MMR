@@ -1,6 +1,7 @@
 {
   "id": 737,
   "name": "Codeforces Round #380 (Div. 1, Rated, Based on Technocup 2017 - Elimination Round 2)",
+  "time_seconds": 1479639900,
   "standings": [
     [
       "riadwaw",
@@ -163,12 +164,12 @@
       31
     ],
     [
-      "zscoder",
+      "unused",
       32,
       33
     ],
     [
-      "unused",
+      "zscoder",
       32,
       33
     ],
@@ -308,12 +309,12 @@
       60
     ],
     [
-      "pitfall",
+      "Arterm",
       61,
       62
     ],
     [
-      "Arterm",
+      "pitfall",
       61,
       62
     ],
@@ -453,12 +454,12 @@
       89
     ],
     [
-      "flydutchman",
+      "VageTabler",
       90,
       91
     ],
     [
-      "VageTabler",
+      "flydutchman",
       90,
       91
     ],
@@ -573,12 +574,12 @@
       113
     ],
     [
-      "robinyu",
+      "TooDumbToWin",
       114,
       115
     ],
     [
-      "TooDumbToWin",
+      "robinyu",
       114,
       115
     ],
@@ -628,12 +629,12 @@
       124
     ],
     [
-      "komendart",
+      "bogdan10bos",
       125,
       126
     ],
     [
-      "bogdan10bos",
+      "komendart",
       125,
       126
     ],
@@ -723,12 +724,12 @@
       143
     ],
     [
-      "Kipsora",
+      "pikmike",
       144,
       145
     ],
     [
-      "pikmike",
+      "Kipsora",
       144,
       145
     ],
@@ -753,12 +754,12 @@
       149
     ],
     [
-      "Arpa",
+      "KrK",
       150,
       151
     ],
     [
-      "KrK",
+      "Arpa",
       150,
       151
     ],
@@ -803,12 +804,12 @@
       159
     ],
     [
-      "Amirnasr",
+      "wiwitrifai",
       160,
       161
     ],
     [
-      "wiwitrifai",
+      "Amirnasr",
       160,
       161
     ],
@@ -988,12 +989,12 @@
       196
     ],
     [
-      "madshuttlecock",
+      "satyaki3794",
       197,
       198
     ],
     [
-      "satyaki3794",
+      "madshuttlecock",
       197,
       198
     ],
@@ -1173,12 +1174,12 @@
       233
     ],
     [
-      "Reyna",
+      "piob",
       234,
       235
     ],
     [
-      "piob",
+      "Reyna",
       234,
       235
     ],
@@ -1328,12 +1329,12 @@
       264
     ],
     [
-      "MaryamG",
+      "EvgeniSergeev",
       265,
       266
     ],
     [
-      "EvgeniSergeev",
+      "MaryamG",
       265,
       266
     ],
@@ -1368,12 +1369,12 @@
       272
     ],
     [
-      "microtony",
+      "wilcot",
       273,
       274
     ],
     [
-      "wilcot",
+      "microtony",
       273,
       274
     ],
@@ -1438,12 +1439,12 @@
       286
     ],
     [
-      "TheConfessor",
+      "hiro116s",
       287,
       288
     ],
     [
-      "hiro116s",
+      "TheConfessor",
       287,
       288
     ],
@@ -1548,17 +1549,17 @@
       308
     ],
     [
-      "Shavkat_Aminov",
-      309,
-      311
-    ],
-    [
       "Waldis",
       309,
       311
     ],
     [
       "jianzhi",
+      309,
+      311
+    ],
+    [
+      "Shavkat_Aminov",
       309,
       311
     ],
@@ -1703,12 +1704,12 @@
       339
     ],
     [
-      "NBAH",
+      "Whalanator",
       340,
       341
     ],
     [
-      "Whalanator",
+      "NBAH",
       340,
       341
     ],
@@ -1853,12 +1854,12 @@
       369
     ],
     [
-      "Mhammad1",
+      "LeiQ",
       370,
       371
     ],
     [
-      "LeiQ",
+      "Mhammad1",
       370,
       371
     ],
@@ -1973,21 +1974,6 @@
       393
     ],
     [
-      "TaoSama",
-      394,
-      406
-    ],
-    [
-      "MathCrusader",
-      394,
-      406
-    ],
-    [
-      "I-Love-Islam",
-      394,
-      406
-    ],
-    [
       "Trans",
       394,
       406
@@ -2034,6 +2020,21 @@
     ],
     [
       "rachitiitr",
+      394,
+      406
+    ],
+    [
+      "TaoSama",
+      394,
+      406
+    ],
+    [
+      "MathCrusader",
+      394,
+      406
+    ],
+    [
+      "I-Love-Islam",
       394,
       406
     ]

@@ -1,6 +1,7 @@
 {
   "id": 830,
   "name": "Codeforces Round #424 (Div. 1, rated, based on VK Cup Finals)",
+  "time_seconds": 1499965500,
   "standings": [
     [
       "Syloviaely",
@@ -228,12 +229,12 @@
       44
     ],
     [
-      "Svyat",
+      "cjtoribio",
       45,
       46
     ],
     [
-      "cjtoribio",
+      "Svyat",
       45,
       46
     ],
@@ -313,12 +314,12 @@
       61
     ],
     [
-      "tlwpdus",
+      "HellKitsune",
       62,
       63
     ],
     [
-      "HellKitsune",
+      "tlwpdus",
       62,
       63
     ],
@@ -378,22 +379,22 @@
       74
     ],
     [
-      "cbhcbh",
-      75,
-      76
-    ],
-    [
       "kb.",
       75,
       76
     ],
     [
-      "Quang",
+      "cbhcbh",
+      75,
+      76
+    ],
+    [
+      "idy002",
       77,
       78
     ],
     [
-      "idy002",
+      "Quang",
       77,
       78
     ],
@@ -408,12 +409,12 @@
       80
     ],
     [
-      "zhsh",
+      "ckw1140",
       81,
       82
     ],
     [
-      "ckw1140",
+      "zhsh",
       81,
       82
     ],
@@ -623,7 +624,7 @@
       123
     ],
     [
-      "BayHarborButcher",
+      "Farhod_Farmon",
       124,
       126
     ],
@@ -633,7 +634,7 @@
       126
     ],
     [
-      "Farhod_Farmon",
+      "BayHarborButcher",
       124,
       126
     ],
@@ -643,19 +644,14 @@
       127
     ],
     [
-      "SlavaSSU",
-      128,
-      129
-    ],
-    [
       "nuip",
       128,
       129
     ],
     [
-      "Shik",
-      130,
-      131
+      "SlavaSSU",
+      128,
+      129
     ],
     [
       "vanvector",
@@ -663,12 +659,17 @@
       131
     ],
     [
-      "wrinx",
+      "Shik",
+      130,
+      131
+    ],
+    [
+      "nhho",
       132,
       133
     ],
     [
-      "nhho",
+      "wrinx",
       132,
       133
     ],
@@ -681,6 +682,11 @@
       "KaykAykaY",
       135,
       135
+    ],
+    [
+      "FaivencTale",
+      136,
+      139
     ],
     [
       "espr1t",
@@ -698,16 +704,6 @@
       139
     ],
     [
-      "FaivencTale",
-      136,
-      139
-    ],
-    [
-      "mHuman",
-      140,
-      142
-    ],
-    [
       "natalia",
       140,
       142
@@ -718,17 +714,22 @@
       142
     ],
     [
+      "mHuman",
+      140,
+      142
+    ],
+    [
       "t90tank",
       143,
       143
     ],
     [
-      "WA_TLE",
+      "shjgkwo",
       144,
       145
     ],
     [
-      "shjgkwo",
+      "WA_TLE",
       144,
       145
     ],
@@ -748,12 +749,12 @@
       148
     ],
     [
-      "step_by_step",
+      "TooDumbToWin",
       149,
       150
     ],
     [
-      "TooDumbToWin",
+      "step_by_step",
       149,
       150
     ],
@@ -778,12 +779,12 @@
       154
     ],
     [
-      "guille",
+      "pranet",
       155,
       156
     ],
     [
-      "pranet",
+      "guille",
       155,
       156
     ],
@@ -823,12 +824,12 @@
       163
     ],
     [
-      "rubabredwan",
+      "nein",
       164,
       165
     ],
     [
-      "nein",
+      "rubabredwan",
       164,
       165
     ],
@@ -843,12 +844,12 @@
       167
     ],
     [
-      "SakurakoujiRuna",
+      "hank55663",
       168,
       169
     ],
     [
-      "hank55663",
+      "SakurakoujiRuna",
       168,
       169
     ],
@@ -868,12 +869,12 @@
       172
     ],
     [
-      "orbitingflea",
+      "Egor.Lifar",
       173,
       175
     ],
     [
-      "Egor.Lifar",
+      "orbitingflea",
       173,
       175
     ],
@@ -888,7 +889,7 @@
       176
     ],
     [
-      "Reskip",
+      "Orenji.Sora",
       177,
       179
     ],
@@ -898,7 +899,7 @@
       179
     ],
     [
-      "Orenji.Sora",
+      "Reskip",
       177,
       179
     ],
@@ -948,7 +949,7 @@
       188
     ],
     [
-      "vsp4",
+      "houruize",
       189,
       191
     ],
@@ -958,9 +959,19 @@
       191
     ],
     [
-      "houruize",
+      "vsp4",
       189,
       191
+    ],
+    [
+      "Markellonchik",
+      192,
+      196
+    ],
+    [
+      "abhishek_saini",
+      192,
+      196
     ],
     [
       "subscriber",
@@ -978,14 +989,9 @@
       196
     ],
     [
-      "Markellonchik",
-      192,
-      196
-    ],
-    [
-      "abhishek_saini",
-      192,
-      196
+      "Mohammad_Yasser",
+      197,
+      198
     ],
     [
       "TangentDay",
@@ -993,17 +999,12 @@
       198
     ],
     [
-      "Mohammad_Yasser",
-      197,
-      198
-    ],
-    [
-      "sazerterus25",
+      "comfi",
       199,
       200
     ],
     [
-      "comfi",
+      "sazerterus25",
       199,
       200
     ],
@@ -1058,19 +1059,14 @@
       210
     ],
     [
-      "MicGor",
-      211,
-      212
-    ],
-    [
       "Honour_00",
       211,
       212
     ],
     [
-      "RemiliaScarlet",
-      213,
-      214
+      "MicGor",
+      211,
+      212
     ],
     [
       "laurageorgescu",
@@ -1078,9 +1074,9 @@
       214
     ],
     [
-      "Juno",
-      215,
-      217
+      "RemiliaScarlet",
+      213,
+      214
     ],
     [
       "Eclipse",
@@ -1089,6 +1085,11 @@
     ],
     [
       "chokudai",
+      215,
+      217
+    ],
+    [
+      "Juno",
       215,
       217
     ],
@@ -1113,17 +1114,17 @@
       221
     ],
     [
+      "AndreySergunin",
+      222,
+      224
+    ],
+    [
       "ainta",
       222,
       224
     ],
     [
       "mredigonda",
-      222,
-      224
-    ],
-    [
-      "AndreySergunin",
       222,
       224
     ],
@@ -1183,12 +1184,12 @@
       235
     ],
     [
-      "zetilovn",
+      "kyleliu",
       236,
       237
     ],
     [
-      "kyleliu",
+      "zetilovn",
       236,
       237
     ],
@@ -1198,19 +1199,14 @@
       238
     ],
     [
-      "Logsha",
-      239,
-      240
-    ],
-    [
       "femsub",
       239,
       240
     ],
     [
-      "co_farmer",
-      241,
-      245
+      "Logsha",
+      239,
+      240
     ],
     [
       "Daniar",
@@ -1233,12 +1229,17 @@
       245
     ],
     [
-      "dummy",
+      "co_farmer",
+      241,
+      245
+    ],
+    [
+      "Sampson",
       246,
       247
     ],
     [
-      "Sampson",
+      "dummy",
       246,
       247
     ],
@@ -1248,12 +1249,12 @@
       248
     ],
     [
-      "Sakura",
+      "Filyan",
       249,
       250
     ],
     [
-      "Filyan",
+      "Sakura",
       249,
       250
     ],
@@ -1283,19 +1284,14 @@
       255
     ],
     [
-      "sarkar",
-      256,
-      257
-    ],
-    [
       "laekov_",
       256,
       257
     ],
     [
-      "Remarque",
-      258,
-      260
+      "sarkar",
+      256,
+      257
     ],
     [
       "KhaledKEE",
@@ -1304,6 +1300,11 @@
     ],
     [
       "RockyB",
+      258,
+      260
+    ],
+    [
+      "Remarque",
       258,
       260
     ],
@@ -1528,12 +1529,12 @@
       304
     ],
     [
-      "miha715lev",
+      "antkhorin",
       305,
       306
     ],
     [
-      "antkhorin",
+      "miha715lev",
       305,
       306
     ],
@@ -1558,12 +1559,12 @@
       310
     ],
     [
-      "Len",
+      "Mustang98",
       311,
       312
     ],
     [
-      "Mustang98",
+      "Len",
       311,
       312
     ],
@@ -1573,12 +1574,12 @@
       313
     ],
     [
-      "qwsin",
+      "ugly2333",
       314,
       315
     ],
     [
-      "ugly2333",
+      "qwsin",
       314,
       315
     ],
@@ -1613,12 +1614,12 @@
       321
     ],
     [
-      "Rydberg",
+      "niquefa_diego",
       322,
       323
     ],
     [
-      "niquefa_diego",
+      "Rydberg",
       322,
       323
     ],
@@ -1663,12 +1664,12 @@
       331
     ],
     [
-      "alex9801",
+      "SpoonsAN",
       332,
       333
     ],
     [
-      "SpoonsAN",
+      "alex9801",
       332,
       333
     ],
@@ -1683,12 +1684,12 @@
       335
     ],
     [
-      "Coder_404",
+      "dacin21",
       336,
       337
     ],
     [
-      "dacin21",
+      "Coder_404",
       336,
       337
     ],
@@ -1708,12 +1709,12 @@
       340
     ],
     [
-      "Melnik",
+      "Harmonica",
       341,
       342
     ],
     [
-      "Harmonica",
+      "Melnik",
       341,
       342
     ],
@@ -1743,17 +1744,17 @@
       347
     ],
     [
+      "iwashi31",
+      348,
+      350
+    ],
+    [
       "triploblastic",
       348,
       350
     ],
     [
       "misztsu",
-      348,
-      350
-    ],
-    [
-      "iwashi31",
       348,
       350
     ],
@@ -1768,12 +1769,12 @@
       352
     ],
     [
-      "just_soso",
+      "malfple",
       353,
       354
     ],
     [
-      "malfple",
+      "just_soso",
       353,
       354
     ],
@@ -1798,6 +1799,11 @@
       358
     ],
     [
+      "pavel.savchenkov",
+      359,
+      361
+    ],
+    [
       "jiazihankk",
       359,
       361
@@ -1808,22 +1814,17 @@
       361
     ],
     [
-      "pavel.savchenkov",
-      359,
-      361
-    ],
-    [
       "nigus",
       362,
       362
     ],
     [
-      "shengdebao",
+      "nwi",
       363,
       364
     ],
     [
-      "nwi",
+      "shengdebao",
       363,
       364
     ],
@@ -1883,22 +1884,22 @@
       375
     ],
     [
-      "BaturaDima",
-      376,
-      377
-    ],
-    [
       "Heisenbug",
       376,
       377
     ],
     [
-      "afedor",
+      "BaturaDima",
+      376,
+      377
+    ],
+    [
+      "pro100leo",
       378,
       379
     ],
     [
-      "pro100leo",
+      "afedor",
       378,
       379
     ],
@@ -1938,12 +1939,12 @@
       386
     ],
     [
-      "kzyKT",
+      "dario2994",
       387,
       388
     ],
     [
-      "dario2994",
+      "kzyKT",
       387,
       388
     ],
@@ -1993,12 +1994,12 @@
       397
     ],
     [
-      "_Ash__",
+      "-Wave-",
       398,
       399
     ],
     [
-      "-Wave-",
+      "_Ash__",
       398,
       399
     ],
@@ -2263,51 +2264,6 @@
       451
     ],
     [
-      "tinca_matei",
-      452,
-      465
-    ],
-    [
-      "Yurik",
-      452,
-      465
-    ],
-    [
-      "Erdenebayar",
-      452,
-      465
-    ],
-    [
-      "olphe",
-      452,
-      465
-    ],
-    [
-      "osmanorhan",
-      452,
-      465
-    ],
-    [
-      "perchema",
-      452,
-      465
-    ],
-    [
-      "StillFantasy",
-      452,
-      465
-    ],
-    [
-      "AA_love_dreamoon",
-      452,
-      465
-    ],
-    [
-      "_D41_",
-      452,
-      465
-    ],
-    [
       "abisheka",
       452,
       465
@@ -2329,6 +2285,51 @@
     ],
     [
       "Unimaginable",
+      452,
+      465
+    ],
+    [
+      "tinca_matei",
+      452,
+      465
+    ],
+    [
+      "Yurik",
+      452,
+      465
+    ],
+    [
+      "osmanorhan",
+      452,
+      465
+    ],
+    [
+      "perchema",
+      452,
+      465
+    ],
+    [
+      "olphe",
+      452,
+      465
+    ],
+    [
+      "Erdenebayar",
+      452,
+      465
+    ],
+    [
+      "StillFantasy",
+      452,
+      465
+    ],
+    [
+      "AA_love_dreamoon",
+      452,
+      465
+    ],
+    [
+      "_D41_",
       452,
       465
     ]

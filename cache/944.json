@@ -1,6 +1,7 @@
 {
   "id": 944,
   "name": "Технокубок 2018 - Финал (только для онсайт-финалистов)",
+  "time_seconds": 1520163600,
   "standings": [
     [
       "qoo2p5",
@@ -1133,12 +1134,12 @@
       225
     ],
     [
-      "Remarque",
+      "FMyar",
       226,
       227
     ],
     [
-      "FMyar",
+      "Remarque",
       226,
       227
     ],
@@ -1298,12 +1299,12 @@
       258
     ],
     [
-      "Frankenween",
+      "LordOfTheLags",
       259,
       260
     ],
     [
-      "LordOfTheLags",
+      "Frankenween",
       259,
       260
     ],
@@ -1468,22 +1469,22 @@
       292
     ],
     [
-      "Dilana",
-      293,
-      296
-    ],
-    [
-      "EasyHacks",
-      293,
-      296
-    ],
-    [
       "MAK_corp",
       293,
       296
     ],
     [
       "pavlukivan",
+      293,
+      296
+    ],
+    [
+      "Dilana",
+      293,
+      296
+    ],
+    [
+      "EasyHacks",
       293,
       296
     ]

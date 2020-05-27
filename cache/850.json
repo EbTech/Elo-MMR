@@ -1,6 +1,7 @@
 {
   "id": 850,
   "name": "Codeforces Round #432 (Div. 1, based on IndiaHacks Final Round 2017)",
+  "time_seconds": 1504544700,
   "standings": [
     [
       "BaconLi",
@@ -298,12 +299,12 @@
       58
     ],
     [
-      "Kamfucius",
+      "--d",
       59,
       60
     ],
     [
-      "--d",
+      "Kamfucius",
       59,
       60
     ],
@@ -343,12 +344,12 @@
       67
     ],
     [
-      "wiwitrifai",
+      "Totoro",
       68,
       69
     ],
     [
-      "Totoro",
+      "wiwitrifai",
       68,
       69
     ],
@@ -528,12 +529,12 @@
       104
     ],
     [
-      "Amayoneko",
+      "Egor.Lifar",
       105,
       106
     ],
     [
-      "Egor.Lifar",
+      "Amayoneko",
       105,
       106
     ],
@@ -643,12 +644,12 @@
       127
     ],
     [
-      "nezametdinov",
+      "imathi",
       128,
       129
     ],
     [
-      "imathi",
+      "nezametdinov",
       128,
       129
     ],
@@ -718,17 +719,17 @@
       142
     ],
     [
-      "T1024",
-      143,
-      145
-    ],
-    [
       "Orenji.Sora",
       143,
       145
     ],
     [
       "GiannisAntetokounmpo",
+      143,
+      145
+    ],
+    [
+      "T1024",
       143,
       145
     ],
@@ -778,12 +779,12 @@
       154
     ],
     [
-      "catupper",
+      "AwD",
       155,
       156
     ],
     [
-      "AwD",
+      "catupper",
       155,
       156
     ],
@@ -908,12 +909,12 @@
       182
     ],
     [
-      "andyshih12",
+      "q707185547",
       180,
       182
     ],
     [
-      "q707185547",
+      "andyshih12",
       180,
       182
     ],
@@ -948,12 +949,12 @@
       188
     ],
     [
-      "SoMuchDrama",
+      "MyLegendaryTime",
       189,
       190
     ],
     [
-      "MyLegendaryTime",
+      "SoMuchDrama",
       189,
       190
     ],
@@ -1073,12 +1074,12 @@
       213
     ],
     [
-      "Taube",
+      "FrostStar",
       214,
       215
     ],
     [
-      "FrostStar",
+      "Taube",
       214,
       215
     ],
@@ -1188,7 +1189,7 @@
       236
     ],
     [
-      "I_always_love_cc",
+      "aid",
       237,
       239
     ],
@@ -1198,7 +1199,7 @@
       239
     ],
     [
-      "aid",
+      "I_always_love_cc",
       237,
       239
     ],
@@ -1206,31 +1207,6 @@
       "Constantius",
       240,
       240
-    ],
-    [
-      "mutreta",
-      241,
-      247
-    ],
-    [
-      "klavisha",
-      241,
-      247
-    ],
-    [
-      "linpaws",
-      241,
-      247
-    ],
-    [
-      "SirRembocodina",
-      241,
-      247
-    ],
-    [
-      "Neil",
-      241,
-      247
     ],
     [
       "Splashing",
@@ -1243,9 +1219,29 @@
       247
     ],
     [
-      "woqja125",
-      248,
-      249
+      "Neil",
+      241,
+      247
+    ],
+    [
+      "mutreta",
+      241,
+      247
+    ],
+    [
+      "klavisha",
+      241,
+      247
+    ],
+    [
+      "SirRembocodina",
+      241,
+      247
+    ],
+    [
+      "linpaws",
+      241,
+      247
     ],
     [
       ".__.",
@@ -1253,7 +1249,12 @@
       249
     ],
     [
-      "beet",
+      "woqja125",
+      248,
+      249
+    ],
+    [
+      "Mindstorm",
       250,
       252
     ],
@@ -1263,7 +1264,7 @@
       252
     ],
     [
-      "Mindstorm",
+      "beet",
       250,
       252
     ],
@@ -1271,6 +1272,11 @@
       "SakurakoujiRuna",
       253,
       253
+    ],
+    [
+      "16silver",
+      254,
+      256
     ],
     [
       "Yurik",
@@ -1283,9 +1289,9 @@
       256
     ],
     [
-      "16silver",
-      254,
-      256
+      "hitokoto",
+      257,
+      259
     ],
     [
       "RoundDog",
@@ -1296,21 +1302,6 @@
       "LinPC",
       257,
       259
-    ],
-    [
-      "hitokoto",
-      257,
-      259
-    ],
-    [
-      "UESTC_Sphinx",
-      260,
-      264
-    ],
-    [
-      "IgorAkhmetov",
-      260,
-      264
     ],
     [
       "kilotaras",
@@ -1328,9 +1319,14 @@
       264
     ],
     [
-      "cz_xuyixuan",
-      265,
-      266
+      "UESTC_Sphinx",
+      260,
+      264
+    ],
+    [
+      "IgorAkhmetov",
+      260,
+      264
     ],
     [
       "hohomu",
@@ -1338,9 +1334,9 @@
       266
     ],
     [
-      "Tima",
-      267,
-      269
+      "cz_xuyixuan",
+      265,
+      266
     ],
     [
       "Zailton",
@@ -1353,12 +1349,17 @@
       269
     ],
     [
-      "hitman623",
+      "Tima",
+      267,
+      269
+    ],
+    [
+      "MPeti",
       270,
       271
     ],
     [
-      "MPeti",
+      "hitman623",
       270,
       271
     ],
@@ -1373,21 +1374,6 @@
       273
     ],
     [
-      "polingy",
-      274,
-      279
-    ],
-    [
-      "iwashi31",
-      274,
-      279
-    ],
-    [
-      "vmrajas",
-      274,
-      279
-    ],
-    [
       "behzad.nouri",
       274,
       279
@@ -1399,6 +1385,21 @@
     ],
     [
       "AminAnvari",
+      274,
+      279
+    ],
+    [
+      "polingy",
+      274,
+      279
+    ],
+    [
+      "iwashi31",
+      274,
+      279
+    ],
+    [
+      "vmrajas",
       274,
       279
     ],
@@ -1428,12 +1429,12 @@
       284
     ],
     [
-      "_D41_",
+      "wwwxxxddd",
       285,
       286
     ],
     [
-      "wwwxxxddd",
+      "_D41_",
       285,
       286
     ],
@@ -1473,17 +1474,17 @@
       293
     ],
     [
+      "balalaika",
+      294,
+      296
+    ],
+    [
       "yzyz",
       294,
       296
     ],
     [
       "Svlad_Cjelli",
-      294,
-      296
-    ],
-    [
-      "balalaika",
       294,
       296
     ],
@@ -1498,22 +1499,22 @@
       298
     ],
     [
-      "kingofnumbers",
-      299,
-      300
-    ],
-    [
       "ArielxX",
       299,
       300
     ],
     [
-      "Pavluha",
+      "kingofnumbers",
+      299,
+      300
+    ],
+    [
+      "sun_en_ze",
       301,
       302
     ],
     [
-      "sun_en_ze",
+      "Pavluha",
       301,
       302
     ],
@@ -1533,12 +1534,12 @@
       305
     ],
     [
-      "GT_18",
+      "squee_sp00n",
       306,
       307
     ],
     [
-      "squee_sp00n",
+      "GT_18",
       306,
       307
     ],
@@ -1563,17 +1564,17 @@
       311
     ],
     [
+      "lishiliu",
+      312,
+      314
+    ],
+    [
       "kakalan",
       312,
       314
     ],
     [
       "osamahatem",
-      312,
-      314
-    ],
-    [
-      "lishiliu",
       312,
       314
     ],
@@ -1603,12 +1604,12 @@
       319
     ],
     [
-      "misael",
+      "Sealionheart",
       320,
       321
     ],
     [
-      "Sealionheart",
+      "misael",
       320,
       321
     ],
@@ -1623,12 +1624,12 @@
       323
     ],
     [
-      "Waj",
+      "caa_tomsk",
       324,
       325
     ],
     [
-      "caa_tomsk",
+      "Waj",
       324,
       325
     ],
@@ -1653,17 +1654,17 @@
       329
     ],
     [
+      "doooodle",
+      330,
+      332
+    ],
+    [
       "lonelam",
       330,
       332
     ],
     [
       "ljt12138",
-      330,
-      332
-    ],
-    [
-      "doooodle",
       330,
       332
     ],
@@ -1753,12 +1754,12 @@
       349
     ],
     [
-      "t90tank",
+      "nyan101",
       350,
       351
     ],
     [
-      "nyan101",
+      "t90tank",
       350,
       351
     ],
@@ -1778,12 +1779,12 @@
       354
     ],
     [
-      "dmnsn7",
+      "atomicenergy",
       355,
       356
     ],
     [
-      "atomicenergy",
+      "dmnsn7",
       355,
       356
     ],
@@ -1813,22 +1814,22 @@
       361
     ],
     [
-      "Clone3",
-      362,
-      365
-    ],
-    [
-      "I-Love-Islam",
-      362,
-      365
-    ],
-    [
       "sdnr1",
       362,
       365
     ],
     [
       "Megumi_",
+      362,
+      365
+    ],
+    [
+      "Clone3",
+      362,
+      365
+    ],
+    [
+      "I-Love-Islam",
       362,
       365
     ],
@@ -1841,61 +1842,6 @@
       "Light",
       366,
       367
-    ],
-    [
-      "2013300262",
-      368,
-      384
-    ],
-    [
-      "ItsLastDay",
-      368,
-      384
-    ],
-    [
-      "shravanpatel5",
-      368,
-      384
-    ],
-    [
-      "Ali.Kh",
-      368,
-      384
-    ],
-    [
-      "mouse_wireless",
-      368,
-      384
-    ],
-    [
-      "born2rule",
-      368,
-      384
-    ],
-    [
-      "ebaalhuis",
-      368,
-      384
-    ],
-    [
-      "SiotaNagisa",
-      368,
-      384
-    ],
-    [
-      "I_love_MikhailRubinchik",
-      368,
-      384
-    ],
-    [
-      "abhi1agarwal",
-      368,
-      384
-    ],
-    [
-      "akmintro",
-      368,
-      384
     ],
     [
       "nhphuongltv",
@@ -1918,12 +1864,67 @@
       384
     ],
     [
+      "born2rule",
+      368,
+      384
+    ],
+    [
+      "ebaalhuis",
+      368,
+      384
+    ],
+    [
       "ZYCSwing",
       368,
       384
     ],
     [
+      "akmintro",
+      368,
+      384
+    ],
+    [
       "rhezo",
+      368,
+      384
+    ],
+    [
+      "shravanpatel5",
+      368,
+      384
+    ],
+    [
+      "Ali.Kh",
+      368,
+      384
+    ],
+    [
+      "ItsLastDay",
+      368,
+      384
+    ],
+    [
+      "mouse_wireless",
+      368,
+      384
+    ],
+    [
+      "SiotaNagisa",
+      368,
+      384
+    ],
+    [
+      "abhi1agarwal",
+      368,
+      384
+    ],
+    [
+      "2013300262",
+      368,
+      384
+    ],
+    [
+      "I_love_MikhailRubinchik",
       368,
       384
     ]

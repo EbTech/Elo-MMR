@@ -1,6 +1,7 @@
 {
   "id": 1010,
   "name": "Codeforces Round #499 (Div. 1)",
+  "time_seconds": 1532624700,
   "standings": [
     [
       "Kostroma",
@@ -243,17 +244,17 @@
       47
     ],
     [
+      "cuizhuyefei",
+      48,
+      50
+    ],
+    [
       "zeliboba",
       48,
       50
     ],
     [
       "apiadu",
-      48,
-      50
-    ],
-    [
-      "cuizhuyefei",
       48,
       50
     ],
@@ -308,12 +309,12 @@
       60
     ],
     [
-      "xdc2017",
+      "kilotaras",
       61,
       62
     ],
     [
-      "kilotaras",
+      "xdc2017",
       61,
       62
     ],
@@ -373,12 +374,12 @@
       73
     ],
     [
-      "vanogam",
+      "TonySnark",
       74,
       75
     ],
     [
-      "TonySnark",
+      "vanogam",
       74,
       75
     ],
@@ -543,12 +544,12 @@
       107
     ],
     [
-      "Danylo99",
+      "voover",
       108,
       109
     ],
     [
-      "voover",
+      "Danylo99",
       108,
       109
     ],
@@ -698,12 +699,12 @@
       138
     ],
     [
-      "ipaljak",
+      "Minority169",
       139,
       140
     ],
     [
-      "Minority169",
+      "ipaljak",
       139,
       140
     ],
@@ -783,12 +784,12 @@
       155
     ],
     [
-      ".I.",
+      "JOHNKRAM",
       156,
       157
     ],
     [
-      "JOHNKRAM",
+      ".I.",
       156,
       157
     ],
@@ -1088,12 +1089,12 @@
       216
     ],
     [
-      "orzdjq",
+      "sunsiyu",
       217,
       218
     ],
     [
-      "sunsiyu",
+      "orzdjq",
       217,
       218
     ],
@@ -1113,12 +1114,12 @@
       221
     ],
     [
-      "Adalbert",
+      "Subconscious",
       222,
       223
     ],
     [
-      "Subconscious",
+      "Adalbert",
       222,
       223
     ],
@@ -1138,17 +1139,17 @@
       226
     ],
     [
-      "Holidin",
-      227,
-      229
-    ],
-    [
       "Shivram",
       227,
       229
     ],
     [
       "dredwerkz",
+      227,
+      229
+    ],
+    [
+      "Holidin",
       227,
       229
     ],
@@ -1173,12 +1174,12 @@
       233
     ],
     [
-      "Jatana",
+      "Vladyslav",
       234,
       235
     ],
     [
-      "Vladyslav",
+      "Jatana",
       234,
       235
     ],
@@ -1583,12 +1584,12 @@
       315
     ],
     [
-      "Hazyknight",
+      "mzhmxzh",
       316,
       317
     ],
     [
-      "mzhmxzh",
+      "Hazyknight",
       316,
       317
     ],
@@ -2028,22 +2029,22 @@
       404
     ],
     [
-      "Ferume",
-      405,
-      408
-    ],
-    [
-      "sysulby",
-      405,
-      408
-    ],
-    [
       "aabdelzaher",
       405,
       408
     ],
     [
       "noimi",
+      405,
+      408
+    ],
+    [
+      "Ferume",
+      405,
+      408
+    ],
+    [
+      "sysulby",
       405,
       408
     ],
@@ -2068,17 +2069,17 @@
       412
     ],
     [
+      "Neymarss",
+      413,
+      415
+    ],
+    [
       "Aagii_98",
       413,
       415
     ],
     [
       "dsgsjk",
-      413,
-      415
-    ],
-    [
-      "Neymarss",
       413,
       415
     ],
@@ -2258,12 +2259,12 @@
       450
     ],
     [
-      "Hooin_Kyoma",
+      "WNG",
       451,
       452
     ],
     [
-      "WNG",
+      "Hooin_Kyoma",
       451,
       452
     ],
@@ -2343,12 +2344,12 @@
       467
     ],
     [
-      "sega_hsj",
+      "ANTIMIRAGE",
       468,
       469
     ],
     [
-      "ANTIMIRAGE",
+      "sega_hsj",
       468,
       469
     ],
@@ -2408,22 +2409,22 @@
       480
     ],
     [
-      "nishank.suresh",
-      481,
-      484
-    ],
-    [
-      "Fekete",
-      481,
-      484
-    ],
-    [
       "jacobtpl",
       481,
       484
     ],
     [
       "cy1999",
+      481,
+      484
+    ],
+    [
+      "nishank.suresh",
+      481,
+      484
+    ],
+    [
+      "Fekete",
       481,
       484
     ],
@@ -2888,6 +2889,16 @@
       576
     ],
     [
+      "Len",
+      577,
+      586
+    ],
+    [
+      "NguoiHocTinLoai2",
+      577,
+      586
+    ],
+    [
       "Mohammad_Kartoumeh",
       577,
       586
@@ -2908,11 +2919,6 @@
       586
     ],
     [
-      "X_emad_X",
-      577,
-      586
-    ],
-    [
       "comfi",
       577,
       586
@@ -2923,17 +2929,12 @@
       586
     ],
     [
+      "X_emad_X",
+      577,
+      586
+    ],
+    [
       "golikovnik",
-      577,
-      586
-    ],
-    [
-      "Len",
-      577,
-      586
-    ],
-    [
-      "NguoiHocTinLoai2",
       577,
       586
     ]

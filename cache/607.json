@@ -1,6 +1,7 @@
 {
   "id": 607,
   "name": "Codeforces Round #336 (Div. 1)",
+  "time_seconds": 1450895700,
   "standings": [
     [
       "matthew99",
@@ -528,12 +529,12 @@
       104
     ],
     [
-      "stringstream",
+      "waterfalls",
       105,
       106
     ],
     [
-      "waterfalls",
+      "stringstream",
       105,
       106
     ],
@@ -583,22 +584,22 @@
       115
     ],
     [
-      "Balajiganapathi",
-      116,
-      117
-    ],
-    [
       "ExfJoe",
       116,
       117
     ],
     [
-      "Perforator",
+      "Balajiganapathi",
+      116,
+      117
+    ],
+    [
+      "Golovanov399",
       118,
       119
     ],
     [
-      "Golovanov399",
+      "Perforator",
       118,
       119
     ],
@@ -643,12 +644,12 @@
       127
     ],
     [
-      "Bugman",
+      "Na2a",
       128,
       129
     ],
     [
-      "Na2a",
+      "Bugman",
       128,
       129
     ],
@@ -663,12 +664,12 @@
       131
     ],
     [
-      "stefanzzz",
+      "sugim48",
       132,
       133
     ],
     [
-      "sugim48",
+      "stefanzzz",
       132,
       133
     ],
@@ -703,17 +704,17 @@
       139
     ],
     [
+      "zerokugi",
+      140,
+      142
+    ],
+    [
       "Amirnasr",
       140,
       142
     ],
     [
       "ZhNV",
-      140,
-      142
-    ],
-    [
-      "zerokugi",
       140,
       142
     ],
@@ -768,17 +769,17 @@
       152
     ],
     [
+      "IGandWFin2019",
+      153,
+      155
+    ],
+    [
       "gongy",
       153,
       155
     ],
     [
       "SakurakoujiRuna",
-      153,
-      155
-    ],
-    [
-      "IGandWFin2019",
       153,
       155
     ],
@@ -833,12 +834,12 @@
       165
     ],
     [
-      "sharph",
+      "constroy",
       166,
       167
     ],
     [
-      "constroy",
+      "sharph",
       166,
       167
     ],
@@ -898,22 +899,22 @@
       178
     ],
     [
-      "Andreikkaa",
-      179,
-      180
-    ],
-    [
       "yutaka1999",
       179,
       180
     ],
     [
-      "retrograd",
+      "Andreikkaa",
+      179,
+      180
+    ],
+    [
+      "Arthur",
       181,
       182
     ],
     [
-      "Arthur",
+      "retrograd",
       181,
       182
     ],
@@ -938,12 +939,12 @@
       186
     ],
     [
-      "DBradac",
+      "Timur_Sitdikov",
       187,
       189
     ],
     [
-      "Timur_Sitdikov",
+      "DBradac",
       187,
       189
     ],
@@ -953,12 +954,12 @@
       189
     ],
     [
-      "aangairbender",
+      "_Rampage_",
       190,
       191
     ],
     [
-      "_Rampage_",
+      "aangairbender",
       190,
       191
     ],
@@ -1023,12 +1024,12 @@
       203
     ],
     [
-      "sokokaleb",
+      "olage",
       204,
       205
     ],
     [
-      "olage",
+      "sokokaleb",
       204,
       205
     ],
@@ -1053,12 +1054,12 @@
       209
     ],
     [
-      "chemthan",
+      "zas409257934",
       210,
       211
     ],
     [
-      "zas409257934",
+      "chemthan",
       210,
       211
     ],
@@ -1128,12 +1129,12 @@
       224
     ],
     [
-      "Kurpilyansky",
+      "VOIAFBR",
       225,
       226
     ],
     [
-      "VOIAFBR",
+      "Kurpilyansky",
       225,
       226
     ],
@@ -1243,17 +1244,17 @@
       247
     ],
     [
+      "gskhirtladze",
+      248,
+      250
+    ],
+    [
       "joey2005",
       248,
       250
     ],
     [
       "holy_collie",
-      248,
-      250
-    ],
-    [
-      "gskhirtladze",
       248,
       250
     ],
@@ -1268,12 +1269,12 @@
       252
     ],
     [
-      "6eJIa9IzZzTeHb",
+      "uikos",
       253,
       254
     ],
     [
-      "uikos",
+      "6eJIa9IzZzTeHb",
       253,
       254
     ],
@@ -1298,12 +1299,12 @@
       258
     ],
     [
-      "pllk",
+      "WhyWhy",
       259,
       260
     ],
     [
-      "WhyWhy",
+      "pllk",
       259,
       260
     ],
@@ -1438,12 +1439,12 @@
       286
     ],
     [
-      "MottoX",
+      "Soultaker",
       287,
       288
     ],
     [
-      "Soultaker",
+      "MottoX",
       287,
       288
     ],
@@ -1473,12 +1474,12 @@
       293
     ],
     [
-      "sweetsc",
+      "falanga",
       294,
       295
     ],
     [
-      "falanga",
+      "sweetsc",
       294,
       295
     ],
@@ -1753,12 +1754,12 @@
       349
     ],
     [
-      "Fedosik",
+      "Reyna",
       350,
       351
     ],
     [
-      "Reyna",
+      "Fedosik",
       350,
       351
     ],
@@ -1773,14 +1774,19 @@
       355
     ],
     [
+      "AmirAz",
+      352,
+      355
+    ],
+    [
       "egor_bb",
       352,
       355
     ],
     [
-      "AmirAz",
-      352,
-      355
+      "Fadeaway",
+      356,
+      358
     ],
     [
       "Rubanenko",
@@ -1793,17 +1799,7 @@
       358
     ],
     [
-      "Fadeaway",
-      356,
-      358
-    ],
-    [
-      "ctunoku",
-      359,
-      362
-    ],
-    [
-      "victor_kzk",
+      "TonySnark",
       359,
       362
     ],
@@ -1813,7 +1809,12 @@
       362
     ],
     [
-      "TonySnark",
+      "ctunoku",
+      359,
+      362
+    ],
+    [
+      "victor_kzk",
       359,
       362
     ],
@@ -1853,6 +1854,11 @@
       373
     ],
     [
+      "_just4fun_",
+      369,
+      373
+    ],
+    [
       "ferrarima",
       369,
       373
@@ -1863,22 +1869,17 @@
       373
     ],
     [
-      "_just4fun_",
-      369,
-      373
-    ],
-    [
       "Roma",
       369,
       373
     ],
     [
-      "Ioana",
+      "xuanquang1999",
       374,
       375
     ],
     [
-      "xuanquang1999",
+      "Ioana",
       374,
       375
     ],
@@ -1888,17 +1889,17 @@
       376
     ],
     [
+      "alapshin",
+      377,
+      379
+    ],
+    [
       "totsamyzed",
       377,
       379
     ],
     [
       "SlavaSSU",
-      377,
-      379
-    ],
-    [
-      "alapshin",
       377,
       379
     ],
@@ -1938,17 +1939,17 @@
       386
     ],
     [
+      "tuna_salad",
+      387,
+      389
+    ],
+    [
       "Heisenbug",
       387,
       389
     ],
     [
       "pekempey",
-      387,
-      389
-    ],
-    [
-      "tuna_salad",
       387,
       389
     ],
@@ -2033,12 +2034,12 @@
       405
     ],
     [
-      "ioanandrei",
+      "12121005",
       406,
       407
     ],
     [
-      "12121005",
+      "ioanandrei",
       406,
       407
     ],
@@ -2128,12 +2129,12 @@
       424
     ],
     [
-      "TheConfessor",
+      "PedroDrago",
       425,
       426
     ],
     [
-      "PedroDrago",
+      "TheConfessor",
       425,
       426
     ],
@@ -2173,12 +2174,12 @@
       433
     ],
     [
-      "Miyukine",
+      "balakrishnan",
       434,
       435
     ],
     [
-      "balakrishnan",
+      "Miyukine",
       434,
       435
     ],

@@ -1,6 +1,7 @@
 {
   "id": 878,
   "name": "Codeforces Round #443 (Div. 1)",
+  "time_seconds": 1509036300,
   "standings": [
     [
       "dotorya",
@@ -223,12 +224,12 @@
       43
     ],
     [
-      "AndreiNet",
+      "chenmark",
       44,
       45
     ],
     [
-      "chenmark",
+      "AndreiNet",
       44,
       45
     ],
@@ -258,12 +259,12 @@
       50
     ],
     [
-      "sarkar",
+      "bazsi700",
       51,
       52
     ],
     [
-      "bazsi700",
+      "sarkar",
       51,
       52
     ],
@@ -298,12 +299,12 @@
       58
     ],
     [
-      "harshil",
+      "hasi",
       59,
       60
     ],
     [
-      "hasi",
+      "harshil",
       59,
       60
     ],
@@ -343,12 +344,12 @@
       67
     ],
     [
-      "samuelfgs",
+      "Neil",
       68,
       69
     ],
     [
-      "Neil",
+      "samuelfgs",
       68,
       69
     ],
@@ -373,12 +374,12 @@
       73
     ],
     [
-      "Melnyk",
+      "Motarack",
       74,
       75
     ],
     [
-      "Motarack",
+      "Melnyk",
       74,
       75
     ],
@@ -398,12 +399,12 @@
       78
     ],
     [
-      "AomeII",
+      "RetiredAmrMahmoud",
       79,
       80
     ],
     [
-      "RetiredAmrMahmoud",
+      "AomeII",
       79,
       80
     ],
@@ -488,14 +489,19 @@
       96
     ],
     [
+      "Mindstorm",
+      97,
+      98
+    ],
+    [
       "rtilikay",
       97,
       98
     ],
     [
-      "Mindstorm",
-      97,
-      98
+      "SssssssssssssbbbBBBB",
+      99,
+      101
     ],
     [
       "Heaplax",
@@ -504,11 +510,6 @@
     ],
     [
       "Nero",
-      99,
-      101
-    ],
-    [
-      "SssssssssssssbbbBBBB",
       99,
       101
     ],
@@ -608,12 +609,12 @@
       120
     ],
     [
-      "RomeoFantastik",
+      "MegaBidoof",
       121,
       122
     ],
     [
-      "MegaBidoof",
+      "RomeoFantastik",
       121,
       122
     ],
@@ -718,17 +719,22 @@
       142
     ],
     [
-      "krismaz",
-      143,
-      148
-    ],
-    [
       "Golovanov399",
       143,
       148
     ],
     [
       "osmanorhan",
+      143,
+      148
+    ],
+    [
+      "krismaz",
+      143,
+      148
+    ],
+    [
+      "skydog",
       143,
       148
     ],
@@ -741,26 +747,6 @@
       "Haghani",
       143,
       148
-    ],
-    [
-      "skydog",
-      143,
-      148
-    ],
-    [
-      "lastans",
-      149,
-      154
-    ],
-    [
-      "ezLadder",
-      149,
-      154
-    ],
-    [
-      "Nebuchadnezzar",
-      149,
-      154
     ],
     [
       "alex9801",
@@ -778,14 +764,19 @@
       154
     ],
     [
-      "GyojunYoun",
-      155,
-      160
+      "lastans",
+      149,
+      154
     ],
     [
-      "alexwice",
-      155,
-      160
+      "ezLadder",
+      149,
+      154
+    ],
+    [
+      "Nebuchadnezzar",
+      149,
+      154
     ],
     [
       "alpgc",
@@ -808,6 +799,21 @@
       160
     ],
     [
+      "GyojunYoun",
+      155,
+      160
+    ],
+    [
+      "alexwice",
+      155,
+      160
+    ],
+    [
+      "snek_Case",
+      161,
+      167
+    ],
+    [
       "Tommyr7",
       161,
       167
@@ -823,7 +829,7 @@
       167
     ],
     [
-      "petrescu",
+      "flower",
       161,
       167
     ],
@@ -833,44 +839,9 @@
       167
     ],
     [
-      "flower",
+      "petrescu",
       161,
       167
-    ],
-    [
-      "snek_Case",
-      161,
-      167
-    ],
-    [
-      "polingy",
-      168,
-      179
-    ],
-    [
-      "STommydx",
-      168,
-      179
-    ],
-    [
-      "_LowestJN",
-      168,
-      179
-    ],
-    [
-      "Aviously",
-      168,
-      179
-    ],
-    [
-      "Zrj",
-      168,
-      179
-    ],
-    [
-      "hohomu",
-      168,
-      179
     ],
     [
       "TangentDay",
@@ -903,6 +874,46 @@
       179
     ],
     [
+      "polingy",
+      168,
+      179
+    ],
+    [
+      "STommydx",
+      168,
+      179
+    ],
+    [
+      "Aviously",
+      168,
+      179
+    ],
+    [
+      "Zrj",
+      168,
+      179
+    ],
+    [
+      "_LowestJN",
+      168,
+      179
+    ],
+    [
+      "hohomu",
+      168,
+      179
+    ],
+    [
+      "Zuikaku",
+      180,
+      186
+    ],
+    [
+      "reiracofage",
+      180,
+      186
+    ],
+    [
       "flatline",
       180,
       186
@@ -918,64 +929,14 @@
       186
     ],
     [
-      "Cache",
-      180,
-      186
-    ],
-    [
       "resodo",
       180,
       186
     ],
     [
-      "Zuikaku",
+      "Cache",
       180,
       186
-    ],
-    [
-      "reiracofage",
-      180,
-      186
-    ],
-    [
-      "victorsenam",
-      187,
-      197
-    ],
-    [
-      "retrograd",
-      187,
-      197
-    ],
-    [
-      "AprilGrimoire",
-      187,
-      197
-    ],
-    [
-      "ei133333",
-      187,
-      197
-    ],
-    [
-      "SirShokoladina",
-      187,
-      197
-    ],
-    [
-      "Cydiater",
-      187,
-      197
-    ],
-    [
-      "VladaMG98",
-      187,
-      197
-    ],
-    [
-      "Petruchcho",
-      187,
-      197
     ],
     [
       "k1nval",
@@ -991,6 +952,51 @@
       "DenXman111",
       187,
       197
+    ],
+    [
+      "victorsenam",
+      187,
+      197
+    ],
+    [
+      "SirShokoladina",
+      187,
+      197
+    ],
+    [
+      "ei133333",
+      187,
+      197
+    ],
+    [
+      "Cydiater",
+      187,
+      197
+    ],
+    [
+      "retrograd",
+      187,
+      197
+    ],
+    [
+      "AprilGrimoire",
+      187,
+      197
+    ],
+    [
+      "VladaMG98",
+      187,
+      197
+    ],
+    [
+      "Petruchcho",
+      187,
+      197
+    ],
+    [
+      "Subconscious",
+      198,
+      204
     ],
     [
       "Hoi_koro",
@@ -1023,9 +1029,19 @@
       204
     ],
     [
-      "Subconscious",
-      198,
-      204
+      "yasugongshang",
+      205,
+      212
+    ],
+    [
+      "howardddd",
+      205,
+      212
+    ],
+    [
+      "Mahdi_Jfri",
+      205,
+      212
     ],
     [
       "Giove",
@@ -1051,66 +1067,6 @@
       "Na2a",
       205,
       212
-    ],
-    [
-      "howardddd",
-      205,
-      212
-    ],
-    [
-      "yasugongshang",
-      205,
-      212
-    ],
-    [
-      "Mahdi_Jfri",
-      205,
-      212
-    ],
-    [
-      "Ashishgup",
-      213,
-      227
-    ],
-    [
-      "shengdebao",
-      213,
-      227
-    ],
-    [
-      "Senji",
-      213,
-      227
-    ],
-    [
-      "Unsterblicher_Geist",
-      213,
-      227
-    ],
-    [
-      "mibig",
-      213,
-      227
-    ],
-    [
-      "laurageorgescu",
-      213,
-      227
-    ],
-    [
-      "lawyerphx",
-      213,
-      227
-    ],
-    [
-      "hank55663",
-      213,
-      227
-    ],
-    [
-      "sanyamg123",
-      213,
-      227
     ],
     [
       "RedTea",
@@ -1141,6 +1097,71 @@
       "LuckyPants",
       213,
       227
+    ],
+    [
+      "Ashishgup",
+      213,
+      227
+    ],
+    [
+      "shengdebao",
+      213,
+      227
+    ],
+    [
+      "laurageorgescu",
+      213,
+      227
+    ],
+    [
+      "Senji",
+      213,
+      227
+    ],
+    [
+      "Unsterblicher_Geist",
+      213,
+      227
+    ],
+    [
+      "mibig",
+      213,
+      227
+    ],
+    [
+      "sanyamg123",
+      213,
+      227
+    ],
+    [
+      "lawyerphx",
+      213,
+      227
+    ],
+    [
+      "hank55663",
+      213,
+      227
+    ],
+    [
+      "adedalic",
+      228,
+      241
+    ],
+    [
+      "LoppA",
+      228,
+      241
+    ],
+    [
+      "Roundgod",
+      228,
+      241
+    ],
+    [
+      "komendart",
+      228,
+      241
     ],
     [
       "neko13",
@@ -1193,41 +1214,6 @@
       241
     ],
     [
-      "adedalic",
-      228,
-      241
-    ],
-    [
-      "LoppA",
-      228,
-      241
-    ],
-    [
-      "Roundgod",
-      228,
-      241
-    ],
-    [
-      "komendart",
-      228,
-      241
-    ],
-    [
-      "FLDutchman",
-      242,
-      247
-    ],
-    [
-      "Hasan0540",
-      242,
-      247
-    ],
-    [
-      "beet",
-      242,
-      247
-    ],
-    [
       "cthbst",
       242,
       247
@@ -1243,29 +1229,19 @@
       247
     ],
     [
-      "palayutm",
-      248,
-      257
+      "FLDutchman",
+      242,
+      247
     ],
     [
-      "simulator",
-      248,
-      257
+      "Hasan0540",
+      242,
+      247
     ],
     [
-      "naagi",
-      248,
-      257
-    ],
-    [
-      "Misha100896",
-      248,
-      257
-    ],
-    [
-      "PrashantM",
-      248,
-      257
+      "beet",
+      242,
+      247
     ],
     [
       "dima_z",
@@ -1293,7 +1269,57 @@
       257
     ],
     [
+      "palayutm",
+      248,
+      257
+    ],
+    [
+      "simulator",
+      248,
+      257
+    ],
+    [
+      "naagi",
+      248,
+      257
+    ],
+    [
+      "Misha100896",
+      248,
+      257
+    ],
+    [
+      "PrashantM",
+      248,
+      257
+    ],
+    [
+      "antkhorin",
+      258,
+      269
+    ],
+    [
+      "UncleGrandpa",
+      258,
+      269
+    ],
+    [
+      "khokho",
+      258,
+      269
+    ],
+    [
+      "TonySnark",
+      258,
+      269
+    ],
+    [
       "co_farmer",
+      258,
+      269
+    ],
+    [
+      "xolm",
       258,
       269
     ],
@@ -1328,41 +1354,6 @@
       269
     ],
     [
-      "antkhorin",
-      258,
-      269
-    ],
-    [
-      "UncleGrandpa",
-      258,
-      269
-    ],
-    [
-      "khokho",
-      258,
-      269
-    ],
-    [
-      "TonySnark",
-      258,
-      269
-    ],
-    [
-      "xolm",
-      258,
-      269
-    ],
-    [
-      "toilanvd_KAIST",
-      270,
-      274
-    ],
-    [
-      "vsp4",
-      270,
-      274
-    ],
-    [
       "gprano",
       270,
       274
@@ -1376,6 +1367,31 @@
       "naiij",
       270,
       274
+    ],
+    [
+      "toilanvd_KAIST",
+      270,
+      274
+    ],
+    [
+      "vsp4",
+      270,
+      274
+    ],
+    [
+      "burunduk3",
+      275,
+      280
+    ],
+    [
+      "mraron",
+      275,
+      280
+    ],
+    [
+      "fauzdar65",
+      275,
+      280
     ],
     [
       "how_to_become_purple",
@@ -1393,19 +1409,29 @@
       280
     ],
     [
-      "mraron",
-      275,
-      280
+      "Shavkat_Aminov",
+      281,
+      292
     ],
     [
-      "burunduk3",
-      275,
-      280
+      "vanvector",
+      281,
+      292
     ],
     [
-      "fauzdar65",
-      275,
-      280
+      "Zoli9",
+      281,
+      292
+    ],
+    [
+      "anzu",
+      281,
+      292
+    ],
+    [
+      "The_Phenomenal_One",
+      281,
+      292
     ],
     [
       "cerberus97",
@@ -1433,39 +1459,24 @@
       292
     ],
     [
-      "sincerity",
-      281,
-      292
-    ],
-    [
       "Pakalns",
       281,
       292
     ],
     [
-      "Shavkat_Aminov",
+      "sincerity",
       281,
       292
     ],
     [
-      "anzu",
-      281,
-      292
+      "gisp_zjz",
+      293,
+      299
     ],
     [
-      "The_Phenomenal_One",
-      281,
-      292
-    ],
-    [
-      "vanvector",
-      281,
-      292
-    ],
-    [
-      "Zoli9",
-      281,
-      292
+      "AnzheWang",
+      293,
+      299
     ],
     [
       "Oxer11",
@@ -1483,22 +1494,12 @@
       299
     ],
     [
-      "DAyamaCTF",
-      293,
-      299
-    ],
-    [
       "Livace",
       293,
       299
     ],
     [
-      "gisp_zjz",
-      293,
-      299
-    ],
-    [
-      "AnzheWang",
+      "DAyamaCTF",
       293,
       299
     ],
@@ -1538,17 +1539,27 @@
       306
     ],
     [
+      "MohanLau",
+      307,
+      314
+    ],
+    [
+      "HackerTina",
+      307,
+      314
+    ],
+    [
       "GoogleBot",
       307,
       314
     ],
     [
-      "Sanja",
+      "pkacprzak",
       307,
       314
     ],
     [
-      "pkacprzak",
+      "Sanja",
       307,
       314
     ],
@@ -1568,14 +1579,14 @@
       314
     ],
     [
-      "MohanLau",
-      307,
-      314
+      "Jefe",
+      315,
+      323
     ],
     [
-      "HackerTina",
-      307,
-      314
+      "FalseMirror",
+      315,
+      323
     ],
     [
       "YaKon4ick",
@@ -1603,24 +1614,19 @@
       323
     ],
     [
-      "maggch",
-      315,
-      323
-    ],
-    [
       "Nicola95",
       315,
       323
     ],
     [
-      "Jefe",
+      "maggch",
       315,
       323
     ],
     [
-      "FalseMirror",
-      315,
-      323
+      "iwashi31",
+      324,
+      326
     ],
     [
       "Ra8",
@@ -1633,9 +1639,9 @@
       326
     ],
     [
-      "iwashi31",
-      324,
-      326
+      "MohamedZain",
+      327,
+      330
     ],
     [
       "danya.smelskiy",
@@ -1653,34 +1659,9 @@
       330
     ],
     [
-      "MohamedZain",
-      327,
-      330
-    ],
-    [
       "toomas",
       331,
       331
-    ],
-    [
-      "thai9cdb1",
-      332,
-      337
-    ],
-    [
-      "ivan100sic",
-      332,
-      337
-    ],
-    [
-      "domen111",
-      332,
-      337
-    ],
-    [
-      "Raynger",
-      332,
-      337
     ],
     [
       "iskander232",
@@ -1693,12 +1674,32 @@
       337
     ],
     [
-      "Arg_007",
+      "thai9cdb1",
+      332,
+      337
+    ],
+    [
+      "domen111",
+      332,
+      337
+    ],
+    [
+      "ivan100sic",
+      332,
+      337
+    ],
+    [
+      "Raynger",
+      332,
+      337
+    ],
+    [
+      "leanil",
       338,
       339
     ],
     [
-      "leanil",
+      "Arg_007",
       338,
       339
     ],
@@ -1723,19 +1724,14 @@
       343
     ],
     [
-      "lollollol",
-      344,
-      345
-    ],
-    [
       "Rafaaaaaaaaaaaam",
       344,
       345
     ],
     [
-      "Mavzes",
-      346,
-      349
+      "lollollol",
+      344,
+      345
     ],
     [
       "cephian",
@@ -1749,6 +1745,11 @@
     ],
     [
       "Valentin_E",
+      346,
+      349
+    ],
+    [
+      "Mavzes",
       346,
       349
     ],
@@ -1768,11 +1769,6 @@
       352
     ],
     [
-      "Mohammad_Yasser",
-      353,
-      355
-    ],
-    [
       "toxzi",
       353,
       355
@@ -1781,6 +1777,16 @@
       "Sonechko",
       353,
       355
+    ],
+    [
+      "Mohammad_Yasser",
+      353,
+      355
+    ],
+    [
+      "ladpro98",
+      356,
+      358
     ],
     [
       "shadowfax",
@@ -1793,9 +1799,14 @@
       358
     ],
     [
-      "ladpro98",
-      356,
-      358
+      "greenSnail",
+      359,
+      362
+    ],
+    [
+      "P___",
+      359,
+      362
     ],
     [
       "spiderbatman",
@@ -1808,14 +1819,9 @@
       362
     ],
     [
-      "greenSnail",
-      359,
-      362
-    ],
-    [
-      "P___",
-      359,
-      362
+      "SoMuchDrama",
+      363,
+      365
     ],
     [
       "Heisenbug",
@@ -1828,17 +1834,12 @@
       365
     ],
     [
-      "SoMuchDrama",
-      363,
-      365
-    ],
-    [
-      "Omar_Morsi",
+      "buko",
       366,
       367
     ],
     [
-      "buko",
+      "Omar_Morsi",
       366,
       367
     ],
@@ -1873,12 +1874,12 @@
       373
     ],
     [
-      "desert97",
+      "ShavelV",
       374,
       375
     ],
     [
-      "ShavelV",
+      "desert97",
       374,
       375
     ],
@@ -1913,12 +1914,12 @@
       381
     ],
     [
-      "lchi1997",
+      "zjuwyz",
       382,
       383
     ],
     [
-      "zjuwyz",
+      "lchi1997",
       382,
       383
     ],
@@ -1938,12 +1939,12 @@
       386
     ],
     [
-      "black_horse2014",
+      "Honour_00",
       387,
       388
     ],
     [
-      "Honour_00",
+      "black_horse2014",
       387,
       388
     ],
@@ -1973,12 +1974,12 @@
       393
     ],
     [
-      "King_George",
+      "CS_LYJ1997",
       394,
       395
     ],
     [
-      "CS_LYJ1997",
+      "King_George",
       394,
       395
     ],
@@ -2043,12 +2044,12 @@
       407
     ],
     [
-      "PolyProgrammist",
+      "ssor96",
       408,
       409
     ],
     [
-      "ssor96",
+      "PolyProgrammist",
       408,
       409
     ],
@@ -2088,22 +2089,52 @@
       416
     ],
     [
-      "Pollux",
-      417,
-      418
-    ],
-    [
       "MortadaMansour",
       417,
       418
     ],
     [
-      "kzyKT",
+      "Pollux",
+      417,
+      418
+    ],
+    [
+      "FlappyBird",
+      419,
+      431
+    ],
+    [
+      "bogdan10bos",
+      419,
+      431
+    ],
+    [
+      "AlphaS",
+      419,
+      431
+    ],
+    [
+      "BenniKartefla",
+      419,
+      431
+    ],
+    [
+      "GiannisAntetokounmpo",
+      419,
+      431
+    ],
+    [
+      "Luqman",
       419,
       431
     ],
     [
       "loser21",
+      419,
+      431
+    ],
+    [
+      "kzyKT",
       419,
       431
     ],
@@ -2129,36 +2160,6 @@
     ],
     [
       "Tian.Xie",
-      419,
-      431
-    ],
-    [
-      "bogdan10bos",
-      419,
-      431
-    ],
-    [
-      "FlappyBird",
-      419,
-      431
-    ],
-    [
-      "AlphaS",
-      419,
-      431
-    ],
-    [
-      "BenniKartefla",
-      419,
-      431
-    ],
-    [
-      "GiannisAntetokounmpo",
-      419,
-      431
-    ],
-    [
-      "Luqman",
       419,
       431
     ]

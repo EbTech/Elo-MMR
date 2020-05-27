@@ -1,6 +1,7 @@
 {
   "id": 1310,
   "name": "VK Cup 2019-2020 - Elimination Round (Engine)",
+  "time_seconds": 1582482900,
   "standings": [
     [
       "tourist",
@@ -298,12 +299,12 @@
       58
     ],
     [
-      "Degalat57",
+      "sava-cska",
       59,
       60
     ],
     [
-      "sava-cska",
+      "Degalat57",
       59,
       60
     ],
@@ -418,17 +419,17 @@
       82
     ],
     [
-      "BigBag",
-      83,
-      85
-    ],
-    [
       "Nikitosh",
       83,
       85
     ],
     [
       ".tx",
+      83,
+      85
+    ],
+    [
+      "BigBag",
       83,
       85
     ],
@@ -458,12 +459,12 @@
       90
     ],
     [
-      "lessmeaning",
+      "Volkov_Ivan",
       91,
       92
     ],
     [
-      "Volkov_Ivan",
+      "lessmeaning",
       91,
       92
     ],
@@ -473,12 +474,12 @@
       93
     ],
     [
-      "alexyz",
+      "maksim.gaponov",
       94,
       95
     ],
     [
-      "maksim.gaponov",
+      "alexyz",
       94,
       95
     ],
@@ -718,11 +719,6 @@
       142
     ],
     [
-      "JKOOUP",
-      143,
-      150
-    ],
-    [
       "4qqqq",
       143,
       150
@@ -758,39 +754,9 @@
       150
     ],
     [
-      "WoodMachine",
-      151,
-      175
-    ],
-    [
-      "Bakalavr",
-      151,
-      175
-    ],
-    [
-      "asdevvs",
-      151,
-      175
-    ],
-    [
-      "nameste",
-      151,
-      175
-    ],
-    [
-      "Nividimka",
-      151,
-      175
-    ],
-    [
-      "tgprozorova",
-      151,
-      175
-    ],
-    [
-      "claus_spb",
-      151,
-      175
+      "JKOOUP",
+      143,
+      150
     ],
     [
       "Sem_1337",
@@ -818,12 +784,12 @@
       175
     ],
     [
-      "Fesen",
+      "HollyGremlin",
       151,
       175
     ],
     [
-      "HollyGremlin",
+      "Fesen",
       151,
       175
     ],
@@ -848,7 +814,7 @@
       175
     ],
     [
-      "Sanqer",
+      "PumbaOmsk",
       151,
       175
     ],
@@ -858,17 +824,12 @@
       175
     ],
     [
+      "Sanqer",
+      151,
+      175
+    ],
+    [
       "Dimitryliss",
-      151,
-      175
-    ],
-    [
-      "asurkis",
-      151,
-      175
-    ],
-    [
-      "PumbaOmsk",
       151,
       175
     ],
@@ -879,6 +840,46 @@
     ],
     [
       "aabzac",
+      151,
+      175
+    ],
+    [
+      "asurkis",
+      151,
+      175
+    ],
+    [
+      "WoodMachine",
+      151,
+      175
+    ],
+    [
+      "Bakalavr",
+      151,
+      175
+    ],
+    [
+      "Nividimka",
+      151,
+      175
+    ],
+    [
+      "nameste",
+      151,
+      175
+    ],
+    [
+      "tgprozorova",
+      151,
+      175
+    ],
+    [
+      "asdevvs",
+      151,
+      175
+    ],
+    [
+      "claus_spb",
       151,
       175
     ]

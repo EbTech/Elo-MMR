@@ -1,6 +1,7 @@
 {
   "id": 442,
   "name": "Codeforces Round #253 (Div. 1)",
+  "time_seconds": 1403199000,
   "standings": [
     [
       "tourist",
@@ -468,12 +469,12 @@
       92
     ],
     [
-      "tuna_salad",
+      "Mario88",
       93,
       95
     ],
     [
-      "Mario88",
+      "tuna_salad",
       93,
       95
     ],
@@ -733,12 +734,12 @@
       145
     ],
     [
-      "krismaz",
+      "mrtempo",
       146,
       147
     ],
     [
-      "mrtempo",
+      "krismaz",
       146,
       147
     ],
@@ -843,12 +844,12 @@
       167
     ],
     [
-      "Lord_F",
+      "egor_bb",
       168,
       169
     ],
     [
-      "egor_bb",
+      "Lord_F",
       168,
       169
     ],
@@ -863,12 +864,12 @@
       171
     ],
     [
-      "Metamorphus",
+      "Mektpoy",
       172,
       173
     ],
     [
-      "Mektpoy",
+      "Metamorphus",
       172,
       173
     ],
@@ -1008,12 +1009,12 @@
       202
     ],
     [
-      "DPR-pavlin",
+      "flashmt",
       199,
       202
     ],
     [
-      "flashmt",
+      "DPR-pavlin",
       199,
       202
     ],
@@ -1053,12 +1054,12 @@
       212
     ],
     [
-      "Lquartz",
+      "zhouhebin",
       209,
       212
     ],
     [
-      "zhouhebin",
+      "Lquartz",
       209,
       212
     ],
@@ -1168,12 +1169,12 @@
       232
     ],
     [
-      "Vergissmeinnicht",
+      "mbfilho91",
       233,
       234
     ],
     [
-      "mbfilho91",
+      "Vergissmeinnicht",
       233,
       234
     ],
@@ -1398,12 +1399,12 @@
       278
     ],
     [
-      "DeadMan",
+      "snake13",
       279,
       280
     ],
     [
-      "snake13",
+      "DeadMan",
       279,
       280
     ],
@@ -1563,17 +1564,17 @@
       311
     ],
     [
+      "andrew.volchek",
+      312,
+      314
+    ],
+    [
       "DarkStar",
       312,
       314
     ],
     [
       "sd0061",
-      312,
-      314
-    ],
-    [
-      "andrew.volchek",
       312,
       314
     ],
@@ -1598,12 +1599,12 @@
       318
     ],
     [
-      "xywy.1992",
+      "UESTC_lyhyp",
       319,
       320
     ],
     [
-      "UESTC_lyhyp",
+      "xywy.1992",
       319,
       320
     ],
@@ -1743,12 +1744,12 @@
       349
     ],
     [
-      "vadym_doroshenko",
+      "Hasan0540",
       347,
       349
     ],
     [
-      "Hasan0540",
+      "vadym_doroshenko",
       347,
       349
     ],
@@ -1798,11 +1799,6 @@
       358
     ],
     [
-      "sggutier",
-      359,
-      362
-    ],
-    [
       "desmond",
       359,
       362
@@ -1818,9 +1814,9 @@
       362
     ],
     [
-      "JustN",
-      363,
-      364
+      "sggutier",
+      359,
+      362
     ],
     [
       "LeMieux",
@@ -1828,12 +1824,17 @@
       364
     ],
     [
-      "ashu1461",
+      "JustN",
+      363,
+      364
+    ],
+    [
+      "DanAlex",
       365,
       367
     ],
     [
-      "DanAlex",
+      "ashu1461",
       365,
       367
     ],
@@ -2073,12 +2074,12 @@
       413
     ],
     [
-      "zeosutt",
+      "primorial",
       414,
       415
     ],
     [
-      "primorial",
+      "zeosutt",
       414,
       415
     ],
@@ -2128,16 +2129,6 @@
       424
     ],
     [
-      "Amirnasr",
-      425,
-      525
-    ],
-    [
-      "nihalpi1",
-      425,
-      525
-    ],
-    [
       "orhan",
       425,
       525
@@ -2158,12 +2149,12 @@
       525
     ],
     [
-      "Love_red_fish",
+      "yoones.rezaei",
       425,
       525
     ],
     [
-      "yoones.rezaei",
+      "Love_red_fish",
       425,
       525
     ],
@@ -2173,12 +2164,17 @@
       525
     ],
     [
-      "r00sh",
+      "b3esho",
       425,
       525
     ],
     [
-      "johnjq",
+      "BekzhanKassenov",
+      425,
+      525
+    ],
+    [
+      "bible",
       425,
       525
     ],
@@ -2193,12 +2189,12 @@
       525
     ],
     [
-      "DXY",
+      "bli0042",
       425,
       525
     ],
     [
-      "bli0042",
+      "DXY",
       425,
       525
     ],
@@ -2233,27 +2229,12 @@
       525
     ],
     [
-      "Messi",
+      "nihalpi1",
       425,
       525
     ],
     [
-      "laoriu",
-      425,
-      525
-    ],
-    [
-      "DmitriyH",
-      425,
-      525
-    ],
-    [
-      "rezwan4029",
-      425,
-      525
-    ],
-    [
-      "Respect2D",
+      "Amirnasr",
       425,
       525
     ],
@@ -2308,17 +2289,17 @@
       525
     ],
     [
-      "b3esho",
+      "chicken_coder",
       425,
       525
     ],
     [
-      "BekzhanKassenov",
+      "svanidz1",
       425,
       525
     ],
     [
-      "bible",
+      "tinStand",
       425,
       525
     ],
@@ -2368,42 +2349,37 @@
       525
     ],
     [
-      "al13n",
-      425,
-      525
-    ],
-    [
       "Svyat",
       425,
       525
     ],
     [
-      "toilanvd_HSGS",
+      "al13n",
       425,
       525
     ],
     [
-      "bayram",
+      "Messi",
       425,
       525
     ],
     [
-      "I_dont_have_girlfriend",
+      "laoriu",
       425,
       525
     ],
     [
-      "benbendog",
+      "DmitriyH",
       425,
       525
     ],
     [
-      "Ibro",
+      "rezwan4029",
       425,
       525
     ],
     [
-      "danilka.pro",
+      "Respect2D",
       425,
       525
     ],
@@ -2413,7 +2389,17 @@
       525
     ],
     [
+      "Ibro",
+      425,
+      525
+    ],
+    [
       "PraveenDhinwa",
+      425,
+      525
+    ],
+    [
+      "danilka.pro",
       425,
       525
     ],
@@ -2458,17 +2444,22 @@
       525
     ],
     [
-      "chicken_coder",
+      "meridional",
       425,
       525
     ],
     [
-      "svanidz1",
+      "__math",
       425,
       525
     ],
     [
-      "tinStand",
+      "azukun",
+      425,
+      525
+    ],
+    [
+      "zhaodahao",
       425,
       525
     ],
@@ -2518,17 +2509,22 @@
       525
     ],
     [
-      "dovegx",
+      "toilanvd_HSGS",
       425,
       525
     ],
     [
-      "ecv",
+      "bayram",
       425,
       525
     ],
     [
-      "Erfan.aa",
+      "I_dont_have_girlfriend",
+      425,
+      525
+    ],
+    [
+      "benbendog",
       425,
       525
     ],
@@ -2573,22 +2569,12 @@
       525
     ],
     [
-      "meridional",
+      "r00sh",
       425,
       525
     ],
     [
-      "azukun",
-      425,
-      525
-    ],
-    [
-      "zhaodahao",
-      425,
-      525
-    ],
-    [
-      "__math",
+      "johnjq",
       425,
       525
     ],
@@ -2598,12 +2584,12 @@
       525
     ],
     [
-      "parina1",
+      "Ringod",
       425,
       525
     ],
     [
-      "Ringod",
+      "parina1",
       425,
       525
     ],
@@ -2629,6 +2615,21 @@
     ],
     [
       "mihail.jianu",
+      425,
+      525
+    ],
+    [
+      "dovegx",
+      425,
+      525
+    ],
+    [
+      "ecv",
+      425,
+      525
+    ],
+    [
+      "Erfan.aa",
       425,
       525
     ]

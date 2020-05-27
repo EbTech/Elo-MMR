@@ -1,6 +1,7 @@
 {
   "id": 679,
   "name": "Codeforces Round #356 (Div. 1)",
+  "time_seconds": 1465410900,
   "standings": [
     [
       "Petr",
@@ -58,12 +59,12 @@
       10
     ],
     [
-      "Merkurev",
+      "qwerty787788",
       11,
       12
     ],
     [
-      "qwerty787788",
+      "Merkurev",
       11,
       12
     ],
@@ -218,12 +219,12 @@
       42
     ],
     [
-      "nfssdq",
+      "phamvanhanhgoldIOI2015",
       43,
       44
     ],
     [
-      "phamvanhanhgoldIOI2015",
+      "nfssdq",
       43,
       44
     ],
@@ -378,12 +379,12 @@
       74
     ],
     [
-      "x.bryanc",
+      "zeliboba",
       75,
       76
     ],
     [
-      "zeliboba",
+      "x.bryanc",
       75,
       76
     ],
@@ -468,12 +469,12 @@
       92
     ],
     [
-      "ikatanic",
+      "numbertheorist17",
       93,
       94
     ],
     [
-      "numbertheorist17",
+      "ikatanic",
       93,
       94
     ],
@@ -533,12 +534,12 @@
       105
     ],
     [
-      "uwi",
+      "AmirAz",
       106,
       107
     ],
     [
-      "AmirAz",
+      "uwi",
       106,
       107
     ],
@@ -558,17 +559,17 @@
       110
     ],
     [
-      "mhss",
-      111,
-      113
-    ],
-    [
       "Phoenix_Galaxy",
       111,
       113
     ],
     [
       "vintage_Vlad_Makeev",
+      111,
+      113
+    ],
+    [
+      "mhss",
       111,
       113
     ],
@@ -618,12 +619,12 @@
       122
     ],
     [
-      "ch_egor",
+      "bardek",
       123,
       124
     ],
     [
-      "bardek",
+      "ch_egor",
       123,
       124
     ],
@@ -718,12 +719,12 @@
       142
     ],
     [
-      "netman",
+      "nasadigital",
       143,
       144
     ],
     [
-      "nasadigital",
+      "netman",
       143,
       144
     ],
@@ -763,7 +764,7 @@
       151
     ],
     [
-      "josdas",
+      "sfiction",
       152,
       154
     ],
@@ -773,17 +774,17 @@
       154
     ],
     [
-      "sfiction",
+      "josdas",
       152,
       154
     ],
     [
-      "TableEnterer_Lin",
+      "liao772002",
       155,
       156
     ],
     [
-      "liao772002",
+      "TableEnterer_Lin",
       155,
       156
     ],
@@ -923,12 +924,12 @@
       183
     ],
     [
-      "pflueger",
+      "1NCID3R",
       184,
       185
     ],
     [
-      "1NCID3R",
+      "pflueger",
       184,
       185
     ],
@@ -948,12 +949,12 @@
       188
     ],
     [
-      "Honour_00",
+      "kinol",
       189,
       190
     ],
     [
-      "kinol",
+      "Honour_00",
       189,
       190
     ],
@@ -978,12 +979,12 @@
       194
     ],
     [
-      "f.bialas",
+      "guille",
       195,
       196
     ],
     [
-      "guille",
+      "f.bialas",
       195,
       196
     ],
@@ -1033,7 +1034,7 @@
       205
     ],
     [
-      "marX",
+      "luoxinchen",
       206,
       208
     ],
@@ -1043,7 +1044,7 @@
       208
     ],
     [
-      "luoxinchen",
+      "marX",
       206,
       208
     ],
@@ -1063,22 +1064,22 @@
       211
     ],
     [
-      "MadNick",
-      212,
-      213
-    ],
-    [
       "kingofnumbers",
       212,
       213
     ],
     [
-      "lcr",
+      "MadNick",
+      212,
+      213
+    ],
+    [
+      "ifsmirnov",
       214,
       215
     ],
     [
-      "ifsmirnov",
+      "lcr",
       214,
       215
     ],
@@ -1123,12 +1124,12 @@
       223
     ],
     [
-      "Zorua",
+      "kliu31415",
       224,
       225
     ],
     [
-      "kliu31415",
+      "Zorua",
       224,
       225
     ],
@@ -1323,7 +1324,7 @@
       266
     ],
     [
-      "demon1999",
+      "Tinsane",
       263,
       266
     ],
@@ -1333,19 +1334,9 @@
       266
     ],
     [
-      "Tinsane",
+      "demon1999",
       263,
       266
-    ],
-    [
-      "karanaggarwal",
-      267,
-      271
-    ],
-    [
-      "alex9801",
-      267,
-      271
     ],
     [
       "koci",
@@ -1353,7 +1344,7 @@
       271
     ],
     [
-      "Rostislav_the_great",
+      "karanaggarwal",
       267,
       271
     ],
@@ -1363,12 +1354,17 @@
       271
     ],
     [
-      "azneyes",
-      272,
-      276
+      "Rostislav_the_great",
+      267,
+      271
     ],
     [
-      "hloya_ygrt",
+      "alex9801",
+      267,
+      271
+    ],
+    [
+      "azneyes",
       272,
       276
     ],
@@ -1378,12 +1374,17 @@
       276
     ],
     [
+      "TonySnark",
+      272,
+      276
+    ],
+    [
       "Constantius",
       272,
       276
     ],
     [
-      "TonySnark",
+      "hloya_ygrt",
       272,
       276
     ],
@@ -1398,6 +1399,11 @@
       281
     ],
     [
+      "hey_boris",
+      278,
+      281
+    ],
+    [
       "xuanquang1999",
       278,
       281
@@ -1408,22 +1414,12 @@
       281
     ],
     [
-      "hey_boris",
-      278,
-      281
-    ],
-    [
-      "nigus",
+      "eddy1021",
       282,
       288
     ],
     [
       "ihave33cm",
-      282,
-      288
-    ],
-    [
-      "eddy1021",
       282,
       288
     ],
@@ -1438,6 +1434,11 @@
       288
     ],
     [
+      "nigus",
+      282,
+      288
+    ],
+    [
       "Laakeri",
       282,
       288
@@ -1448,12 +1449,7 @@
       288
     ],
     [
-      "Hasan0540",
-      289,
-      295
-    ],
-    [
-      "Irkutsk_ISRU",
+      "xxxholic",
       289,
       295
     ],
@@ -1463,7 +1459,7 @@
       295
     ],
     [
-      "xxxholic",
+      "Hasan0540",
       289,
       295
     ],
@@ -1473,24 +1469,19 @@
       295
     ],
     [
-      "MrDindows",
-      289,
-      295
-    ],
-    [
       "shavkat",
       289,
       295
     ],
     [
-      "Vlad_kv",
-      296,
-      300
+      "Irkutsk_ISRU",
+      289,
+      295
     ],
     [
-      "chenmark",
-      296,
-      300
+      "MrDindows",
+      289,
+      295
     ],
     [
       "GeKa",
@@ -1508,9 +1499,14 @@
       300
     ],
     [
-      "sahilgrover",
-      301,
-      306
+      "chenmark",
+      296,
+      300
+    ],
+    [
+      "Vlad_kv",
+      296,
+      300
     ],
     [
       "StoneCold_",
@@ -1518,7 +1514,7 @@
       306
     ],
     [
-      "linkct",
+      "Illyasviel_von_Einzbern",
       301,
       306
     ],
@@ -1533,17 +1529,22 @@
       306
     ],
     [
-      "Illyasviel_von_Einzbern",
+      "linkct",
       301,
       306
     ],
     [
-      "satashun",
+      "sahilgrover",
+      301,
+      306
+    ],
+    [
+      "adurysk",
       307,
       309
     ],
     [
-      "adurysk",
+      "satashun",
       307,
       309
     ],
@@ -1563,12 +1564,12 @@
       313
     ],
     [
-      "Mektpoy",
+      "Magica",
       311,
       313
     ],
     [
-      "Magica",
+      "Mektpoy",
       311,
       313
     ],
@@ -1578,12 +1579,12 @@
       317
     ],
     [
-      "behzad.nouri",
+      "xwind",
       314,
       317
     ],
     [
-      "xwind",
+      "behzad.nouri",
       314,
       317
     ],
@@ -1603,7 +1604,7 @@
       322
     ],
     [
-      "dark_ai",
+      "amankedia1994",
       319,
       322
     ],
@@ -1613,14 +1614,9 @@
       322
     ],
     [
-      "amankedia1994",
+      "dark_ai",
       319,
       322
-    ],
-    [
-      "Topspin26",
-      323,
-      325
     ],
     [
       "reiracofage",
@@ -1629,6 +1625,11 @@
     ],
     [
       "determinism",
+      323,
+      325
+    ],
+    [
+      "Topspin26",
       323,
       325
     ],
@@ -1653,17 +1654,17 @@
       329
     ],
     [
-      "jonathanirvings",
-      330,
-      331
-    ],
-    [
       "alex.velea",
       330,
       331
     ],
     [
-      "merolish",
+      "jonathanirvings",
+      330,
+      331
+    ],
+    [
+      "alexyz",
       332,
       334
     ],
@@ -1673,14 +1674,9 @@
       334
     ],
     [
-      "alexyz",
+      "merolish",
       332,
       334
-    ],
-    [
-      "giraffeh",
-      335,
-      337
     ],
     [
       "tcchung",
@@ -1689,6 +1685,11 @@
     ],
     [
       "Lixoskywalker",
+      335,
+      337
+    ],
+    [
+      "giraffeh",
       335,
       337
     ],
@@ -1718,7 +1719,7 @@
       342
     ],
     [
-      "Oxer11",
+      "gleb.astashkin",
       343,
       347
     ],
@@ -1733,12 +1734,12 @@
       347
     ],
     [
-      "gleb.astashkin",
+      "spentplaying",
       343,
       347
     ],
     [
-      "spentplaying",
+      "Oxer11",
       343,
       347
     ],
@@ -1746,16 +1747,6 @@
       "dcms2",
       348,
       348
-    ],
-    [
-      "kuzmichev_dima",
-      349,
-      356
-    ],
-    [
-      "nbybyyby",
-      349,
-      356
     ],
     [
       "sunzeyu",
@@ -1768,7 +1759,7 @@
       356
     ],
     [
-      "irkstepanov",
+      "kuzmichev_dima",
       349,
       356
     ],
@@ -1788,17 +1779,17 @@
       356
     ],
     [
-      "Misha100896",
-      357,
-      363
+      "irkstepanov",
+      349,
+      356
     ],
     [
-      "FallenTurret",
-      357,
-      363
+      "nbybyyby",
+      349,
+      356
     ],
     [
-      "RomeoFantastik",
+      "tweety",
       357,
       363
     ],
@@ -1808,7 +1799,17 @@
       363
     ],
     [
-      "tweety",
+      "Misha100896",
+      357,
+      363
+    ],
+    [
+      "RomeoFantastik",
+      357,
+      363
+    ],
+    [
+      "ajinkya1p3",
       357,
       363
     ],
@@ -1818,7 +1819,7 @@
       363
     ],
     [
-      "ajinkya1p3",
+      "FallenTurret",
       357,
       363
     ],
@@ -1833,7 +1834,7 @@
       368
     ],
     [
-      "Amber00_Chen",
+      "pwild",
       365,
       368
     ],
@@ -1843,7 +1844,7 @@
       368
     ],
     [
-      "pwild",
+      "Amber00_Chen",
       365,
       368
     ],
@@ -1853,22 +1854,17 @@
       371
     ],
     [
-      "RestlessAnchoret",
-      369,
-      371
-    ],
-    [
       "radoslav11",
       369,
       371
     ],
     [
-      "polingy",
-      372,
-      377
+      "RestlessAnchoret",
+      369,
+      371
     ],
     [
-      "zclimber",
+      "Maxim",
       372,
       377
     ],
@@ -1878,7 +1874,17 @@
       377
     ],
     [
-      "Maxim",
+      "camypaper",
+      372,
+      377
+    ],
+    [
+      "zclimber",
+      372,
+      377
+    ],
+    [
+      "polingy",
       372,
       377
     ],
@@ -1886,21 +1892,6 @@
       "IMAN_GH",
       372,
       377
-    ],
-    [
-      "camypaper",
-      372,
-      377
-    ],
-    [
-      "sempav",
-      378,
-      383
-    ],
-    [
-      "YakutovDmitriy",
-      378,
-      383
     ],
     [
       "shubhamvijay",
@@ -1913,22 +1904,27 @@
       383
     ],
     [
-      "sadhwaniyash6",
-      378,
-      383
-    ],
-    [
       "xwchow",
       378,
       383
     ],
     [
-      "KhaledKEE",
-      384,
-      387
+      "sadhwaniyash6",
+      378,
+      383
     ],
     [
-      "bekzhan29",
+      "sempav",
+      378,
+      383
+    ],
+    [
+      "YakutovDmitriy",
+      378,
+      383
+    ],
+    [
+      "KhaledKEE",
       384,
       387
     ],
@@ -1943,9 +1939,9 @@
       387
     ],
     [
-      "ericxu0",
-      388,
-      391
+      "bekzhan29",
+      384,
+      387
     ],
     [
       "bertho_coder",
@@ -1963,12 +1959,17 @@
       391
     ],
     [
-      "Mikester",
+      "ericxu0",
+      388,
+      391
+    ],
+    [
+      "yum",
       392,
       398
     ],
     [
-      "Shayan",
+      "Mikester",
       392,
       398
     ],
@@ -1978,17 +1979,12 @@
       398
     ],
     [
-      "yum",
-      392,
-      398
-    ],
-    [
-      "uhateme",
-      392,
-      398
-    ],
-    [
       "fromWork",
+      392,
+      398
+    ],
+    [
+      "Shayan",
       392,
       398
     ],
@@ -1998,7 +1994,17 @@
       398
     ],
     [
-      "dreamzor",
+      "uhateme",
+      392,
+      398
+    ],
+    [
+      "Al3ks1002",
+      399,
+      404
+    ],
+    [
+      "animeshf",
       399,
       404
     ],
@@ -2013,17 +2019,12 @@
       404
     ],
     [
-      "Al3ks1002",
-      399,
-      404
-    ],
-    [
-      "animeshf",
-      399,
-      404
-    ],
-    [
       "pitfall",
+      399,
+      404
+    ],
+    [
+      "dreamzor",
       399,
       404
     ],
@@ -2033,7 +2034,7 @@
       408
     ],
     [
-      "swust_20170292",
+      "johnjq",
       405,
       408
     ],
@@ -2043,7 +2044,7 @@
       408
     ],
     [
-      "johnjq",
+      "swust_20170292",
       405,
       408
     ],
@@ -2063,12 +2064,12 @@
       411
     ],
     [
-      "P___",
+      "osamahatem",
       412,
       413
     ],
     [
-      "osamahatem",
+      "P___",
       412,
       413
     ],
@@ -2083,12 +2084,12 @@
       415
     ],
     [
-      "kittylover",
+      "fnch",
       416,
       417
     ],
     [
-      "fnch",
+      "kittylover",
       416,
       417
     ],
@@ -2098,12 +2099,12 @@
       418
     ],
     [
-      "yash_15",
+      "Chitoge_Kirisaki",
       419,
       420
     ],
     [
-      "Chitoge_Kirisaki",
+      "yash_15",
       419,
       420
     ],
@@ -2168,12 +2169,12 @@
       432
     ],
     [
-      "satyaki3794",
+      "zubaer.kh",
       433,
       434
     ],
     [
-      "zubaer.kh",
+      "satyaki3794",
       433,
       434
     ],
@@ -2193,12 +2194,12 @@
       439
     ],
     [
-      "please_delete_account",
+      "Cadenza",
       437,
       439
     ],
     [
-      "Cadenza",
+      "please_delete_account",
       437,
       439
     ],
@@ -2208,17 +2209,17 @@
       440
     ],
     [
-      "ZWY",
-      441,
-      443
-    ],
-    [
       "rajat1603",
       441,
       443
     ],
     [
       "JewRaper",
+      441,
+      443
+    ],
+    [
+      "ZWY",
       441,
       443
     ],
@@ -2233,12 +2234,12 @@
       445
     ],
     [
-      "Phronesis",
+      "BIT-silence",
       446,
       448
     ],
     [
-      "BIT-silence",
+      "Phronesis",
       446,
       448
     ],
@@ -2258,12 +2259,12 @@
       450
     ],
     [
-      "Vladik",
+      "sampriti",
       451,
       452
     ],
     [
-      "sampriti",
+      "Vladik",
       451,
       452
     ],
@@ -2283,12 +2284,12 @@
       455
     ],
     [
-      "abcdef6199",
+      "duckladydinh",
       456,
       459
     ],
     [
-      "Azat_Yusupov",
+      "abcdef6199",
       456,
       459
     ],
@@ -2298,7 +2299,7 @@
       459
     ],
     [
-      "duckladydinh",
+      "Azat_Yusupov",
       456,
       459
     ],
@@ -2308,12 +2309,12 @@
       460
     ],
     [
-      "Melnik",
+      "victoragnez",
       461,
       463
     ],
     [
-      "victoragnez",
+      "Melnik",
       461,
       463
     ],
@@ -2321,6 +2322,11 @@
       "INVWVZ",
       461,
       463
+    ],
+    [
+      "Qoogle",
+      464,
+      466
     ],
     [
       "Shinka",
@@ -2333,22 +2339,17 @@
       466
     ],
     [
-      "Qoogle",
-      464,
-      466
-    ],
-    [
       "Zailton",
       467,
       467
     ],
     [
-      "shivamkakkar",
+      "halin.george",
       468,
       469
     ],
     [
-      "halin.george",
+      "shivamkakkar",
       468,
       469
     ],
@@ -2358,12 +2359,12 @@
       470
     ],
     [
-      "Hachiikung",
+      "Labib666",
       471,
       472
     ],
     [
-      "Labib666",
+      "Hachiikung",
       471,
       472
     ],
@@ -2388,12 +2389,12 @@
       478
     ],
     [
-      "mike_live",
+      "smurty",
       476,
       478
     ],
     [
-      "smurty",
+      "mike_live",
       476,
       478
     ],
@@ -2408,12 +2409,12 @@
       480
     ],
     [
-      "kimiyuki",
+      "anubhav94",
       481,
       482
     ],
     [
-      "anubhav94",
+      "kimiyuki",
       481,
       482
     ],
@@ -2443,12 +2444,12 @@
       487
     ],
     [
-      "songman",
+      "abisheka",
       488,
       489
     ],
     [
-      "abisheka",
+      "songman",
       488,
       489
     ],
@@ -2478,7 +2479,7 @@
       494
     ],
     [
-      "I_Love_Tina",
+      "sahedsohel",
       495,
       497
     ],
@@ -2488,7 +2489,7 @@
       497
     ],
     [
-      "sahedsohel",
+      "I_Love_Tina",
       495,
       497
     ],
@@ -2513,12 +2514,12 @@
       501
     ],
     [
-      "torus711",
+      "phyxnj",
       502,
       503
     ],
     [
-      "phyxnj",
+      "torus711",
       502,
       503
     ],
@@ -2543,17 +2544,17 @@
       507
     ],
     [
-      "bssanches",
-      508,
-      511
-    ],
-    [
       "naij",
       508,
       511
     ],
     [
       "_Dragon_",
+      508,
+      511
+    ],
+    [
+      "bssanches",
       508,
       511
     ],
@@ -2613,12 +2614,12 @@
       521
     ],
     [
-      "Anuar",
+      "1101_",
       522,
       523
     ],
     [
-      "1101_",
+      "Anuar",
       522,
       523
     ],
@@ -2683,26 +2684,6 @@
       535
     ],
     [
-      "waterfall",
-      536,
-      551
-    ],
-    [
-      "Mushegh",
-      536,
-      551
-    ],
-    [
-      "gepardo",
-      536,
-      551
-    ],
-    [
-      "Shurikenger",
-      536,
-      551
-    ],
-    [
       "e19-un",
       536,
       551
@@ -2713,7 +2694,17 @@
       551
     ],
     [
-      "Shavkat_Aminov",
+      "Shurikenger",
+      536,
+      551
+    ],
+    [
+      "Mushegh",
+      536,
+      551
+    ],
+    [
+      "tafit3",
       536,
       551
     ],
@@ -2723,7 +2714,7 @@
       551
     ],
     [
-      "tafit3",
+      "Grzegorz",
       536,
       551
     ],
@@ -2738,12 +2729,7 @@
       551
     ],
     [
-      "Grzegorz",
-      536,
-      551
-    ],
-    [
-      "veschii_nevstrui",
+      "gepardo",
       536,
       551
     ],
@@ -2753,12 +2739,27 @@
       551
     ],
     [
-      "ITDOI",
+      "veschii_nevstrui",
       536,
       551
     ],
     [
       "conor",
+      536,
+      551
+    ],
+    [
+      "ITDOI",
+      536,
+      551
+    ],
+    [
+      "Shavkat_Aminov",
+      536,
+      551
+    ],
+    [
+      "waterfall",
       536,
       551
     ],

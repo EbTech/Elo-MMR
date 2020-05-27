@@ -1,6 +1,7 @@
 {
   "id": 800,
   "name": "Codeforces Round #409 (rated, Div. 1, based on VK Cup 2017 Round 2)",
+  "time_seconds": 1492364100,
   "standings": [
     [
       "SirShokoladina",
@@ -673,17 +674,17 @@
       133
     ],
     [
-      "mooomooo",
-      134,
-      136
-    ],
-    [
       "Shayan",
       134,
       136
     ],
     [
       "RiHL",
+      134,
+      136
+    ],
+    [
+      "mooomooo",
       134,
       136
     ],
@@ -698,12 +699,12 @@
       138
     ],
     [
-      "Roberio",
+      "PeekaBOO123",
       139,
       140
     ],
     [
-      "PeekaBOO123",
+      "Roberio",
       139,
       140
     ],
@@ -718,22 +719,22 @@
       142
     ],
     [
-      "toilanvd_KAIST",
-      143,
-      144
-    ],
-    [
       "polingy",
       143,
       144
     ],
     [
-      "MuratKhayrulin",
+      "toilanvd_KAIST",
+      143,
+      144
+    ],
+    [
+      "nigus",
       145,
       146
     ],
     [
-      "nigus",
+      "MuratKhayrulin",
       145,
       146
     ],
@@ -883,12 +884,12 @@
       175
     ],
     [
-      "stonepage",
+      "0w1",
       176,
       177
     ],
     [
-      "0w1",
+      "stonepage",
       176,
       177
     ],
@@ -898,12 +899,12 @@
       178
     ],
     [
-      "shengdebao",
+      "lmn0x4F",
       179,
       180
     ],
     [
-      "lmn0x4F",
+      "shengdebao",
       179,
       180
     ],
@@ -983,12 +984,12 @@
       195
     ],
     [
-      "GoodGuy",
+      "SoSad",
       196,
       197
     ],
     [
-      "SoSad",
+      "GoodGuy",
       196,
       197
     ],
@@ -1063,11 +1064,6 @@
       211
     ],
     [
-      "Noureldin",
-      212,
-      215
-    ],
-    [
       "ahihi_do_ngok",
       212,
       215
@@ -1083,17 +1079,22 @@
       215
     ],
     [
+      "Noureldin",
+      212,
+      215
+    ],
+    [
       "kzyKT",
       216,
       216
     ],
     [
-      "prophet_ov_darkness",
+      "mukel",
       217,
       218
     ],
     [
-      "mukel",
+      "prophet_ov_darkness",
       217,
       218
     ],
@@ -1293,7 +1294,7 @@
       260
     ],
     [
-      "imaxblue",
+      "Danlark",
       257,
       260
     ],
@@ -1303,7 +1304,7 @@
       260
     ],
     [
-      "Danlark",
+      "imaxblue",
       257,
       260
     ],
@@ -1323,17 +1324,17 @@
       263
     ],
     [
-      "Yousry",
-      264,
-      266
-    ],
-    [
       "jtnydv25",
       264,
       266
     ],
     [
       "Mohammad.Sj",
+      264,
+      266
+    ],
+    [
+      "Yousry",
       264,
       266
     ],
@@ -1348,7 +1349,7 @@
       268
     ],
     [
-      "ConnorZhong",
+      "zgncycz",
       269,
       271
     ],
@@ -1358,7 +1359,7 @@
       271
     ],
     [
-      "zgncycz",
+      "ConnorZhong",
       269,
       271
     ],
@@ -1398,47 +1399,12 @@
       278
     ],
     [
-      "Nson",
+      "GYC",
       279,
       306
     ],
     [
-      "tinca_matei",
-      279,
-      306
-    ],
-    [
-      "fsshakkhor",
-      279,
-      306
-    ],
-    [
-      "fnch",
-      279,
-      306
-    ],
-    [
-      "_D41_",
-      279,
-      306
-    ],
-    [
-      "mavd09",
-      279,
-      306
-    ],
-    [
-      "khatribiru",
-      279,
-      306
-    ],
-    [
-      "bertho_coder",
-      279,
-      306
-    ],
-    [
-      "up-and-down",
+      "abcdef6199",
       279,
       306
     ],
@@ -1458,7 +1424,7 @@
       306
     ],
     [
-      "abcdef6199",
+      "jacobtpl",
       279,
       306
     ],
@@ -1468,7 +1434,7 @@
       306
     ],
     [
-      "GYC",
+      "Medeowex",
       279,
       306
     ],
@@ -1478,7 +1444,7 @@
       306
     ],
     [
-      "Medeowex",
+      "cthbst",
       279,
       306
     ],
@@ -1493,32 +1459,12 @@
       306
     ],
     [
-      "cthbst",
-      279,
-      306
-    ],
-    [
-      "jacobtpl",
-      279,
-      306
-    ],
-    [
-      "RamTararam",
+      "O-O-O-O-O-O-O-O-O-O-O-O",
       279,
       306
     ],
     [
       "Wuvin",
-      279,
-      306
-    ],
-    [
-      "ConfirmPassword",
-      279,
-      306
-    ],
-    [
-      "O-O-O-O-O-O-O-O-O-O-O-O",
       279,
       306
     ],
@@ -1534,6 +1480,61 @@
     ],
     [
       "yuanxinyu402",
+      279,
+      306
+    ],
+    [
+      "ConfirmPassword",
+      279,
+      306
+    ],
+    [
+      "RamTararam",
+      279,
+      306
+    ],
+    [
+      "fnch",
+      279,
+      306
+    ],
+    [
+      "_D41_",
+      279,
+      306
+    ],
+    [
+      "Nson",
+      279,
+      306
+    ],
+    [
+      "tinca_matei",
+      279,
+      306
+    ],
+    [
+      "khatribiru",
+      279,
+      306
+    ],
+    [
+      "up-and-down",
+      279,
+      306
+    ],
+    [
+      "mavd09",
+      279,
+      306
+    ],
+    [
+      "fsshakkhor",
+      279,
+      306
+    ],
+    [
+      "bertho_coder",
       279,
       306
     ],

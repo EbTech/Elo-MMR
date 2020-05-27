@@ -1,6 +1,7 @@
 {
   "id": 434,
   "name": "Codeforces Round #248 (Div. 1)",
+  "time_seconds": 1400922000,
   "standings": [
     [
       "YuukaKazami",
@@ -683,12 +684,12 @@
       135
     ],
     [
-      "Mikester",
+      "ufo",
       136,
       137
     ],
     [
-      "ufo",
+      "Mikester",
       136,
       137
     ],
@@ -743,12 +744,12 @@
       147
     ],
     [
-      "mislav",
+      "RaJin",
       148,
       149
     ],
     [
-      "RaJin",
+      "mislav",
       148,
       149
     ],
@@ -828,12 +829,12 @@
       166
     ],
     [
-      "noogler",
+      "hogloid",
       164,
       166
     ],
     [
-      "hogloid",
+      "noogler",
       164,
       166
     ],
@@ -948,12 +949,12 @@
       188
     ],
     [
-      "paulwang",
+      "Edvard",
       189,
       190
     ],
     [
-      "Edvard",
+      "paulwang",
       189,
       190
     ],
@@ -1203,12 +1204,12 @@
       241
     ],
     [
-      "THE_QUEEN_IN_THE_NORTH",
+      "sugi2358",
       239,
       241
     ],
     [
-      "sugi2358",
+      "THE_QUEEN_IN_THE_NORTH",
       239,
       241
     ],
@@ -1283,12 +1284,12 @@
       255
     ],
     [
-      "lijianlong",
+      "MatRush",
       256,
       257
     ],
     [
-      "MatRush",
+      "lijianlong",
       256,
       257
     ],
@@ -1428,12 +1429,7 @@
       284
     ],
     [
-      "longbiau",
-      285,
-      299
-    ],
-    [
-      "lyoz",
+      "Melnyk",
       285,
       299
     ],
@@ -1443,7 +1439,12 @@
       299
     ],
     [
-      "Melnyk",
+      "longbiau",
+      285,
+      299
+    ],
+    [
+      "RestlessAnchoret",
       285,
       299
     ],
@@ -1453,17 +1454,12 @@
       299
     ],
     [
-      "Oryshych",
-      285,
-      299
-    ],
-    [
       "mayf3",
       285,
       299
     ],
     [
-      "RestlessAnchoret",
+      "Oryshych",
       285,
       299
     ],
@@ -1488,17 +1484,22 @@
       299
     ],
     [
+      "guille",
+      285,
+      299
+    ],
+    [
       "primorial",
       285,
       299
     ],
     [
-      "No_stop",
+      "lyoz",
       285,
       299
     ],
     [
-      "guille",
+      "No_stop",
       285,
       299
     ],
@@ -1521,21 +1522,6 @@
       "yoones.rezaei",
       303,
       303
-    ],
-    [
-      "MottoX",
-      304,
-      445
-    ],
-    [
-      "olimpo",
-      304,
-      445
-    ],
-    [
-      "dinarisio",
-      304,
-      445
     ],
     [
       "prpr",
@@ -1578,97 +1564,7 @@
       445
     ],
     [
-      "suyash666",
-      304,
-      445
-    ],
-    [
-      "a.korneev",
-      304,
-      445
-    ],
-    [
-      "pratyai",
-      304,
-      445
-    ],
-    [
-      "ustimaw",
-      304,
-      445
-    ],
-    [
-      "Logic_zys",
-      304,
-      445
-    ],
-    [
-      "Zzyzx",
-      304,
-      445
-    ],
-    [
-      "robots.txt",
-      304,
-      445
-    ],
-    [
-      "DaDaDa",
-      304,
-      445
-    ],
-    [
-      "Joker_Poker",
-      304,
-      445
-    ],
-    [
-      "billy_scabilly",
-      304,
-      445
-    ],
-    [
-      "karanaggarwal",
-      304,
-      445
-    ],
-    [
-      "Fedosik",
-      304,
-      445
-    ],
-    [
-      "dhe128",
-      304,
-      445
-    ],
-    [
-      "cvm",
-      304,
-      445
-    ],
-    [
-      "tusher",
-      304,
-      445
-    ],
-    [
-      "Tom.",
-      304,
-      445
-    ],
-    [
-      "aostankov",
-      304,
-      445
-    ],
-    [
-      "vas.and.tor",
-      304,
-      445
-    ],
-    [
-      "Kreyyy",
+      "shangyu11",
       304,
       445
     ],
@@ -1693,42 +1589,47 @@
       445
     ],
     [
-      "shangyu11",
+      "DaDaDa",
       304,
       445
     ],
     [
-      "Mihai22e",
+      "Joker_Poker",
       304,
       445
     ],
     [
-      "ahmedameen",
+      "robots.txt",
       304,
       445
     ],
     [
-      "yokozuna57",
+      "MottoX",
       304,
       445
     ],
     [
-      "Odeen",
+      "olimpo",
       304,
       445
     ],
     [
-      "Rafbill",
+      "dinarisio",
       304,
       445
     ],
     [
-      "KarlisS",
+      "aostankov",
       304,
       445
     ],
     [
-      "wclee2265",
+      "Kreyyy",
+      304,
+      445
+    ],
+    [
+      "vas.and.tor",
       304,
       445
     ],
@@ -1748,47 +1649,72 @@
       445
     ],
     [
-      "BSBandme",
+      "yokozuna57",
       304,
       445
     ],
     [
-      "hykych",
+      "Mihai22e",
       304,
       445
     ],
     [
-      "Altynai",
+      "Odeen",
       304,
       445
     ],
     [
-      "I_love_Tanya_Romanova",
+      "ahmedameen",
       304,
       445
     ],
     [
-      "hieptk",
+      "Rafbill",
       304,
       445
     ],
     [
-      "rais.fathin38",
+      "billy_scabilly",
       304,
       445
     ],
     [
-      "heekyu83",
+      "karanaggarwal",
       304,
       445
     ],
     [
-      "amirMD",
+      "cvm",
       304,
       445
     ],
     [
-      "smallJS",
+      "dhe128",
+      304,
+      445
+    ],
+    [
+      "tusher",
+      304,
+      445
+    ],
+    [
+      "Tom.",
+      304,
+      445
+    ],
+    [
+      "Fedosik",
+      304,
+      445
+    ],
+    [
+      "wclee2265",
+      304,
+      445
+    ],
+    [
+      "chinh7",
       304,
       445
     ],
@@ -1798,7 +1724,7 @@
       445
     ],
     [
-      "chinh7",
+      "rituranjna",
       304,
       445
     ],
@@ -1823,7 +1749,72 @@
       445
     ],
     [
-      "rituranjna",
+      "BSBandme",
+      304,
+      445
+    ],
+    [
+      "Altynai",
+      304,
+      445
+    ],
+    [
+      "hykych",
+      304,
+      445
+    ],
+    [
+      "KarlisS",
+      304,
+      445
+    ],
+    [
+      "heekyu83",
+      304,
+      445
+    ],
+    [
+      "amirMD",
+      304,
+      445
+    ],
+    [
+      "rais.fathin38",
+      304,
+      445
+    ],
+    [
+      "smallJS",
+      304,
+      445
+    ],
+    [
+      "Eurce",
+      304,
+      445
+    ],
+    [
+      "mike_live",
+      304,
+      445
+    ],
+    [
+      "zhangxiaohao",
+      304,
+      445
+    ],
+    [
+      "PAP",
+      304,
+      445
+    ],
+    [
+      "zetamoo",
+      304,
+      445
+    ],
+    [
+      "QProgS",
       304,
       445
     ],
@@ -1843,6 +1834,11 @@
       445
     ],
     [
+      "dusty.and.rusty",
+      304,
+      445
+    ],
+    [
       "too__weak",
       304,
       445
@@ -1853,47 +1849,12 @@
       445
     ],
     [
-      "dusty.and.rusty",
+      "I_love_Tanya_Romanova",
       304,
       445
     ],
     [
-      "Meirambek",
-      304,
-      445
-    ],
-    [
-      "bayram",
-      304,
-      445
-    ],
-    [
-      "shantanushanto",
-      304,
-      445
-    ],
-    [
-      "NurlanTolegenov",
-      304,
-      445
-    ],
-    [
-      "zxybazh",
-      304,
-      445
-    ],
-    [
-      "yaoshimax",
-      304,
-      445
-    ],
-    [
-      "TheRealRoman",
-      304,
-      445
-    ],
-    [
-      "akimonoiryou",
+      "hieptk",
       304,
       445
     ],
@@ -1904,116 +1865,6 @@
     ],
     [
       "zhtw",
-      304,
-      445
-    ],
-    [
-      "zhangxiaohao",
-      304,
-      445
-    ],
-    [
-      "mike_live",
-      304,
-      445
-    ],
-    [
-      "PAP",
-      304,
-      445
-    ],
-    [
-      "Eurce",
-      304,
-      445
-    ],
-    [
-      "zetamoo",
-      304,
-      445
-    ],
-    [
-      "QProgS",
-      304,
-      445
-    ],
-    [
-      "OliKoJo",
-      304,
-      445
-    ],
-    [
-      "alexeykuzmin0",
-      304,
-      445
-    ],
-    [
-      "minus9d",
-      304,
-      445
-    ],
-    [
-      "AU.Bahosain",
-      304,
-      445
-    ],
-    [
-      "like",
-      304,
-      445
-    ],
-    [
-      "mislav_bradac",
-      304,
-      445
-    ],
-    [
-      "shakil0304003",
-      304,
-      445
-    ],
-    [
-      "Roma",
-      304,
-      445
-    ],
-    [
-      "zerokugi",
-      304,
-      445
-    ],
-    [
-      "vagnard",
-      304,
-      445
-    ],
-    [
-      "Vaness",
-      304,
-      445
-    ],
-    [
-      "piroz",
-      304,
-      445
-    ],
-    [
-      "Ariza",
-      304,
-      445
-    ],
-    [
-      "ahmed_aly",
-      304,
-      445
-    ],
-    [
-      "ZhNV",
-      304,
-      445
-    ],
-    [
-      "DarkStar",
       304,
       445
     ],
@@ -2048,12 +1899,127 @@
       445
     ],
     [
-      "takapt",
+      "OliKoJo",
       304,
       445
     ],
     [
-      "rnsiehemt",
+      "alexeykuzmin0",
+      304,
+      445
+    ],
+    [
+      "minus9d",
+      304,
+      445
+    ],
+    [
+      "AU.Bahosain",
+      304,
+      445
+    ],
+    [
+      "Meirambek",
+      304,
+      445
+    ],
+    [
+      "bayram",
+      304,
+      445
+    ],
+    [
+      "NurlanTolegenov",
+      304,
+      445
+    ],
+    [
+      "zxybazh",
+      304,
+      445
+    ],
+    [
+      "yaoshimax",
+      304,
+      445
+    ],
+    [
+      "shantanushanto",
+      304,
+      445
+    ],
+    [
+      "TheRealRoman",
+      304,
+      445
+    ],
+    [
+      "akimonoiryou",
+      304,
+      445
+    ],
+    [
+      "vagnard",
+      304,
+      445
+    ],
+    [
+      "Vaness",
+      304,
+      445
+    ],
+    [
+      "DarkStar",
+      304,
+      445
+    ],
+    [
+      "piroz",
+      304,
+      445
+    ],
+    [
+      "ZhNV",
+      304,
+      445
+    ],
+    [
+      "good_mood",
+      304,
+      445
+    ],
+    [
+      "Ariza",
+      304,
+      445
+    ],
+    [
+      "ahmed_aly",
+      304,
+      445
+    ],
+    [
+      "GShark",
+      304,
+      445
+    ],
+    [
+      "amankedia1994",
+      304,
+      445
+    ],
+    [
+      "Shojib09",
+      304,
+      445
+    ],
+    [
+      "Prestige",
+      304,
+      445
+    ],
+    [
+      "takapt",
       304,
       445
     ],
@@ -2068,7 +2034,7 @@
       445
     ],
     [
-      "benbendog",
+      "rnsiehemt",
       304,
       445
     ],
@@ -2078,32 +2044,32 @@
       445
     ],
     [
-      "tonkosi",
+      "benbendog",
       304,
       445
     ],
     [
-      "Haghani",
+      "like",
       304,
       445
     ],
     [
-      "anoopchaurasiya1",
+      "mislav_bradac",
       304,
       445
     ],
     [
-      "barba",
+      "shakil0304003",
       304,
       445
     ],
     [
-      "nhho",
+      "Roma",
       304,
       445
     ],
     [
-      "cristb",
+      "zerokugi",
       304,
       445
     ],
@@ -2133,76 +2099,6 @@
       445
     ],
     [
-      "good_mood",
-      304,
-      445
-    ],
-    [
-      "GShark",
-      304,
-      445
-    ],
-    [
-      "amankedia1994",
-      304,
-      445
-    ],
-    [
-      "Shojib09",
-      304,
-      445
-    ],
-    [
-      "Prestige",
-      304,
-      445
-    ],
-    [
-      "qqz003",
-      304,
-      445
-    ],
-    [
-      "codexile",
-      304,
-      445
-    ],
-    [
-      "NiceDayToDie",
-      304,
-      445
-    ],
-    [
-      "arkanath",
-      304,
-      445
-    ],
-    [
-      "vodanhna",
-      304,
-      445
-    ],
-    [
-      "Anarivu",
-      304,
-      445
-    ],
-    [
-      "LegaDyan",
-      304,
-      445
-    ],
-    [
-      "Hec",
-      304,
-      445
-    ],
-    [
-      "learningmou",
-      304,
-      445
-    ],
-    [
       "xorfire",
       304,
       445
@@ -2223,12 +2119,117 @@
       445
     ],
     [
-      "xiaoke",
+      "qqz003",
+      304,
+      445
+    ],
+    [
+      "codexile",
+      304,
+      445
+    ],
+    [
+      "NiceDayToDie",
+      304,
+      445
+    ],
+    [
+      "anoopchaurasiya1",
+      304,
+      445
+    ],
+    [
+      "tonkosi",
+      304,
+      445
+    ],
+    [
+      "Haghani",
+      304,
+      445
+    ],
+    [
+      "barba",
+      304,
+      445
+    ],
+    [
+      "nhho",
+      304,
+      445
+    ],
+    [
+      "cristb",
+      304,
+      445
+    ],
+    [
+      "LegaDyan",
+      304,
+      445
+    ],
+    [
+      "Hec",
+      304,
+      445
+    ],
+    [
+      "learningmou",
+      304,
+      445
+    ],
+    [
+      "suyash666",
+      304,
+      445
+    ],
+    [
+      "a.korneev",
+      304,
+      445
+    ],
+    [
+      "pratyai",
+      304,
+      445
+    ],
+    [
+      "ustimaw",
+      304,
+      445
+    ],
+    [
+      "Logic_zys",
+      304,
+      445
+    ],
+    [
+      "Zzyzx",
       304,
       445
     ],
     [
       "ashu1461",
+      304,
+      445
+    ],
+    [
+      "xiaoke",
+      304,
+      445
+    ],
+    [
+      "arkanath",
+      304,
+      445
+    ],
+    [
+      "vodanhna",
+      304,
+      445
+    ],
+    [
+      "Anarivu",
       304,
       445
     ],

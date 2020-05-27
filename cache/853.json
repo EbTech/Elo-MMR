@@ -1,6 +1,7 @@
 {
   "id": 853,
   "name": "Codeforces Round #433 (Div. 1, based on Olympiad of Metropolises)",
+  "time_seconds": 1504709700,
   "standings": [
     [
       "Um_nik",
@@ -128,12 +129,12 @@
       24
     ],
     [
-      "tqyaaaaang",
+      "robinyu",
       25,
       26
     ],
     [
-      "robinyu",
+      "tqyaaaaang",
       25,
       26
     ],
@@ -343,12 +344,12 @@
       67
     ],
     [
-      "Lewin",
+      "_0w0_",
       68,
       69
     ],
     [
-      "_0w0_",
+      "Lewin",
       68,
       69
     ],
@@ -433,12 +434,12 @@
       85
     ],
     [
-      "Sakura",
+      "mruxim",
       86,
       87
     ],
     [
-      "mruxim",
+      "Sakura",
       86,
       87
     ],
@@ -468,12 +469,12 @@
       92
     ],
     [
-      "gvaibhav22",
+      "Batman",
       93,
       94
     ],
     [
-      "Batman",
+      "gvaibhav22",
       93,
       94
     ],
@@ -488,12 +489,12 @@
       96
     ],
     [
-      "unused",
+      "zscoder",
       97,
       98
     ],
     [
-      "zscoder",
+      "unused",
       97,
       98
     ],
@@ -613,12 +614,12 @@
       121
     ],
     [
-      "F.Darcy",
+      "Parachutes",
       122,
       123
     ],
     [
-      "Parachutes",
+      "F.Darcy",
       122,
       123
     ],
@@ -648,12 +649,12 @@
       128
     ],
     [
-      "EMlNEM",
+      "laurageorgescu",
       129,
       130
     ],
     [
-      "laurageorgescu",
+      "EMlNEM",
       129,
       130
     ],
@@ -663,12 +664,12 @@
       131
     ],
     [
-      "Kerim.K",
+      "Zharaskhan",
       132,
       133
     ],
     [
-      "Zharaskhan",
+      "Kerim.K",
       132,
       133
     ],
@@ -683,22 +684,22 @@
       135
     ],
     [
-      "PrashantM",
-      136,
-      137
-    ],
-    [
       "Fekete",
       136,
       137
     ],
     [
-      "xietutu",
+      "PrashantM",
+      136,
+      137
+    ],
+    [
+      "Filyan",
       138,
       139
     ],
     [
-      "Filyan",
+      "xietutu",
       138,
       139
     ],
@@ -763,12 +764,12 @@
       151
     ],
     [
-      "marX",
+      "chokudai",
       152,
       153
     ],
     [
-      "chokudai",
+      "marX",
       152,
       153
     ],
@@ -793,12 +794,12 @@
       157
     ],
     [
-      "t90tank",
+      "guille",
       158,
       159
     ],
     [
-      "guille",
+      "t90tank",
       158,
       159
     ],
@@ -838,12 +839,12 @@
       166
     ],
     [
-      "woqja125",
+      "AleksanderBalobanov",
       167,
       168
     ],
     [
-      "AleksanderBalobanov",
+      "woqja125",
       167,
       168
     ],
@@ -853,17 +854,17 @@
       169
     ],
     [
+      "tbuzzelli",
+      170,
+      172
+    ],
+    [
       "Zrj",
       170,
       172
     ],
     [
       "Deng1X",
-      170,
-      172
-    ],
-    [
-      "tbuzzelli",
       170,
       172
     ],
@@ -958,12 +959,12 @@
       190
     ],
     [
-      "Mindstorm",
+      "bakabakashyoshyo",
       191,
       192
     ],
     [
-      "bakabakashyoshyo",
+      "Mindstorm",
       191,
       192
     ],
@@ -1068,12 +1069,12 @@
       212
     ],
     [
-      "Shavkat_Aminov",
+      "Savaw",
       213,
       214
     ],
     [
-      "Savaw",
+      "Shavkat_Aminov",
       213,
       214
     ],
@@ -1403,12 +1404,12 @@
       279
     ],
     [
-      "Rafiki53",
+      "natalia",
       280,
       281
     ],
     [
-      "natalia",
+      "Rafiki53",
       280,
       281
     ],
@@ -1423,6 +1424,11 @@
       283
     ],
     [
+      "briansu",
+      284,
+      287
+    ],
+    [
       "GiannisAntetokounmpo",
       284,
       287
@@ -1434,11 +1440,6 @@
     ],
     [
       "sky58",
-      284,
-      287
-    ],
-    [
-      "briansu",
       284,
       287
     ],
@@ -1463,12 +1464,12 @@
       291
     ],
     [
-      "mariand",
+      "StillFantasy",
       292,
       293
     ],
     [
-      "StillFantasy",
+      "mariand",
       292,
       293
     ],
@@ -1488,12 +1489,12 @@
       296
     ],
     [
-      "ShadowLight",
+      "shlw",
       297,
       298
     ],
     [
-      "shlw",
+      "ShadowLight",
       297,
       298
     ],
@@ -1538,12 +1539,12 @@
       306
     ],
     [
-      "cerberus97",
+      "nevgen",
       307,
       308
     ],
     [
-      "nevgen",
+      "cerberus97",
       307,
       308
     ],
@@ -1573,12 +1574,12 @@
       313
     ],
     [
-      "monster",
+      "ladpro98",
       314,
       315
     ],
     [
-      "ladpro98",
+      "monster",
       314,
       315
     ],
@@ -1603,7 +1604,7 @@
       319
     ],
     [
-      "Emiso",
+      "Light_Kiss",
       320,
       323
     ],
@@ -1613,14 +1614,19 @@
       323
     ],
     [
-      "Light_Kiss",
+      "Liu_QY",
       320,
       323
     ],
     [
-      "Liu_QY",
+      "Emiso",
       320,
       323
+    ],
+    [
+      "The_Phenomenal_One",
+      324,
+      326
     ],
     [
       "SureYeaah",
@@ -1629,11 +1635,6 @@
     ],
     [
       "ikyrre",
-      324,
-      326
-    ],
-    [
-      "The_Phenomenal_One",
       324,
       326
     ],
@@ -1653,7 +1654,7 @@
       329
     ],
     [
-      "ordyh",
+      "Ahmad1",
       330,
       332
     ],
@@ -1663,7 +1664,7 @@
       332
     ],
     [
-      "Ahmad1",
+      "ordyh",
       330,
       332
     ],
@@ -1673,12 +1674,12 @@
       333
     ],
     [
-      "SpoonsAN",
+      "-is-this-fft-",
       334,
       335
     ],
     [
-      "-is-this-fft-",
+      "SpoonsAN",
       334,
       335
     ],
@@ -1718,7 +1719,7 @@
       342
     ],
     [
-      "maggch",
+      "squee_sp00n",
       343,
       345
     ],
@@ -1728,7 +1729,7 @@
       345
     ],
     [
-      "squee_sp00n",
+      "maggch",
       343,
       345
     ],
@@ -1768,12 +1769,12 @@
       352
     ],
     [
-      "EvgeniSergeev",
+      "vilcheuski",
       353,
       354
     ],
     [
-      "vilcheuski",
+      "EvgeniSergeev",
       353,
       354
     ],
@@ -1973,12 +1974,12 @@
       393
     ],
     [
-      "valorwxp",
+      "-eidolon-",
       394,
       396
     ],
     [
-      "-eidolon-",
+      "valorwxp",
       394,
       396
     ],
@@ -1988,19 +1989,14 @@
       396
     ],
     [
-      "JoseAcv2",
-      397,
-      398
-    ],
-    [
       "mraron",
       397,
       398
     ],
     [
-      "MohamedZain",
-      399,
-      400
+      "JoseAcv2",
+      397,
+      398
     ],
     [
       "BohdanPastuschak",
@@ -2008,17 +2004,12 @@
       400
     ],
     [
-      "Maxim",
-      401,
-      406
+      "MohamedZain",
+      399,
+      400
     ],
     [
       "oipotato",
-      401,
-      406
-    ],
-    [
-      "ShavelV",
       401,
       406
     ],
@@ -2038,7 +2029,17 @@
       406
     ],
     [
-      "olphe",
+      "ShavelV",
+      401,
+      406
+    ],
+    [
+      "Maxim",
+      401,
+      406
+    ],
+    [
+      "shpsi",
       407,
       409
     ],
@@ -2048,19 +2049,9 @@
       409
     ],
     [
-      "shpsi",
+      "olphe",
       407,
       409
-    ],
-    [
-      "sjtsjt",
-      410,
-      413
-    ],
-    [
-      "Heisenbug",
-      410,
-      413
     ],
     [
       "DLUT_Zeratul",
@@ -2073,22 +2064,22 @@
       413
     ],
     [
+      "sjtsjt",
+      410,
+      413
+    ],
+    [
+      "Heisenbug",
+      410,
+      413
+    ],
+    [
       "yp155136",
       414,
       414
     ],
     [
-      "PMMGY",
-      415,
-      421
-    ],
-    [
-      "Megumi_",
-      415,
-      421
-    ],
-    [
-      "Zoli9",
+      "Levshunovma",
       415,
       421
     ],
@@ -2098,7 +2089,7 @@
       421
     ],
     [
-      "DAyamaCTF",
+      "Zoli9",
       415,
       421
     ],
@@ -2108,14 +2099,19 @@
       421
     ],
     [
-      "Levshunovma",
+      "DAyamaCTF",
       415,
       421
     ],
     [
-      "vanvector",
-      422,
-      423
+      "Megumi_",
+      415,
+      421
+    ],
+    [
+      "PMMGY",
+      415,
+      421
     ],
     [
       "gigime",
@@ -2123,12 +2119,17 @@
       423
     ],
     [
-      "Toshad",
+      "vanvector",
+      422,
+      423
+    ],
+    [
+      "Suika_predator",
       424,
       425
     ],
     [
-      "Suika_predator",
+      "Toshad",
       424,
       425
     ],
@@ -2148,7 +2149,7 @@
       428
     ],
     [
-      "SandorGarcia",
+      "kazuma",
       429,
       431
     ],
@@ -2158,14 +2159,9 @@
       431
     ],
     [
-      "kazuma",
+      "SandorGarcia",
       429,
       431
-    ],
-    [
-      "16silver",
-      432,
-      435
     ],
     [
       "Ashishgup",
@@ -2173,7 +2169,7 @@
       435
     ],
     [
-      "xcdxcdxcd",
+      "16silver",
       432,
       435
     ],
@@ -2183,12 +2179,17 @@
       435
     ],
     [
-      "RoundDog",
+      "xcdxcdxcd",
+      432,
+      435
+    ],
+    [
+      "LinPC",
       436,
       437
     ],
     [
-      "LinPC",
+      "RoundDog",
       436,
       437
     ],
@@ -2218,12 +2219,12 @@
       442
     ],
     [
-      "zhsh",
+      "Honour_00",
       443,
       444
     ],
     [
-      "Honour_00",
+      "zhsh",
       443,
       444
     ],
@@ -2233,12 +2234,12 @@
       445
     ],
     [
-      "rpy3cpp",
+      "TusanHomichi",
       446,
       447
     ],
     [
-      "TusanHomichi",
+      "rpy3cpp",
       446,
       447
     ],
@@ -2268,12 +2269,12 @@
       452
     ],
     [
-      "newgate",
+      "DOUB7E",
       453,
       454
     ],
     [
-      "DOUB7E",
+      "newgate",
       453,
       454
     ],
@@ -2338,12 +2339,12 @@
       466
     ],
     [
-      "ASSWECAN",
+      "Musin",
       467,
       468
     ],
     [
-      "Musin",
+      "ASSWECAN",
       467,
       468
     ],
@@ -2383,12 +2384,12 @@
       475
     ],
     [
-      "Akinorew",
+      "WildUtah",
       476,
       477
     ],
     [
-      "WildUtah",
+      "Akinorew",
       476,
       477
     ],
@@ -2468,22 +2469,22 @@
       492
     ],
     [
-      "DenXman111",
-      493,
-      496
-    ],
-    [
       "private",
       493,
       496
     ],
     [
-      "lqs2015",
+      "sarkar",
       493,
       496
     ],
     [
-      "sarkar",
+      "DenXman111",
+      493,
+      496
+    ],
+    [
+      "lqs2015",
       493,
       496
     ]

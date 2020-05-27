@@ -1,6 +1,7 @@
 {
   "id": 780,
   "name": "Технокубок 2017 - Финал (только для онсайт-финалистов)",
+  "time_seconds": 1488716100,
   "standings": [
     [
       "demon1999",
@@ -698,12 +699,12 @@
       138
     ],
     [
-      "ednotdead",
+      "wafemand",
       139,
       140
     ],
     [
-      "wafemand",
+      "ednotdead",
       139,
       140
     ],
@@ -718,12 +719,12 @@
       142
     ],
     [
-      "RockyB",
+      "lis",
       143,
       144
     ],
     [
-      "lis",
+      "RockyB",
       143,
       144
     ],
@@ -933,12 +934,12 @@
       185
     ],
     [
-      "ilyas_ad",
+      "alexey_kuldoshin",
       186,
       187
     ],
     [
-      "alexey_kuldoshin",
+      "ilyas_ad",
       186,
       187
     ],
@@ -1008,7 +1009,12 @@
       200
     ],
     [
-      "cmashinho",
+      "isergey.am",
+      201,
+      204
+    ],
+    [
+      "winnerforer",
       201,
       204
     ],
@@ -1018,12 +1024,7 @@
       204
     ],
     [
-      "isergey.am",
-      201,
-      204
-    ],
-    [
-      "winnerforer",
+      "cmashinho",
       201,
       204
     ],

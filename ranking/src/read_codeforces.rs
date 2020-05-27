@@ -30,6 +30,7 @@ struct CFRatingChange {
 pub struct Contest {
     pub id: usize,
     pub name: String,
+    pub time_seconds: usize,
     pub standings: Vec<(String, usize, usize)>,
 }
 
@@ -41,11 +42,12 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
         let first_change = json_contest.get(0).ok_or("Empty standings")?;
         let id = first_change.contestId;
         let name = first_change.contestName.clone();
+        let time_seconds = first_change.ratingUpdateTimeSeconds;
 
         let mut lo_rank = json_contest.len() + 1;
         let mut hi_rank = json_contest.len() + 1;
         let mut seen_handles = HashMap::with_capacity(json_contest.len());
-        let mut standings: Vec<(String, usize, usize)> = Vec::with_capacity(json_contest.len());
+        let mut standings = Vec::with_capacity(json_contest.len());
 
         for (i, mut change) in json_contest.into_iter().enumerate().rev() {
             if id != change.contestId {
@@ -59,6 +61,14 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
                     "Inconsistent contest names {} and {}",
                     name, change.contestName
                 ));
+            }
+            if time_seconds != change.ratingUpdateTimeSeconds {
+                // I don't know why but contests 61,318,347,373,381,400,404,405
+                // each contain one discrepancy, usually 4 hours late
+                println!(
+                    "WARNING @ {}: Inconsistent contest times {} and {}",
+                    id, time_seconds, change.ratingUpdateTimeSeconds
+                );
             }
             while let Some(j) = seen_handles.insert(change.handle.clone(), i) {
                 // I don't know why but contests 447,472,615 have duplicate users
@@ -99,6 +109,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
         Ok(Self {
             id,
             name,
+            time_seconds,
             standings,
         })
     }

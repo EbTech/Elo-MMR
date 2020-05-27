@@ -1,6 +1,7 @@
 {
   "id": 806,
   "name": "Codeforces Round #412 (rated, Div. 1, based on VK Cup 2017 Round 3)",
+  "time_seconds": 1494182700,
   "standings": [
     [
       "Petr",
@@ -343,12 +344,12 @@
       67
     ],
     [
-      "pashka",
+      "Radewoosh",
       68,
       69
     ],
     [
-      "Radewoosh",
+      "pashka",
       68,
       69
     ],
@@ -378,17 +379,17 @@
       74
     ],
     [
+      "ERIC12138",
+      75,
+      77
+    ],
+    [
       "gvaibhav22",
       75,
       77
     ],
     [
       "sancho",
-      75,
-      77
-    ],
-    [
-      "ERIC12138",
       75,
       77
     ],
@@ -473,12 +474,12 @@
       93
     ],
     [
-      "zhangguangxuan99",
+      "sqrtdecompton",
       94,
       95
     ],
     [
-      "sqrtdecompton",
+      "zhangguangxuan99",
       94,
       95
     ],
@@ -558,12 +559,12 @@
       110
     ],
     [
-      "chemthan",
+      "flatline",
       111,
       112
     ],
     [
-      "flatline",
+      "chemthan",
       111,
       112
     ],
@@ -583,12 +584,12 @@
       115
     ],
     [
-      "OnionPringles",
+      "fushar",
       116,
       117
     ],
     [
-      "fushar",
+      "OnionPringles",
       116,
       117
     ],
@@ -713,12 +714,12 @@
       141
     ],
     [
-      "fnch",
+      "ilyakor",
       142,
       143
     ],
     [
-      "ilyakor",
+      "fnch",
       142,
       143
     ],
@@ -753,12 +754,12 @@
       149
     ],
     [
-      "duyboy135",
+      "mental.cat",
       150,
       151
     ],
     [
-      "mental.cat",
+      "duyboy135",
       150,
       151
     ],
@@ -1033,12 +1034,12 @@
       205
     ],
     [
-      "tomsyp",
+      "bird_14",
       206,
       207
     ],
     [
-      "bird_14",
+      "tomsyp",
       206,
       207
     ],
@@ -1113,12 +1114,12 @@
       221
     ],
     [
-      "spatarel",
+      "Ximera",
       222,
       223
     ],
     [
-      "Ximera",
+      "spatarel",
       222,
       223
     ],
@@ -1218,12 +1219,12 @@
       242
     ],
     [
-      "catupper",
+      "RamTararam",
       243,
       244
     ],
     [
-      "RamTararam",
+      "catupper",
       243,
       244
     ],
@@ -1258,12 +1259,12 @@
       250
     ],
     [
-      "ChrisWu",
+      "TangentDay",
       251,
       252
     ],
     [
-      "TangentDay",
+      "ChrisWu",
       251,
       252
     ],
@@ -1398,12 +1399,12 @@
       278
     ],
     [
-      "DmitryGrigorev",
+      "karanaggarwal",
       279,
       280
     ],
     [
-      "karanaggarwal",
+      "DmitryGrigorev",
       279,
       280
     ],
@@ -1418,6 +1419,11 @@
       282
     ],
     [
+      "pavel.savchenkov",
+      283,
+      285
+    ],
+    [
       "FallingStar",
       283,
       285
@@ -1428,22 +1434,17 @@
       285
     ],
     [
-      "pavel.savchenkov",
-      283,
-      285
-    ],
-    [
       "trunghai95",
       286,
       286
     ],
     [
-      "adkroxx",
+      "gleb.astashkin",
       287,
       288
     ],
     [
-      "gleb.astashkin",
+      "adkroxx",
       287,
       288
     ],
@@ -1518,12 +1519,12 @@
       302
     ],
     [
-      "sai",
+      "Anadi",
       303,
       304
     ],
     [
-      "Anadi",
+      "sai",
       303,
       304
     ],
@@ -1563,12 +1564,12 @@
       311
     ],
     [
-      "ITDOI",
+      "Kacey",
       312,
       313
     ],
     [
-      "Kacey",
+      "ITDOI",
       312,
       313
     ],
@@ -1588,12 +1589,12 @@
       316
     ],
     [
-      "nagibator",
+      "kouki",
       317,
       318
     ],
     [
-      "kouki",
+      "nagibator",
       317,
       318
     ],
@@ -1608,12 +1609,12 @@
       320
     ],
     [
-      "djqtxdy",
+      "maksay",
       321,
       322
     ],
     [
-      "maksay",
+      "djqtxdy",
       321,
       322
     ],
@@ -1698,6 +1699,21 @@
       338
     ],
     [
+      "sasasagagaga",
+      339,
+      345
+    ],
+    [
+      "shdut",
+      339,
+      345
+    ],
+    [
+      "Noureldin",
+      339,
+      345
+    ],
+    [
       "Hec",
       339,
       345
@@ -1718,22 +1734,47 @@
       345
     ],
     [
-      "shdut",
-      339,
-      345
+      "nezametdinov",
+      346,
+      365
     ],
     [
-      "sasasagagaga",
-      339,
-      345
+      "dai",
+      346,
+      365
     ],
     [
-      "Noureldin",
-      339,
-      345
+      "O-O-O-O-O-O-O-O-O-O-O-O",
+      346,
+      365
+    ],
+    [
+      "about_30_ninjas",
+      346,
+      365
+    ],
+    [
+      "nhho",
+      346,
+      365
+    ],
+    [
+      "chavit",
+      346,
+      365
+    ],
+    [
+      "Markellonchik",
+      346,
+      365
     ],
     [
       "Michael",
+      346,
+      365
+    ],
+    [
+      "spencer",
       346,
       365
     ],
@@ -1748,17 +1789,12 @@
       365
     ],
     [
-      "spencer",
+      "MiteshAgrawal",
       346,
       365
     ],
     [
       "pab2",
-      346,
-      365
-    ],
-    [
-      "MiteshAgrawal",
       346,
       365
     ],
@@ -1783,16 +1819,6 @@
       365
     ],
     [
-      "Light",
-      346,
-      365
-    ],
-    [
-      "dai",
-      346,
-      365
-    ],
-    [
       "Vaness",
       346,
       365
@@ -1803,32 +1829,7 @@
       365
     ],
     [
-      "nezametdinov",
-      346,
-      365
-    ],
-    [
-      "chavit",
-      346,
-      365
-    ],
-    [
-      "O-O-O-O-O-O-O-O-O-O-O-O",
-      346,
-      365
-    ],
-    [
-      "about_30_ninjas",
-      346,
-      365
-    ],
-    [
-      "nhho",
-      346,
-      365
-    ],
-    [
-      "Markellonchik",
+      "Light",
       346,
       365
     ],
