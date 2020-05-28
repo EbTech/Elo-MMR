@@ -111,9 +111,10 @@ impl Player {
     fn push_performance(&mut self, perf: f64) {
         if self.logistic_factors.len() == 50_000 {
             let logistic = self.logistic_factors.pop_front().unwrap();
+            let deviation = self.approx_posterior.mu - logistic.mu;
             let wn = self.normal_factor.sig.powi(-2);
-            let wl = logistic.sig.powi(-2);
-            self.normal_factor.mu = (self.normal_factor.mu * wn + logistic.mu * wl) / (wn + wl);
+            let wl = (deviation / logistic.sig).tanh() / (deviation * logistic.sig);
+            self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
             self.normal_factor.sig = (wn + wl).recip().sqrt();
         }
         self.logistic_factors.push_back(Rating {

@@ -12,7 +12,7 @@
 
 \title{Elo-R Competition Rating System}
 \author{Aram Ebtekar}
-\date{December 2015 (revised on May 27, 2020)}
+\date{December 2015 (revised on May 28, 2020)}
 
 \begin{document}
 \maketitle
@@ -140,17 +140,17 @@ Let's be a tad more general here and allow the belief to be any normalized produ
 
 \[
 f(s_i\mid e)
-\propto e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_k \frac { 1 } { \cosh^2\frac{s_i-\mu_k} {\bar\tau_k} }
+\propto e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_{k\ge 1} \frac { 1 } { \cosh^2\frac{s_i-\mu_k} {\bar\tau_k} }
 \]
 
 Hence, there exists a constant $C$ such that
 
-\[C - \frac 1 2 \ln f(s_i \mid e) = \frac{(s_i-\mu_0)^2}{2\tau_0^2} + \sum_k \ln\left( \cosh\frac{s_i-\mu_k}{\bar\tau_k} \right)\]
+\[C - \frac 1 2 \ln f(s_i \mid e) = \frac{(s_i-\mu_0)^2}{2\tau_0^2} + \sum_{k\ge 1} \ln\left( \cosh\frac{s_i-\mu_k}{\bar\tau_k} \right)\]
 
 Maximizing $f(s_i\mid e)$ amounts to minimizing this expression, so let's differentiate it w.r.t. $s_i$ and set the result to zero:
 
 \[
-0 = \frac{s_i-\mu_0}{\tau_0^2} + \sum_k \frac{1}{\bar\tau_k} \tanh \frac {s_i-\mu_k} {\bar\tau_k}
+0 = \frac{s_i-\mu_0}{\tau_0^2} + \sum_{k\ge 1} \frac{1}{\bar\tau_k} \tanh \frac {s_i-\mu_k} {\bar\tau_k}
 \]
 
 Similar to the performance computation in the previous section, here we have a monotonic function of $s_i$. To compute the post-round rating $r_i = \arg\max_{s_i} f(s_i \mid e)$, we may use binary search or Newton's method.
@@ -159,11 +159,16 @@ This time, the intuitive interpretation comes from the minimization objective th
 
 At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median. The latter feature is due to the thicker tails of the logistic distribution, compared to the normal.
 
-The net result of these penalties is that $r_i$ acts somewhat like a weighted mean of the historical performances $\mu_k = p_{i,k}$ with weight $\frac{1}{\tau_k^2}$, but not quite: extreme values have reduced weight. In practice, it makes our rating algorithm robust to outlier performances that are far below or above the rest. This seems reasonable, as contest performances have empirically been seen to have thick tails, more like the logistic than the normal (TODO citation).
+The net result of these penalties is that $r_i$ acts like a mean of the historical performances $\mu_k = p_{i,k}$: it's easily checked that
 
-Note that when the rating is a weighted mean, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
+\[r_i = \sum_k w_k \mu_k \text{ where } w_0 = \frac{1}{\tau_0^2} \text{ and }
+w_k = \frac{1}{\bar\tau_k(r_i-\mu_k)}\tanh\frac{r_i-\mu_k}{\bar\tau_k} \text{ for }k\ge 1.\]
 
-Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. We'll see in the next section that old performances will eventually have very large $\tau_k$. Since the $\tanh$ function behaves like the identity in the limit of large $\tau_k$, it's clear from the above expression that old logistic factors will come to resemble normal factors.
+$w_k$ is close to $1/\bar\tau_k^2$ for typical performances, but vanishes for extreme outliers. In practice, it makes our rating algorithm robust to performances that are far below or above the usual. This seems reasonable, as contest performances have empirically been seen to have thick tails, more like the logistic than the normal (TODO citation).
+
+Note that when the weights are fixed, as in the $L^2$ case, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
+
+Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. We'll see in the next section that old performances will eventually have very large $\tau_k$. Since the $\tanh$ function behaves like the identity in the limit of large $\tau_k$, it's clear from the above expression that old logistic factors will come to resemble normal factors, which combine nicely.
 
 As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distribution on $s_i$. While this is intractable for general products of p.d.f.s, we take advantage of our observation that logistic factors behave in the limit like normal factors. Thus, we make an approximation based on a formula that holds for products of normal p.d.f.s:
 
@@ -207,9 +212,9 @@ To be mathematically precise, we binary search for the unique weight reduction f
 
 By summing the left-hand side of the first equation over all $k$, we see that the mode doesn't change when we replace each $\tau_k$ by $\tau'_k$. With this noising procedure, the Elo-R weighted average takes an interesting form: outliers maintain a reduced weight for all time, but the \textit{extent} to which their weight is reduced is dependent on how much of an outlier they were during the period in which they were ``fresh". For instance, an outlier can gain non-outlier status if subsequent performances reinforce it. However, it's impossible to ``re-activate" an outlier from ancient history. This makes sense, since old flukes likely have nothing to do with new rapid skill changes.
 
-The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$.
+The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$. The weights $w_{i,k}$ are given by a formula in the previous section; $w'_{i,k}$ is derived by replacing $\tau_{i,k}$ with $\tau'_{i,k}$.
 
-The runtime analysis is fairly straightforward. Suppose up to $M$ rounds of history are kept, the round in question has $N$ participants, and the equations are solved to a precision of $\epsilon$ using binary search. Then, the time complexity of processing the round is $O((N^2 + NM)\log\frac 1\epsilon)$. With the fancier noising procedure, it increases to $O(N^2\log\frac 1\epsilon + (NM\log^2\frac 1\epsilon)$. The logarithmic factors can be reduced with better equation-solving procedures, such as Newton's method.
+The runtime analysis is relatively straightforward. Suppose up to $M$ rounds of history are kept, the round in question has $N$ participants, and the equations are solved to a precision of $\epsilon$ using binary search. Then it costs $O(N\log\frac 1\epsilon)$ to compute each $p_i$, and $O(M\log^2\frac 1\epsilon)$ to apply the noising procedure to each player. Altogether, the total work done to process one round is $O(N^2\log\frac 1\epsilon + NM\log^2\frac 1\epsilon)$. The logarithmic factors can be reduced with better equation-solving procedures, such as Newton's method. The round update is highly parallel, so its parallel span is roughly the work divided by the number of processors.
 
 \begin{algorithm}
 \caption{$init()$}
@@ -232,8 +237,7 @@ The runtime analysis is fairly straightforward. Suppose up to $M$ rounds of hist
 \label{alg:update}
 \begin{algorithmic}
 \FORALL{round participants $i$ in parallel}
-\STATE $\kappa,\{\tau'_{i,k}\} := $ SOLVE $\frac{1}{\bar\sigma_i^2 + \bar\eta^2} = \sum_k\frac{1}{\bar\tau_{i,k}'^2},\;\tau'_{0,k}=\kappa\tau_{0,k},\;\forall k,\frac{1}{\bar\tau'_{i,k}} \tanh \frac {r'_i-\mu_{i,k}} {\bar\tau'_{i,k}}
-= \frac{1}{\kappa^2\bar\tau_{i,k}} \tanh \frac {r'_i-\mu_{i,k}} {\bar\tau_{i,k}}$
+\STATE $\kappa,\{\tau'_{i,k}\} := $ SOLVE $\frac{1}{\sigma_i^2 + \eta^2} = \sum_k\frac{1}{\tau_{i,k}'^2}\text{ where }\forall k,\,\kappa^2w'_{i,k} = w_{i,k}$
 \FORALL{$k$}
 \STATE $\tau_{i,k} := \tau'_k$
 \ENDFOR
@@ -242,14 +246,13 @@ The runtime analysis is fairly straightforward. Suppose up to $M$ rounds of hist
 \ENDFOR
 \FORALL{round participants $i$ in parallel}
 \STATE $p_i := $ SOLVE $\sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} + 1 \right) = 0$
-\STATE $\mu_i$.push($p_i$)
-\STATE $\tau_i$.push($\gamma$)
-\IF{len(belief) $>M$}
-\STATE $\mu_{i,0} := \left( \tau_{i,0}^2 \mu_{i,1} + \tau_{i,1}^2 \mu_{i,0} \right) / \left( \tau_{i,0}^2 + \tau_{i,1}^2 \right)$
-\STATE $\tau_{i,0} := \tau_{i,0}\tau_{i,1} / \sqrt{ \tau_{i,0}^2 + \tau_{i,1}^2 }$
+\IF{len(belief) $\ge M$}
+\STATE $(\mu_{i,0},\,\tau_{i,0}) := (\frac{w_{i,0}\mu_{i,0}+w_{i,1}\mu_{i,1}}{w_{i,0}+w_{i,1}},\,1 / \sqrt{w_{i,0}+w_{i,1}})$
 \STATE $\mu_i$.pop()
 \STATE $\tau_i$.pop()
 \ENDIF
+\STATE $\mu_i$.push($p_i$)
+\STATE $\tau_i$.push($\gamma$)
 \STATE $r_i := $ SOLVE $\frac{r_i-\mu_{i,0}}{\tau_{i,0}^2} + \sum_{k\ge 1} \frac{1}{\tau_{i,k}} \tanh \frac {r_i-\mu_{i,k}} {\tau_{i,k}} = 0$
 \STATE $\sigma_i := 1 / \sqrt{\sum_k 1/\tau_{i,k}^2}$
 \ENDFOR
