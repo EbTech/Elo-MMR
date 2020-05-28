@@ -12,7 +12,7 @@
 
 \title{Elo-R Competition Rating System}
 \author{Aram Ebtekar}
-\date{December 2015 (revised on May 22, 2020)}
+\date{December 2015 (revised on May 27, 2020)}
 
 \begin{document}
 \maketitle
@@ -136,7 +136,7 @@ With $p_i$ in hand, we are ready for the second phase of the update! Recall that
 
 Ignoring for now the distinction between the posterior at round $t-1$ and the prior at round $t$, we see that each round multiplies our belief p.d.f. by a logistic factor and a normalizing constant. Thus, our belief will always consist of a product of p.d.f.s.
 
-Let's be a tad more general here and allow the belief to be any normalized product of normal and logistic p.d.f.s. The normal p.d.f.s can be composed into a single normal with mean and variance $(\mu_0, \tau_0^2)$. Let $R_i$ be the set of rounds in which player $i$ has participated, each contributing a logistic factor with parameters $(\mu_k, \tau_k^2)$ for $k\in R_i\cap \{1,\ldots,t\}$. Naturally, the new factor from round $t$ will have $\mu_t = p_{i,t}$ and $\tau_t = \gamma_{i,t}$. Again defining $\bar\tau_k = \frac{\sqrt{12}}{\pi} \tau_k$,
+Let's be a tad more general here and allow the belief to be any normalized product of normal and logistic p.d.f.s. The normal p.d.f.s can be composed into a single normal with mean and variance $(\mu_0, \tau_0^2)$. Let $R_i$ be the set of rounds in which player $i$ has participated, each contributing a logistic factor with parameters $(\mu_k, \tau_k^2)$ for $k\in R_i\cap \{1,\ldots,t\}$. Naturally, the new factor from round $t$ will have $\mu_t = p_{i,t}$ and $\tau_t = \gamma_{i,t}$. The other factors also satisfy $\mu_k = p_{i,k}$ but, as we'll see in the next section, $\tau_k$ increases with time and will exceed $\gamma_{i,k}$ in general. Again defining $\bar\tau_k = \frac{\sqrt{12}}{\pi} \tau_k$,
 
 \[
 f(s_i\mid e)
@@ -157,7 +157,9 @@ Similar to the performance computation in the previous section, here we have a m
 
 This time, the intuitive interpretation comes from the minimization objective that we differentiated. It has one term corresponding to each p.d.f. factor. The normal p.d.f. becomes a familiar $L^2$ penalty that pushes $s_i$ towards $\mu_0$. The logistic p.d.f.s are more interesting: they too become penalties that push $s_i$ towards $\mu_k$; however, instead of a simple squared error, each of these terms is a logarithm of a hyperbolic cosine!
 
-At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median. The latter feature is due to the thicker tails of the logistic distribution, compared to the normal. In practice, it makes our rating algorithm robust to outlier performances that are far below or above the rest. This seems reasonable, as contest performances have empirically been seen to have thick tails, more like the logistic than the normal (TODO citation).
+At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median. The latter feature is due to the thicker tails of the logistic distribution, compared to the normal.
+
+The net result of these penalties is that $r_i$ acts somewhat like a weighted mean of the historical performances $\mu_k = p_{i,k}$ with weight $\frac{1}{\tau_k^2}$, but not quite: extreme values have reduced weight. In practice, it makes our rating algorithm robust to outlier performances that are far below or above the rest. This seems reasonable, as contest performances have empirically been seen to have thick tails, more like the logistic than the normal (TODO citation).
 
 Note that when the rating is a weighted mean, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
 
@@ -171,7 +173,9 @@ As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distri
 
 So far, we've shown how to go from prior to posterior belief in any given round. Two gaps remain: the ``newbie prior" on the skill of a player who has never competed, and the update from posterior in one round to prior in the next.
 
-The newbie prior is fairly simple: for Codeforces, I chose a normal distribution with mean 1500 and standard deviation 350. The normal's thin tails discourage the granting of extreme ratings until sufficient evidence is gathered to justify it. To more strongly discourage premature assignment of extreme ratings, a smaller standard deviation can be used.
+The newbie prior has a great impact on the time it takes the rating distribution for a population of players to converge. Implicit in our argument that $p_i$ can be computed precisely, was an assumption that the belief distributions are accurate. In order for this to be true, the prior should approximately reflect the skill distribution among newcomers, particularly when the system is initialized. To the extent that it does not, the $p_i$'s may be inaccurate for some waiting period, until the population's rating distribution converges.
+
+For Codeforces, I simply chose a normal prior with mean 1500 and standard deviation 350. The normal's thin tails discourage the granting of extreme ratings until sufficient evidence is gathered to justify it. To more strongly discourage premature assignment of extreme ratings, a smaller standard deviation can be used, albeit potentially at the expense of convergence speed.
 
 The remaining gap concerns the update that goes on between rounds, while a player is absent from competition. There are many ways to approach this, depending on what characteristics are desired of the rating system. Typically, we don't want to adjust the mean $r$ of a player's skill distribution, but we may want to increase the uncertainty $\sigma$ to account for the fact that a player may have improved or worsened during the time in which we haven't seen them compete. Thus, we might have $\sigma^2$ increase with time at a constant rate, as if the player's skill were being slowly and randomly perturbed by a process of Brownian motion. In this model, a long-inactive player's skill has to potential to change considerably upon their return. In a system that implements such Brownian noise, if we report the lower-bound estimate $r-2\sigma$ instead of $r$, we would find that ratings gradually decay, favoring active players and gradually diminishing inactive ones.
 
@@ -182,13 +186,26 @@ For Codeforces, we prefer to preserve the ratings of inactive players. Furthermo
 \\ \text{Setting }\bar\sigma^*=100\text{, I derived }\bar\eta^2 &= \frac{1}{1/\bar\sigma^{*2} - 1/\bar\gamma^2} - \bar\sigma^{*2} \approx 43.64^2
 \end{align}
 
-Note that if the prior uncertainty is set to $\sigma^*$, we obtain a system in which the inter-round noise $\eta$ exactly compensates for the round information $\gamma$, and so $\sigma$ stays constant, similar to traditional Elo. However, I like to use a higher prior uncertainty and report $\mu-2(\bar\sigma-\bar\sigma^*)$ as a player's public rating. Without Brownian time-based noise, this doesn't cause rating decay; instead, its effect is to encourage beginners by presenting ratings that initially rise from the bottom rather than decline from the middle. Since players start with a low published rating instead of an average one, even middle ratings can be considered an achievement.
+Note that if the prior uncertainty is set to $\sigma^*$, we obtain a system in which the inter-round noise $\eta$ exactly compensates for the round information $\gamma$, and so $\sigma$ stays constant, similar to traditional Elo. Here we are using a higher prior uncertainty, similar to Glicko. I like to report $\mu-2(\bar\sigma-\bar\sigma^*)$ as a player's public rating. Without Brownian time-based noise, this doesn't cause rating decay; instead, its effect is to encourage beginners by presenting ratings that initially rise from the bottom rather than decline from the middle. Since players start with a low published rating instead of an average one, even middle ratings can be considered an achievement.
 
-A simple way to increase the uncertainty from $\sigma^2$ to $\sigma^2 + \eta^2$ between rounds is to multiply the variance of each factor in the posterior skill distribution by the same value $1 + \frac{\eta^2}{\sigma^2}$. Once again, this can be rigorously justified by appealing to the limit of normal priors: adding a zero-mean noise term should not affect the mean of our belief distribution, and this is ensured by keeping the ratio of weights contributing to the belief distribution constant.  Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
+A simple way to increase the uncertainty from $\sigma^2$ to $\sigma^2 + \eta^2$ between rounds is to multiply the variance of each factor in the posterior skill distribution by the same value $1 + \frac{\eta^2}{\sigma^2}$. Once again, this can be justified by appealing to the limit of normal priors: adding a zero-mean noise term should not affect the mean of our belief distribution, and this is ensured by keeping the ratio of weights of normal contributions to the belief distribution constant.  Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
 
 As promised in the previous section, now we see that each $\tau_k$ in the belief distribution will increase exponentially with additional rounds. Pretty soon, any plausible skill level $s_i$ will fall squarely within the regime where $|s_i-\mu_k| \ll \tau_k$. As a result, the older logistic factors can safely be absorbed into the normal factor.
 
+However, the same observation reveals a flaw with our method of adding noise: as $\tau_k$ increases, outliers eventually become non-outliers, pulling $r_i$ towards the mean of old performances! In other words, we discount the weight of outlier performances more slowly than typical ones, until we completely negate the outlier-specific weight reduction, changing the posterior mode $r_i$ in the process. One way to add noise without changing the posterior mode would be to reduce the weight of each factor equally in all cases, not just in the normal limit. In essence, we gradually ``freeze in" the outlier weight reduction, based on how far each $\mu_k$ is from the current $r_i$.
+
+To be mathematically precise, we binary search for the unique weight reduction factor $\kappa>1$ such that, if $\tau'_0=\kappa\tau_0$, and each $\tau'_k$ is the unique solution to
+
+\[
+\frac{1}{\bar\tau'_k} \tanh \frac {r_i-\mu_k} {\bar\tau'_k}
+= \frac{1}{\kappa^2\bar\tau_k} \tanh \frac {r_i-\mu_k} {\bar\tau_k},\qquad
+\text{then} \quad \frac{1}{\bar\sigma_i^2 + \bar\eta^2}
+= \frac{1}{\tau_0'^2} + \sum_k \frac{1}{\bar\tau_k'^2}.
+\]
+
 The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$.
+
+The runtime analysis is fairly straightforward. Suppose up to $M$ rounds of history are kept, the round in question has $N$ participants, and the equations are solved to a precision of $\epsilon$ using binary search. Then, the time complexity of processing the round is $O((N^2 + NM)\log\frac 1\epsilon)$.
 
 \begin{algorithm}
 \caption{$init()$}
@@ -212,26 +229,28 @@ The parameter and belief initializations are summarized in Algorithm \ref{alg:in
 \begin{algorithmic}
 \FORALL{round participants $i$ in parallel}
 \FORALL{$k$}
-\STATE $\tau_{i,k} := \tau_{i,k} \sqrt{1 + \eta^2/\sigma_i^2}$
+\STATE $\tau_{i,k} := \tau_{i,k} \sqrt{1 + \eta^2/\sigma_i^2}$ OR $\tau_{i,k}'$ as specified by the $\kappa$ method
 \ENDFOR
 \STATE $\delta_i := \sqrt{\sigma_i^2 + \eta^2 + \gamma^2}$
 \STATE Make $r'_i,\delta_i$ accessible to all threads in the next loop
 \ENDFOR
 \FORALL{round participants $i$ in parallel}
 \STATE $p_i := $ SOLVE $\sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} + 1 \right) = 0$
-\IF{len(belief) $\ge$ MAX\_HISTORY}
+\STATE $\mu_i$.push($p_i$)
+\STATE $\tau_i$.push($\gamma$)
+\IF{len(belief) $>M$}
 \STATE $\mu_{i,0} := \left( \tau_{i,0}^2 \mu_{i,1} + \tau_{i,1}^2 \mu_{i,0} \right) / \left( \tau_{i,0}^2 + \tau_{i,1}^2 \right)$
 \STATE $\tau_{i,0} := \tau_{i,0}\tau_{i,1} / \sqrt{ \tau_{i,0}^2 + \tau_{i,1}^2 }$
 \STATE $\mu_i$.pop()
 \STATE $\tau_i$.pop()
 \ENDIF
-\STATE $\mu_i$.push($p_i$)
-\STATE $\tau_i$.push($\gamma$)
 \STATE $r_i := $ SOLVE $\frac{r_i-\mu_{i,0}}{\tau_{i,0}^2} + \sum_{k\ge 1} \frac{1}{\tau_{i,k}} \tanh \frac {r_i-\mu_{i,k}} {\tau_{i,k}} = 0$
 \STATE $\sigma_i := 1 / \sqrt{\sum_k 1/\tau_{i,k}^2}$
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
+
+\pagebreak
 
 \section{Properties (TODO: everything from here onwards needs serious rewriting. Please stop reading!)}
 
@@ -268,9 +287,9 @@ Notwithstanding arguments that a high rating ought to properly be earned over mu
 
 Interestingly, despite the slow start, the blue curve ultimately converges faster than the orange one. Since Elo-R uses its memory to dynamically adapt its view of potential outliers, it overtakes the orange curve as soon as new evidence outweighs the old hypothesis!
 
-\subsection{Something about complexity}
+\subsection{Numerical analysis}
 
-If all but the last $M$ matches for each player are merged, and all binary searches are performed to an accuracy of $\epsilon$, then a match with $N$ players is processed in $O((N^2+NM)\log(1/\epsilon))$ time. The ratings accumulate $O(\epsilon)$ numerical error per match, and likely a lot less in the long run due to statistical averaging.  It's easy to see that the loops and summations are highly parallelizable. If we decide to remember zero performances, it reverts to the linear memoryless method. 
+The ratings accumulate $O(\epsilon)$ numerical error per match, and likely a lot less in the long run due to statistical averaging...
 
 \section{Conclusions}
 
