@@ -54,6 +54,41 @@ impl Player {
         self.approx_posterior.sig *= decay;
     }
 
+    // a fancier but slower substitute for add_noise_uniform(). See paper for details.
+    // TODO: optimize using Newton's method.
+    fn add_noise_fancy(&mut self, sig_noise: f64) {
+        // conveniently update the last rating before applying noise for the next contest
+        self.last_rating = self.conservative_rating();
+
+        let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
+        self.approx_posterior.sig *= decay;
+        let target = self.approx_posterior.sig.powi(-2);
+
+        let (mut lo, mut hi) = (decay.sqrt(), decay);
+        for _ in 0..30 {
+            let kappa = (lo + hi) / 2.0;
+            let tau_0 = kappa * self.normal_factor.sig;
+            let mut test = tau_0.powi(-2);
+            for rating in &self.logistic_factors {
+                let tau = decay_factor_sig(self.approx_posterior.mu, rating, kappa);
+                test += tau.powi(-2);
+            }
+            if test > target {
+                lo = kappa;
+            } else {
+                hi = kappa;
+            }
+        }
+
+        let kappa = (lo + hi) / 2.0;
+        self.normal_factor.sig *= kappa;
+        for rating in &mut self.logistic_factors {
+            let tau = decay_factor_sig(self.approx_posterior.mu, rating, kappa);
+            rating.sig = tau;
+        }
+        //println!("{} < {} < {}", decay.sqrt(), kappa, decay);
+    }
+
     fn recompute_posterior(&mut self) {
         let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
         let logistic_vec: Vec<Rating> = self.logistic_factors.iter().cloned().collect();
@@ -92,7 +127,23 @@ impl Player {
     }
 }
 
-// Teturns something near the mean if the ratings are consistent; near the median if they're far apart.
+fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
+    let target = ((center - factor.mu) / factor.sig).abs().tanh() / (factor.sig * kappa * kappa);
+    let (mut lo, mut hi) = (factor.sig * kappa, factor.sig * kappa * kappa);
+    for _ in 0..30 {
+        let tau = (lo + hi) / 2.0; 
+        let test = ((center - factor.mu) / tau).abs().tanh() / tau;
+        if test > target + 1e-12 {
+            lo = tau;
+        } else {
+            hi = tau;
+        }
+    }
+    //println!("{} < {} < {} < {}", factor.sig * kappa, lo, hi, factor.sig * kappa * kappa);
+    (lo + hi) / 2.0
+}
+
+// Returns something near the mean if the ratings are consistent; near the median if they're far apart.
 // offC and offM are constant and slope offsets, respectively. Uses a hybrid of binary search
 // (to converge in the worst-case) and Newton's method (for speed in the typical case).
 fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: f64) -> f64 {
@@ -167,7 +218,7 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest:
     let all_ratings: Vec<Rating> = players_ref
         .par_iter_mut()
         .map(|player| {
-            player.add_noise_uniform(sig_noise);
+            player.add_noise_fancy(sig_noise);
             let rating = player.approx_posterior;
             Rating {
                 mu: rating.mu,

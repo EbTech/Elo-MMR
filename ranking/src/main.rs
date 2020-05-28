@@ -5,7 +5,8 @@ use compute_ratings::{print_ratings, simulate_contest};
 use read_codeforces::{get_contest_ids, get_contest};
 use std::collections::HashMap;
 
-/// simulates the entire history of Codeforces, runs on my laptop in 25 minutes
+/// simulates the entire history of Codeforces; runs on my laptop in 25 minutes,
+/// somewhat longer if using fancy noising or accessing the Codeforces API
 fn main() {
     let mut players = HashMap::new();
     for contest_id in get_contest_ids() {
