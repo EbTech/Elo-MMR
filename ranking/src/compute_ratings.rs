@@ -10,6 +10,7 @@ const MU_NEWBIE: f64 = 1500.0; // rating for a new player
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
 const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
 const SIG_PERF: f64 = 250.0; // variation in individual performances
+const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 struct Rating {
@@ -109,7 +110,7 @@ impl Player {
     }
 
     fn push_performance(&mut self, perf: f64) {
-        if self.logistic_factors.len() == 50_000 {
+        if self.logistic_factors.len() == MAX_HISTORY_LEN {
             let logistic = self.logistic_factors.pop_front().unwrap();
             let deviation = self.approx_posterior.mu - logistic.mu;
             let wn = self.normal_factor.sig.powi(-2);
@@ -129,27 +130,46 @@ impl Player {
 }
 
 fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
-    let target = ((center - factor.mu) / factor.sig).abs().tanh() / (factor.sig * kappa * kappa);
-    let (mut lo, mut hi) = (factor.sig * kappa, factor.sig * kappa * kappa);
-    for _ in 0..30 {
-        let tau = (lo + hi) / 2.0; 
-        let test = ((center - factor.mu) / tau).abs().tanh() / tau;
-        if test > target + 1e-12 {
-            lo = tau;
+    let deviation = (center - factor.mu).abs();
+    let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
+    let (mut lo, mut hi) = (factor.sig * kappa / 2.0, factor.sig * kappa * kappa * 2.0);
+    let mut guess = (lo + hi) / 2.0;
+    loop {
+        let tanh_factor = (deviation / guess).tanh();
+        let test = tanh_factor / guess;
+        let test_prime =
+            ((tanh_factor * tanh_factor - 1.0) * deviation / guess - tanh_factor) / (guess * guess);
+        let test_error = test - target;
+        let next = (guess - test_error / test_prime)
+            .max(0.75 * lo + 0.25 * guess)
+            .min(0.25 * guess + 0.75 * hi);
+        if test_error * factor.sig * factor.sig > 0.0 {
+            lo = guess;
         } else {
-            hi = tau;
+            hi = guess;
         }
+
+        if test_error.abs() * factor.sig * factor.sig < 1e-11 {
+            //println!("{} < {} < {}", factor.sig * kappa, guess, factor.sig * kappa * kappa);
+            return next;
+        }
+        if hi - lo < 1e-15 * factor.sig {
+            println!(
+                "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} e={} e'={}",
+                guess, next, test_error, test_prime
+            );
+            return next;
+        }
+        guess = next;
     }
-    //println!("{} < {} < {} < {}", factor.sig * kappa, lo, hi, factor.sig * kappa * kappa);
-    (lo + hi) / 2.0
 }
 
 // Returns something near the mean if the ratings are consistent; near the median if they're far apart.
 // offC and offM are constant and slope offsets, respectively. Uses a hybrid of binary search
 // (to converge in the worst-case) and Newton's method (for speed in the typical case).
 fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: f64) -> f64 {
-    let mut guess = MU_NEWBIE;
     let (mut lo, mut hi) = (-1000.0, 4500.0);
+    let mut guess = MU_NEWBIE;
     loop {
         let mut sum = off_c + off_m * guess;
         let mut sum_prime = off_m;

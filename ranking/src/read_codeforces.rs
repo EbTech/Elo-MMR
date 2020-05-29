@@ -137,8 +137,9 @@ pub fn get_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
                 contest_id
             );
             let response = reqwest::blocking::get(&url).expect("HTTP error");
-            let packet: CFResponse<Vec<CFRatingChange>> =
-                response.json().expect("Failed to parse Codeforces API response as JSON");
+            let packet: CFResponse<Vec<CFRatingChange>> = response
+                .json()
+                .expect("Failed to parse Codeforces API response as JSON");
             let contest = match packet {
                 CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
                 CFResponse::FAILED { comment } => panic!(comment),

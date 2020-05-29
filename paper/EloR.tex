@@ -157,14 +157,14 @@ Similar to the performance computation in the previous section, here we have a m
 
 This time, the intuitive interpretation comes from the minimization objective that we differentiated. It has one term corresponding to each p.d.f. factor. The normal p.d.f. becomes a familiar $L^2$ penalty that pushes $s_i$ towards $\mu_0$. The logistic p.d.f.s are more interesting: they too become penalties that push $s_i$ towards $\mu_k$; however, instead of a simple squared error, each of these terms is a logarithm of a hyperbolic cosine!
 
-At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median. The latter feature is due to the thicker tails of the logistic distribution, compared to the normal.
+At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median.
 
 The net result of these penalties is that $r_i$ acts like a mean of the historical performances $\mu_k = p_{i,k}$: it's easily checked that
 
-\[r_i = \sum_k w_k \mu_k \text{ where } w_0 = \frac{1}{\tau_0^2} \text{ and }
+\[r_i = \frac{\sum_k w_k\mu_k}{\sum_k w_k} \text{ where } w_0 = \frac{1}{\tau_0^2} \text{ and }
 w_k = \frac{1}{\bar\tau_k(r_i-\mu_k)}\tanh\frac{r_i-\mu_k}{\bar\tau_k} \text{ for }k\ge 1.\]
 
-$w_k$ is close to $1/\bar\tau_k^2$ for typical performances, but vanishes for extreme outliers. In practice, it makes our rating algorithm robust to performances that are far below or above the usual. This seems reasonable, as contest performances have empirically been seen to have thick tails, more like the logistic than the normal (TODO citation).
+$w_k$ is close to $1/\bar\tau_k^2$ for typical performances but vanishes for extreme outliers, making our rating algorithm robust to performances that are far below or above the usual. This robustness is due to the thicker tails of the logistic distribution, compared to the normal. Empirically, contest performances have indeed been seen to have thick tails, more like the logistic than the normal (TODO citation).
 
 Note that when the weights are fixed, as in the $L^2$ case, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
 
