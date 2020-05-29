@@ -276,6 +276,59 @@ The code and ratings of real Codeforces members as computed by Elo-R are availab
 
 This paper will not evaluate the predictive accuracy of Elo-R; my experience with it suggests it does better than the other local methods listed above, but it is possible to do better with global methods. It's difficult to do a fair evaluation because it's not clear what exactly some of these models are trying to predict, besides the qualitative assertion that players with higher ratings should win more often. For example, Elo-R might be judged on the log-likelihood of observed match results, according to its own belief model. However, the joint likelihood is difficult to compute, and many of the other systems lack a corresponding belief model. One reasonable approach would be to approximate the likelihood as we did when estimating $p_i$, and use cross-validation to optimize the parameters of each rating system according to this criterion. Such evaluations will remain open to future investigation. Instead, let's focus on a unique feature of Elo-R that's absent in the Codeforces system, and arguably in TopCoder as well.
 
+\subsection{Proof of Monotonicity}
+
+This is a draft in progress. Let $f$ be a function of the form:
+
+\[f(x) = \sum_k \frac{1}{\tau_k} \tanh \frac {x-\mu_k} {\tau_k}\]
+
+Then $f$ is a strictly increasing function of $x$. Let $r$ be the unique point at which $f(r) = 0$. Similarly, define
+
+\[g(x) = \sum_k \frac{1}{\sigma_k} \tanh \frac {x-\nu_k} {\sigma_k}\]
+
+such that $g(x) \ge f(x)$ for all $x$. Then $g$ too is strictly increasing: let $s$ be the unique point at which $g(s) = 0$. We cannot have $s > r$, as that would imply $0 = g(s) \ge f(s) > f(r) = 0$. Hence, $s \le r$. Furthermore, $\sum_k \frac{1}{\tau_k} = \sum_k \frac{1}{\sigma_k}$ because
+
+\[\sum_k \frac{1}{\tau_k}
+= \lim_{x\rightarrow\infty} f(x)
+\le \lim_{x\rightarrow\infty} g(x)
+= \sum_k \frac{1}{\sigma_k}
+= -\lim_{x\rightarrow -\infty} g(x)
+\le -\lim_{x\rightarrow -\infty} f(x)
+= \sum_k \frac{1}{\tau_k}\]
+
+Let $\eta$ be the noising operation:
+
+\[\eta[f](x) = \sum_k \frac{1}{\tau'_k} \tanh \frac {x-\mu_k} {\tau'_k}\]
+\[\eta[g](x) = \sum_k \frac{1}{\sigma'_k} \tanh \frac {x-\nu_k} {\sigma'_k}\]
+
+\[ \sum_k \frac{1}{\tau'_k} = \sum_k \frac{1}{\sigma'_k} \]
+
+\[\frac{1}{\tau'_k} \tanh \frac {r-\mu_k} {\tau'_k}
+= \frac{1}{\kappa^2\tau_k} \tanh \frac {r-\mu_k} {\tau_k}\]
+
+\[\frac{1}{\sigma'_k} \tanh \frac {s-\nu_k} {\sigma'_k}
+= \frac{1}{\lambda^2\sigma_k} \tanh \frac {s-\nu_k} {\sigma_k}\]
+
+where $\kappa,\lambda$ do not depend on the subscripts $k$. It's easy to see that $\eta[f]$ and $\eta[g]$, too, are strictly increasing, with the same zero as $f$ and $g$, respectively.
+
+We want to show that $\eta[g](x) \ge \eta[f](x)$ for all $x$. From this it will follow, as it did with $f$ and $g$, that the unique zero of $\eta[g]$ is no larger than that of $\eta[f]$.
+
+Proof: we start by summarizing some of the above facts:
+
+\[ \eta[f](s) \le \eta[f](r) = 0 = \eta[g](s) \le \eta[g](r) \]
+
+For contradiction, suppose $\eta[g](t) < \eta[f](t)$ for some $t$. If $t\in [s,r]$, then
+
+\[ 0 = \eta[g](s) \le \eta[g](t) < \eta[f](t) \le \eta[f](r) = 0 \]
+
+which is a contradiction. For the rest of the proof, we can suppose $t < s$, since symmetry then takes care of the $t > r$ case. Let's only look at points $t$ and $s$. So far we have:
+
+\[ f(t) < f(s) \le g(s) \]
+
+\[ f(t) \le g(t) < g(s) \]
+
+\[ \eta[g](t) < \eta[f](t) < \eta[f](s) \le 0 = \eta[g](s) \]
+
 \subsection{Robustness}
 
 Imagine a player who performs very consistently over a long period of time, repeatedly achieving $p_i = 1000$ until convergence. Now, perhaps as a result of attending an intensive training camp in Petrozavodsk, their skill changes dramatically. From this point on, they consistently achieve $p_i = 3000$.
