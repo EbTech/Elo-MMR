@@ -12,7 +12,7 @@
 
 \title{Elo-R Competition Rating System}
 \author{Aram Ebtekar}
-\date{December 2015 (revised on May 28, 2020)}
+\date{December 2015 (revised on May 29, 2020)}
 
 \begin{document}
 \maketitle
@@ -37,9 +37,7 @@ This paper is organized as follows: in section 2, we develop a Bayesian model fo
 
 Now we describe the setting formally. A series of competitive \textbf{rounds}, indexed by $t=1,2,3,\ldots$, take place sequentially in time. The participants of a round $t$ are a subset of all the \textbf{players}, which are indexed by $i$. At time $t$, player $i$ has latent \textbf{skill} $s_{i,t}$, which we seek to estimate from a history of observable \textbf{evidence} $e_1,\ldots,e_t$ produced by the rounds $1,\ldots,t$.
 
-In Bayesian fashion, we start with a prior belief distribution on $s_{i,t}$ immediately preceding round $t$, taking into account all of the rounds $1,2,\ldots,t-1$. In section 5, we'll see how the prior distribution at round $t$ differs from the posterior distribution at round $t-1$, but for now this distinction can be ignored.
-
-In any case, our main task is to combine the prior belief with the evidence $e_t$ to obtain a posterior belief. This will serve as the basis for a post-round \textbf{rating}, defined to be the \textbf{maximum a posteriori} (MAP) estimate of $s_{i,t}$. That is,
+In Bayesian fashion, we start with a prior belief distribution on $s_{i,t}$ immediately preceding round $t$, taking into account all of the rounds $1,2,\ldots,t-1$. Our main task is to combine the prior belief with the evidence $e_t$ to obtain a posterior belief. This will serve as the basis for a post-round \textbf{rating}, defined to be the \textbf{maximum a posteriori} (MAP) estimate of $s_{i,t}$. That is,
 
 \[r_{i,t} = \arg\max_{s_{i,t}} f(s_{i,t} \mid e_1,\ldots,e_t)
 = \arg\max_{s_{i,t}} f(s_{i,t} \mid e_1,\ldots,e_{t-1}) \Pr(e_t \mid s_{i,t})\]
@@ -134,7 +132,7 @@ With $p_i$ in hand, we are ready for the second phase of the update! Recall that
 
 \[f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)\]
 
-Ignoring for now the distinction between the posterior at round $t-1$ and the prior at round $t$, we see that each round multiplies our belief p.d.f. by a logistic factor and a normalizing constant. Thus, our belief will always consist of a product of p.d.f.s.
+Ignoring for now the distinction between the posterior at round $t-1$ and the prior at round $t$ (we'll come back to this in the next section), we see that each round multiplies our belief p.d.f. by a logistic factor and a normalizing constant. Thus, our belief will always consist of a product of p.d.f.s.
 
 Let's be a tad more general here and allow the belief to be any normalized product of normal and logistic p.d.f.s. The normal p.d.f.s can be composed into a single normal with mean and variance $(\mu_0, \tau_0^2)$. Let $R_i$ be the set of rounds in which player $i$ has participated, each contributing a logistic factor with parameters $(\mu_k, \tau_k^2)$ for $k\in R_i\cap \{1,\ldots,t\}$. Naturally, the new factor from round $t$ will have $\mu_t = p_{i,t}$ and $\tau_t = \gamma_{i,t}$. The other factors also satisfy $\mu_k = p_{i,k}$ but, as we'll see in the next section, $\tau_k$ increases with time and will exceed $\gamma_{i,k}$ in general. Again defining $\bar\tau_k = \frac{\sqrt{12}}{\pi} \tau_k$,
 
@@ -174,17 +172,26 @@ As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distri
 
 \[\frac{1}{\bar\sigma_i^2} = \frac{1}{\tau_0^2} + \sum_k \frac{1}{\bar\tau_k^2}\]
 
-\section{Uncertainty}
+\section{Priors}
 
-So far, we've shown how to go from prior to posterior belief in any given round. Two gaps remain: the ``newbie prior" on the skill of a player who has never competed, and the update from posterior in one round to prior in the next.
+So far, we've shown how to go from prior belief to posterior belief in any given round. But how do we get priors? For first-time contestants, we answer this question with a ``newbie prior". For existing contestants, we must derive the new round's prior $f(s_{i,t} \mid e_1,\ldots,e_{t-1})$ from the previous round's posterior $f(s_{i,t-1} \mid e_1,\ldots,e_{t-1})$. These differ because a player whose skill evolves over time will generally have $s_{i,t} \ne s_{i,t-1}$.
 
 The newbie prior has a great impact on the time it takes the rating distribution for a population of players to converge. Implicit in our argument that $p_i$ can be computed precisely, was an assumption that the belief distributions are accurate prior to the round. In order for this to be true, the newbie prior should approximately reflect the skill distribution among newcomers, particularly when the system is initialized. To the extent that it does not, the $p_i$'s may be inaccurate for some waiting period, until the population's rating distribution converges.
 
 For Codeforces, I chose a normal prior with mean 1500 and standard deviation 350. The normal's thin tails discourage the granting of extreme ratings until sufficient evidence is gathered to justify it. To more strongly discourage premature assignment of extreme ratings, a smaller standard deviation can be used, albeit potentially at the expense of convergence speed.
 
-The remaining gap concerns the update that goes on between rounds, while a player is absent from competition. There are many ways to approach this, depending on what characteristics are desired of the rating system. Typically, we don't want to adjust the mean $r$ of a player's skill distribution, but we may want to increase the uncertainty $\sigma$ to account for the fact that a player may have improved or worsened during the time in which we haven't seen them compete. Thus, we might have $\sigma^2$ increase with time at a constant rate, as if the player's skill were being slowly and randomly perturbed by a process of Brownian motion. In this model, a long-inactive player's skill has to potential to change considerably upon their return. In a system that implements such Brownian noise, if we report the lower-bound estimate $r-2\sigma$ instead of $r$, we would find that ratings gradually decay, favoring active players and gradually diminishing inactive ones.
+Now we consider players who have competed before. Since we deal with one player at a time, in this section we omit the player subscript $i$ but keep the round subscripts $t$:
 
-For Codeforces, we prefer to preserve the ratings of inactive players. Furthermore, we consider it likely that players who compete frequently will develop much faster than those who are inactive. Thus, it makes sense to increase uncertainty on a per-round basis rather than on a continuous per-time basis. Only on rounds in which a player competes, their pre-round $\sigma^2$ is increased by a noise term $\eta^2$. Post-round, their $\sigma^2$ is decreased according to the performance uncertainty, which I set to a constant $\bar\gamma = 250$ (though one might consider smaller $\gamma$ for longer contests, which are likely to be more informative). Over a large number of rounds, this process will eventually approach the limit $\sigma^*$ given by the fixpoint equation:
+\[
+f(s_t \mid p_1,\ldots,p_{t-1})
+= \int_{s_{t-1}} f(s_t \mid s_{t-1}) \, f(s_{t-1} \mid p_1,\ldots,p_{t-1}) \,ds_{t-1}
+\]
+
+That is, the new prior is an weighted integral of the old posterior. The weight $f(s_t \mid s_{t-1})$ models the evolution of a player; its form should depend on what characteristics are desired of the rating system. Typically, we don't want to adjust the center $r$ of a player's skill distribution, but we should increase the variance $\sigma^2$ to account for the fact that a player may have improved or worsened during the time in which we haven't seen them compete. Thus, we model $s_t$ as a random draw from a distribution (perhaps normal or logistic) with mean $s_{t-1}$ and variance $\eta_t^2$.
+
+There are different ways to set the noise magnitude $\eta_t^2$. If we set it to be proportional to the time elapsed between the two rounds, the player's variance would increase at a constant rate, as if it were slowly and randomly perturbed by a process of Brownian motion. In this model, a long-inactive player's skill has to potential to change drastically upon their return. In a system that implements such Brownian noise, if we report the lower-bound estimate $r-2\sigma$ instead of $r$, we would find that ratings gradually decay, favoring active players and gradually diminishing inactive ones.
+
+For Codeforces, we prefer to preserve the ratings of inactive players. Furthermore, we consider it likely that players who compete frequently will develop much faster than those who are inactive. Thus, it makes sense to increase uncertainty on a per-round basis rather than on a continuous per-time basis. So we use zero noise before rounds where the player is absent, while $\sigma^2$ is increased by a constant $\eta^2$ before each round in which the player is present. Post-round, their $\sigma^2$ is decreased as a function of the performance uncertainty, which I set to a constant $\bar\gamma = 250$ (though one might consider smaller $\gamma$ for longer contests, which are likely to be more informative). Over a large number of rounds, this process will eventually approach the limit $\sigma^*$ given by the fixpoint equation:
 
 \begin{align*}
 \frac{1}{\sigma^{*2}} &= \frac{1}{\sigma^{*2} + \eta^2} + \frac{1}{\gamma^2}
@@ -193,7 +200,9 @@ For Codeforces, we prefer to preserve the ratings of inactive players. Furthermo
 
 Note that if the prior uncertainty is set to $\sigma^*$, we obtain a system in which the inter-round noise $\eta$ exactly compensates for the round information $\gamma$, and so $\sigma$ stays constant, similar to traditional Elo. Here we are using a higher prior uncertainty, similar to Glicko. I like to report $r-2(\bar\sigma-\bar\sigma^*)$ as a player's public rating. Without Brownian time-based noise, this doesn't cause rating decay; instead, its effect is to penalize new members: their published rating is about $r - 208$ after their first contest, $r - 120$ after their second, and so on, the penalty approaching $0$. Since players start with a low published rating instead of an average one, even middle ratings can be considered an achievement, giving beginners a goal to strive for. 
 
-Regardless of how and when the quantity of noise is decided, we have yet to specify how to go from one round's posterior with mode $r$ and variance $\sigma^2$, to the following round's prior with mode $r$ and variance $\sigma^2 + \eta^2$. Recall that an Elo-R belief distribution is a product of p.d.f.s, whose variance is taken to be the approximation at the end of the previous section. The simplest method, then, is to multiply the variance of each factor by the same value $1 + \frac{\eta^2}{\sigma^2}$. Once again, this can be justified by appealing to the limit of normal priors: by holding constant the ratio of weights between normal contributions, we hold the mean (and mode) of the whole distribution constant. Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
+Regardless of how and when the magnitude of noise is decided, we have an intractable integral to approximate. What can we say about it? Well, if the inter-round noise is i.i.d. with zero mean, then the new prior should have the same mean (hence, likely a similar mode) and its variance should be increased by $\eta^2$. Furthermore, for computational ease and human-interpretability, it would be nice if the new prior is still a product of the same p.d.f.s as the posterior, only with each of their variances increased. Altogether, I came up with four methods that satisfy these properties, each with different pros and cons. See Section 6.2 for a poorly written summary; here we describe the last two methods from that section.
+
+Recall that an Elo-R belief distribution is a product of p.d.f.s, whose variance is taken to be the approximation at the end of the previous section. The simplest method, then, is to multiply the variance of each factor by the same value $1 + \frac{\eta^2}{\sigma^2}$. Once again, this can be justified by appealing to the limit of normal priors: by holding constant the ratio of weights between normal contributions, we hold the mean (and mode) of the whole distribution constant. Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
 
 As promised in the previous section, now we see that each $\tau_k$ in the belief distribution will increase exponentially with additional rounds. Pretty soon, any plausible skill level $s_i$ will fall squarely within the regime where $|s_i-\mu_k| \ll \tau_k$. As a result, the older logistic factors can safely be absorbed into the normal factor.
 
@@ -210,7 +219,7 @@ To be mathematically precise, we binary search for the unique weight reduction f
 = \frac{1}{\tau_0'^2} + \sum_k \frac{1}{\bar\tau_k'^2}.
 \]
 
-By summing the left-hand side of the first equation over all $k$, we see that the mode doesn't change when we replace each $\tau_k$ by $\tau'_k$. With this noising procedure, the Elo-R weighted average takes an interesting form: outliers maintain a reduced weight for all time, but the \textit{extent} to which their weight is reduced is dependent on how much of an outlier they were during the period in which they were ``fresh". For instance, an outlier can gain non-outlier status if subsequent performances reinforce it. However, it's impossible to ``re-activate" an outlier from ancient history. This makes sense, since old flukes likely have nothing to do with new rapid skill changes.
+By summing the left-hand side of the first equation over all $k$, we see that the mode doesn't change when we replace each $\tau_k$ by $\tau'_k$. With this noising procedure, the Elo-R weighted average takes an interesting form: outliers maintain a reduced weight for all time, but the \textit{extent} to which their weight is reduced is dependent on how much of an outlier they were during the period in which they were ``fresh". For instance, an outlier can gain non-outlier status if subsequent performances reinforce it. However, it's impossible to ``re-activate" an outlier from ancient history. This makes sense, since old flukes likely have nothing to do with new rapid skill changes. The downside of this noising method is that it violates rating system monotonicity, in certain cases.
 
 The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$. The weights $w_{i,k}$ are given by a formula in the previous section; $w'_{i,k}$ is derived by replacing $\tau_{i,k}$ with $\tau'_{i,k}$.
 
@@ -276,15 +285,17 @@ The code and ratings of real Codeforces members as computed by Elo-R are availab
 
 This paper will not evaluate the predictive accuracy of Elo-R; my experience with it suggests it does better than the other local methods listed above, but it is possible to do better with global methods. It's difficult to do a fair evaluation because it's not clear what exactly some of these models are trying to predict, besides the qualitative assertion that players with higher ratings should win more often. For example, Elo-R might be judged on the log-likelihood of observed match results, according to its own belief model. However, the joint likelihood is difficult to compute, and many of the other systems lack a corresponding belief model. One reasonable approach would be to approximate the likelihood as we did when estimating $p_i$, and use cross-validation to optimize the parameters of each rating system according to this criterion. Such evaluations will remain open to future investigation. Instead, let's focus on a unique feature of Elo-R that's absent in the Codeforces system, and arguably in TopCoder as well.
 
-\subsection{Proof of Monotonicity}
+\subsection{Analysis of Monotonicity}
 
-This is a draft in progress. Let $f$ be a function of the form:
+This is a draft in progress. Constant factor noising satisfies monotonicity, but it appears the fancier method can break monotonicity in some extreme cases. The purpose of this analysis is to understand when that happens and if/how that should be fixed.
 
-\[f(x) = \sum_k \frac{1}{\tau_k} \tanh \frac {x-\mu_k} {\tau_k}\]
+Let $f$ be a function of the form:
+
+\[f(x) = \sum_{k=1}^n \frac{1}{\tau_k} \tanh \frac {x-\mu_k} {\tau_k}\]
 
 Then $f$ is a strictly increasing function of $x$. Let $r$ be the unique point at which $f(r) = 0$. Similarly, define
 
-\[g(x) = \sum_k \frac{1}{\sigma_k} \tanh \frac {x-\nu_k} {\sigma_k}\]
+\[g(x) = \sum_{k=1}^m \frac{1}{\sigma_k} \tanh \frac {x-\nu_k} {\sigma_k}\]
 
 such that $g(x) \ge f(x)$ for all $x$. Then $g$ too is strictly increasing: let $s$ be the unique point at which $g(s) = 0$. We cannot have $s > r$, as that would imply $0 = g(s) \ge f(s) > f(r) = 0$. Hence, $s \le r$. Furthermore, $\sum_k \frac{1}{\tau_k} = \sum_k \frac{1}{\sigma_k}$ because
 
@@ -301,7 +312,7 @@ Let $\eta$ be the noising operation:
 \[\eta[f](x) = \sum_k \frac{1}{\tau'_k} \tanh \frac {x-\mu_k} {\tau'_k}\]
 \[\eta[g](x) = \sum_k \frac{1}{\sigma'_k} \tanh \frac {x-\nu_k} {\sigma'_k}\]
 
-\[ \sum_k \frac{1}{\tau'_k} = \sum_k \frac{1}{\sigma'_k} \]
+\[ \frac{\sum_k 1 / \tau'^2_k}{\sum_k 1 / \tau^2_k} = \frac{\sum_k 1 / \sigma'^2_k}{\sum_k 1 / \sigma^2_k} \]
 
 \[\frac{1}{\tau'_k} \tanh \frac {r-\mu_k} {\tau'_k}
 = \frac{1}{\kappa^2\tau_k} \tanh \frac {r-\mu_k} {\tau_k}\]
@@ -328,6 +339,82 @@ which is a contradiction. For the rest of the proof, we can suppose $t < s$, sin
 \[ f(t) \le g(t) < g(s) \]
 
 \[ \eta[g](t) < \eta[f](t) < \eta[f](s) \le 0 = \eta[g](s) \]
+
+\subsection{Noising Methods}
+
+So far, I can think of four reasonable noising methods. TODO: make this section into a table, with smileys replaced by colors: :D to green, :) to yellow, :( to red.
+
+\subsubsection{Normal Approximation}
+
+After each rating update, replace the posterior (which is the now product of one normal p.d.f. and one logistic p.d.f.) with a normal approximation. Then simply add Gaussian noise. This is the only method that does not accumulate a product of many logistic p.d.f.s, one for each recent performance.
+
+Human-interpretable formulas: yes :D
+
+Implementation complexity: simplest :D
+
+Monotonic in past performances: yes :D
+
+Noising preserves MAP skill: yes :D
+
+Saved history length: zero :D
+
+Persistent outlier deweighting: immediate freeze-in, weights relative to rating at inception :)
+
+Consistent change accelerates movement: no :(
+
+\subsubsection{Constant Multiple on only the leading $\tau$}
+
+The $\tau$ inside the $\tanh$ doesn't change. In other words, while the weight on each logistic factor is reduced over time, its variance is unchanged, so it never approaches the normal limit.
+
+Human-interpretable formulas: yes :D
+
+Implementation complexity: simple :)
+
+Monotonic in past performances: yes :D
+
+Noising preserves MAP skill: yes :D
+
+Saved history length: high :(
+
+Persistent outlier deweighting: no freeze-in, weights relative to current rating :)
+
+Consistent change accelerates movement: yes :D
+
+\subsubsection{Constant Multiple on all $\tau$}
+
+All of the $\tau$ change.
+
+Human-interpretable formulas: yes :D
+
+Implementation complexity: simple :)
+
+Monotonic in past performances: yes :D
+
+Noising preserves MAP skill: no :(
+
+Saved history length: low :)
+
+Persistent outlier deweighting: outlierness is eventually forgotten, full weight restored :(
+
+Consistent change accelerates movement: somewhat :)
+
+\subsubsection{Fancy Method}
+
+This is my favorite method. Regrettably, it fails the monotonicity criterion.
+
+Human-interpretable formulas: yes :D
+
+Implementation complexity: complex :(
+
+Monotonic in past performances: no :(
+
+Noising preserves MAP skill: yes :D
+
+Saved history length: low :)
+
+Persistent outlier deweighting: gradual freeze-in, weights relative to neighbors in time :D
+
+Consistent change accelerates movement: yes :D
 
 \subsection{Robustness}
 
