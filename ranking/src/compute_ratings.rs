@@ -38,11 +38,15 @@ pub struct Player {
 }
 
 impl Player {
+    // the simplest noising method, in which the rating with uncertainty is a Markov state
+    fn add_noise_and_collapse(&mut self, sig_noise: f64) {
+        self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
+        self.normal_factor = self.approx_posterior;
+        self.logistic_factors.clear();
+    }
+
     // apply noise to one variable for which we have many estimates
     fn add_noise_uniform(&mut self, sig_noise: f64) {
-        // conveniently update the last rating before applying noise for the next contest
-        self.last_rating = self.conservative_rating();
-
         // multiply all sigmas by the same decay
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.normal_factor.sig *= decay;
@@ -58,9 +62,6 @@ impl Player {
     // a fancier but slower substitute for add_noise_uniform(). See paper for details.
     // TODO: optimize using Newton's method.
     fn add_noise_fancy(&mut self, sig_noise: f64) {
-        // conveniently update the last rating before applying noise for the next contest
-        self.last_rating = self.conservative_rating();
-
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.approx_posterior.sig *= decay;
         let target = self.approx_posterior.sig.powi(-2);
@@ -115,6 +116,7 @@ impl Player {
             let deviation = self.approx_posterior.mu - logistic.mu;
             let wn = self.normal_factor.sig.powi(-2);
             let wl = (deviation / logistic.sig).tanh() / (deviation * logistic.sig);
+            //let wl_as_normal = logistic.sig.powi(-2);
             self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
             self.normal_factor.sig = (wn + wl).recip().sqrt();
         }
@@ -239,7 +241,8 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest:
     let all_ratings: Vec<Rating> = players_ref
         .par_iter_mut()
         .map(|player| {
-            player.add_noise_fancy(sig_noise);
+            player.last_rating = player.conservative_rating();
+            player.add_noise_uniform(sig_noise);
             let rating = player.approx_posterior;
             Rating {
                 mu: rating.mu,
@@ -287,7 +290,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
     const TITLE: [&str; NUM_TITLES] = [
         "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
     ];
-    const SIX_MONTHS_AGO: usize = 1260;
+    const SIX_MONTHS_AGO: usize = 1271;
 
     use std::io::Write;
     let filename = "../data/CFratings_temp.txt";

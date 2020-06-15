@@ -166,7 +166,7 @@ $w_k$ is close to $1/\bar\tau_k^2$ for typical performances but vanishes for ext
 
 Note that when the weights are fixed, as in the $L^2$ case, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
 
-Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. We'll see in the next section that old performances will eventually have very large $\tau_k$. Since the $\tanh$ function behaves like the identity in the limit of large $\tau_k$, it's clear from the above expression that old logistic factors will come to resemble normal factors, which combine nicely.
+Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. The exact means by which this is achieved depends on the noising method used, a matter we'll discuss later. For now, note that the $\tanh$ function behaves like the identity in the limit of large $\tau_k$. Hence, logistic factors with sufficiently large $\tau_k$ will come to resemble normal factors, which combine nicely.
 
 As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distribution on $s_i$. While this is intractable for general products of p.d.f.s, we take advantage of our observation that logistic factors behave in the limit like normal factors. Thus, we make an approximation based on a formula that holds for products of normal p.d.f.s:
 
@@ -198,15 +198,61 @@ For Codeforces, we prefer to preserve the ratings of inactive players. Furthermo
 \\ \text{Setting }\bar\sigma^*=100\text{, I derived }\bar\eta^2 &= \frac{1}{1/\bar\sigma^{*2} - 1/\bar\gamma^2} - \bar\sigma^{*2} \approx 43.64^2
 \end{align*}
 
-Note that if the prior uncertainty is set to $\sigma^*$, we obtain a system in which the inter-round noise $\eta$ exactly compensates for the round information $\gamma$, and so $\sigma$ stays constant, similar to traditional Elo. Here we are using a higher prior uncertainty, similar to Glicko. I like to report $r-2(\bar\sigma-\bar\sigma^*)$ as a player's public rating. Without Brownian time-based noise, this doesn't cause rating decay; instead, its effect is to penalize new members: their published rating is about $r - 208$ after their first contest, $r - 120$ after their second, and so on, the penalty approaching $0$. Since players start with a low published rating instead of an average one, even middle ratings can be considered an achievement, giving beginners a goal to strive for. 
+Note that if the newbie uncertainty is set to $\sigma^*$, we obtain a system in which the inter-round noise $\eta$ exactly compensates for the round information $\gamma$, and so $\sigma$ stays constant, similar to traditional Elo. Setting the newbie uncertainty above $\sigma^*$ causes the uncertainty to decrease with each participation, similar to Glicko. I like to report $r-2(\bar\sigma-\bar\sigma^*)$ as a player's public rating. In the absence of time-based Brownian noise, this doesn't cause rating decay; instead, its effect is to penalize new members: their published rating is about $r - 208$ after their first contest, $r - 120$ after their second, and so on, the penalty approaching $0$. Since players start with a low published rating instead of an average one, even middle ratings can be considered an achievement, giving beginners a goal to strive for. 
 
-Regardless of how and when the magnitude of noise is decided, we have an intractable integral to approximate. What can we say about it? Well, if the inter-round noise is i.i.d. with zero mean, then the new prior should have the same mean (hence, likely a similar mode) and its variance should be increased by $\eta^2$. Furthermore, for computational ease and human-interpretability, it would be nice if the new prior is still a product of the same p.d.f.s as the posterior, only with each of their variances increased. Altogether, I came up with four methods that satisfy these properties, each with different pros and cons. See Section 6.2 for a poorly written summary; here we describe the last two methods from that section.
+\subsection{Approximate Noising}
 
-Recall that an Elo-R belief distribution is a product of p.d.f.s, whose variance is taken to be the approximation at the end of the previous section. The simplest method, then, is to multiply the variance of each factor by the same value $1 + \frac{\eta^2}{\sigma^2}$. Once again, this can be justified by appealing to the limit of normal priors: by holding constant the ratio of weights between normal contributions, we hold the mean (and mode) of the whole distribution constant. Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
+Regardless of how and when the magnitude of noise is decided, we have an intractable integral to evaluate. Indeed, this is where we'll have the most difficulty justifying our approximations. Future research may find improvements in this aspect of the rating system.
+
+What can be said about the integral? Well, if the inter-round noise is i.i.d. with zero mean, then the new prior should have the same mean (hence, likely a similar mode) and its variance should be increased by $\eta^2$. Furthermore, for computational ease and human-interpretability, it would be nice if the new prior remains a product of the same p.d.f.s as the posterior, only with each of their variances increased. Altogether, I came up with four methods that satisfy these properties; their pros and cons are summarized in Section 6.2.
+
+The first and simplest method is also the only one that makes the player ratings (with accompanying uncertainties) a Markov state: that is, no history of past performances is kept. Every time a new rating $(r_i,\sigma_i^2)$ is computed, the posterior is approximated by a normal distribution with the same parameters. In this case, the effect of adding a normal $(0,\eta^2)$ noise is simple: the next round's prior becomes another normal, with parameters $(r_i,\,\sigma_i^2+\eta^2)$.
+
+\begin{algorithm}
+	\caption{$init()$}
+	\label{alg:init}
+	\begin{algorithmic}
+		\STATE $\sigma^* := 100$
+		\STATE $\gamma := 250$
+		\STATE $\eta := \sqrt{1 / \left( 1/\sigma^{*2} - 1/\gamma^2 \right) - \sigma^{*2}}$
+		\FORALL{players $i$}
+		\STATE $r_i := 1500$
+		\STATE $\sigma_i := 350$
+		\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{$update()$}
+	\label{alg:update}
+	\begin{algorithmic}
+		\FORALL{round participants $i$ in parallel}
+		\STATE $r'_i := r_i$
+		\STATE $\sigma_i := \sqrt{\sigma_i^2 + \eta^2}$
+		\STATE $\delta_i := \sqrt{\sigma_i^2 + \gamma^2}$
+		\STATE Make $r'_i,\delta_i$ accessible to all threads in the next loop
+		\ENDFOR
+		\FORALL{round participants $i$ in parallel}
+		\STATE $p_i := $ SOLVE $\sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {p_i - r'_j} {\delta_j} + 1 \right) = 0$
+		\STATE $r_i := $ SOLVE $\frac{r_i-r'_i}{\sigma_i^2} + \frac{1}{\gamma} \tanh \frac {r_i-p_i} {\gamma} = 0$
+		\STATE $\sigma_i := 1 / \sqrt{1/\sigma_i^2 + 1/\gamma^2}$
+		\ENDFOR
+	\end{algorithmic}
+\end{algorithm}
+
+The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$.
+
+The runtime analysis is straightforward. Suppose the round in question has $N$ participants, and the equations are solved to a precision of $\epsilon$ using binary search. Then it costs $O(N\log\frac 1\epsilon)$ time to solve for each $p_i$. Since this step dominates the computation, the total work done to process one round is $O(N^2\log\frac 1\epsilon)$. The logarithmic factor can be reduced with better equation-solving procedures, such as Newton's method. The round update is highly parallel, so its parallel span is roughly the total work divided by the number of processors.
+
+\subsection{Alternative Noising Methods (TODO: everything from here onwards needs serious rewriting. Please stop reading!)}
+
+Now we explore extensions in which the ratings and uncertainties alone are not Markov states: that is, we maintain each belief distribution as a product of p.d.f.s. The variance of such a product distribution is intractable, so we take it to be given by the formula at the end of section 4. If we simply multiply the variance of each factor by the same value $1 + \frac{\eta^2}{\sigma^2}$, this formula multiplies the overall variance by the same amount, yielding exactly the desired variance $\sigma^2+\eta^2$.
+
+Heuristically speaking, we might justify this constant multiplication method by appealing to the limit of normal priors: by holding constant the ratio of weights between normal contributions, we hold the mean (and mode) of the whole distribution constant. Intuitively, if we think of each factor as a ``measurement" of the current skill $s_{i,t}$, then the noise operation simply reduces our confidence in outdated measurements.
 
 As promised in the previous section, now we see that each $\tau_k$ in the belief distribution will increase exponentially with additional rounds. Pretty soon, any plausible skill level $s_i$ will fall squarely within the regime where $|s_i-\mu_k| \ll \tau_k$. As a result, the older logistic factors can safely be absorbed into the normal factor.
 
-However, the same observation reveals a flaw with the simple method of adding noise: as $\tau_k$ increases, outliers eventually become non-outliers, pulling $r$ towards the mean of old performances! In other words, we discount the weight of outlier performances more slowly than typical ones, until the outlier-specific weight reduction is negated entirely. This has two undesirable consequences: (1) the posterior mode $r$, which is the player's rating, changes during inactivity; (2) in the long term, outliers have equal weight to typical performances.
+However, the same observation reveals a flaw with the constant multiplication method: as $\tau_k$ increases, outliers eventually become non-outliers, pulling $r$ towards the mean of old performances! In other words, we discount the weight of outlier performances more slowly than typical ones, until the outlier-specific weight reduction is negated entirely. This has two undesirable consequences: (1) the posterior mode $r$, which is the player's rating, changes during inactivity; (2) in the long term, outliers have equal weight to typical performances.
 
 Arguably a better way to add noise would be to reduce the weight of each factor equally in all cases, not just in the normal limit. In essence, we gradually ``freeze in" the outlier weight reduction, based on how far each $\mu_k$ is from the current $r$.
 
@@ -221,13 +267,13 @@ To be mathematically precise, we binary search for the unique weight reduction f
 
 By summing the left-hand side of the first equation over all $k$, we see that the mode doesn't change when we replace each $\tau_k$ by $\tau'_k$. With this noising procedure, the Elo-R weighted average takes an interesting form: outliers maintain a reduced weight for all time, but the \textit{extent} to which their weight is reduced is dependent on how much of an outlier they were during the period in which they were ``fresh". For instance, an outlier can gain non-outlier status if subsequent performances reinforce it. However, it's impossible to ``re-activate" an outlier from ancient history. This makes sense, since old flukes likely have nothing to do with new rapid skill changes. The downside of this noising method is that it violates rating system monotonicity, in certain cases.
 
-The parameter and belief initializations are summarized in Algorithm \ref{alg:init}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update}. Upper-bars are not drawn, but should be taken as implicit on all variances aside from the normal prior. By working with these modified variances, the algorithm avoids needing to compute the factor $\frac{\sqrt{12}}{\pi}$. The weights $w_{i,k}$ are given by a formula in the previous section; $w'_{i,k}$ is derived by replacing $\tau_{i,k}$ with $\tau'_{i,k}$.
+The parameter and belief initializations are summarized in Algorithm \ref{alg:init2}, while the actual Elo-R update is summarized in Algorithm \ref{alg:update2}. As before, upper-bars are not drawn. The weights $w_{i,k}$ are given by the formula in section 4; $w'_{i,k}$ is derived by replacing $\tau_{i,k}$ with $\tau'_{i,k}$.
 
-The runtime analysis is relatively straightforward. Suppose up to $M$ rounds of history are kept, the round in question has $N$ participants, and the equations are solved to a precision of $\epsilon$ using binary search. Then it costs $O(N\log\frac 1\epsilon)$ to compute each $p_i$, and $O(M\log^2\frac 1\epsilon)$ to apply the noising procedure to each player. Altogether, the total work done to process one round is $O(N^2\log\frac 1\epsilon + NM\log^2\frac 1\epsilon)$. The logarithmic factors can be reduced with better equation-solving procedures, such as Newton's method. The round update is highly parallel, so its parallel span is roughly the work divided by the number of processors.
+The time complexity now has an additional significant term: if $M$ rounds of history are kept, then it costs $O(M\log^2\frac 1\epsilon)$ to apply the noising procedure to each player. Altogether, the total work done to process one round is $O(N^2\log\frac 1\epsilon + NM\log^2\frac 1\epsilon)$. Once again, the algorithm is highly parallel, and the logarithmic factors can be reduced with faster equation-solving procedures.
 
 \begin{algorithm}
 \caption{$init()$}
-\label{alg:init}
+\label{alg:init2}
 \begin{algorithmic}
 \STATE $\sigma^* := 100$
 \STATE $\gamma := 250$
@@ -243,13 +289,14 @@ The runtime analysis is relatively straightforward. Suppose up to $M$ rounds of 
 
 \begin{algorithm}
 \caption{$update()$}
-\label{alg:update}
+\label{alg:update2}
 \begin{algorithmic}
 \FORALL{round participants $i$ in parallel}
 \STATE $\kappa,\{\tau'_{i,k}\} := $ SOLVE $\frac{1}{\sigma_i^2 + \eta^2} = \sum_k\frac{1}{\tau_{i,k}'^2}\text{ where }\forall k,\,\kappa^2w'_{i,k} = w_{i,k}$
 \FORALL{$k$}
 \STATE $\tau_{i,k} := \tau'_k$
 \ENDFOR
+\STATE $r'_i := r_i$
 \STATE $\delta_i := \sqrt{\sigma_i^2 + \eta^2 + \gamma^2}$
 \STATE Make $r'_i,\delta_i$ accessible to all threads in the next loop
 \ENDFOR
@@ -270,7 +317,7 @@ The runtime analysis is relatively straightforward. Suppose up to $M$ rounds of 
 
 \pagebreak
 
-\section{Properties (TODO: everything from here onwards needs serious rewriting. Please stop reading!)}
+\section{Properties}
 
 First, we discuss some properties that Elo-R has in common with the published systems of Codeforces and TopCoder, as well as the classics Elo and Glicko. All of these systems propagate belief changes forward in time, never backward. This approach is simple, efficient, and has the benefit of never retroactively changing ratings from the past, nor the ratings of player who are not actively competing. Elo-R and Glicko converge to the right results a bit faster than the others, by including an uncertainty parameter that starts high for new players.
 
@@ -350,7 +397,7 @@ After each rating update, replace the posterior (which is the now product of one
 
 Human-interpretable formulas: yes :D
 
-Implementation complexity: simplest :D
+Rating is a Markov state: yes :D
 
 Monotonic in past performances: yes :D
 
@@ -360,7 +407,7 @@ Saved history length: zero :D
 
 Persistent outlier deweighting: immediate freeze-in, weights relative to rating at inception :)
 
-Consistent change accelerates movement: no :(
+Consistent change accelerates movement: no, slow convergence :(
 
 \subsubsection{Constant Multiple on only the leading $\tau$}
 
@@ -368,7 +415,7 @@ The $\tau$ inside the $\tanh$ doesn't change. In other words, while the weight o
 
 Human-interpretable formulas: yes :D
 
-Implementation complexity: simple :)
+Rating is a Markov state: no :(
 
 Monotonic in past performances: yes :D
 
@@ -386,7 +433,7 @@ All of the $\tau$ change.
 
 Human-interpretable formulas: yes :D
 
-Implementation complexity: simple :)
+Rating is a Markov state: no :(
 
 Monotonic in past performances: yes :D
 
@@ -404,7 +451,7 @@ This is my favorite method. Regrettably, it fails the monotonicity criterion.
 
 Human-interpretable formulas: yes :D
 
-Implementation complexity: complex :(
+Rating is a Markov state: no :(
 
 Monotonic in past performances: no :(
 
