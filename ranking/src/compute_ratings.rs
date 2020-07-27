@@ -290,7 +290,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
     const TITLE: [&str; NUM_TITLES] = [
         "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
     ];
-    const SIX_MONTHS_AGO: usize = 1271;
+    const SIX_MONTHS_AGO: usize = 1295;
 
     use std::io::Write;
     let filename = "../data/CFratings_temp.txt";
