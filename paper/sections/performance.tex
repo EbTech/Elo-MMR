@@ -1,0 +1,53 @@
+
+\section{Performance Estimation}
+
+Since our assumptions imply the posterior on $p_i$ to be narrowly concentrated, the MAP estimate is as good as any. Thus, we seek to maximize
+
+\[f(p_i\mid e) \propto f(p_i) \Pr(e\mid p_i)\]
+
+In the prior distribution, $p_i = s_i + (p_i-s_i)$ is a sum of two independent random variables. $s_i$ has the prior distribution, whose mode is the pre-round rating $r'_i$; let $\sigma_i^2$ be its variance. The other term $p_i-s_i$ is a zero-centered logistic random variable with variance $\gamma_i^2$.
+
+The sum of two normal random variables is another normal variable whose mean is the sum of the component means. Inspired by this fact, we make another approximation: although neither $s_i$ nor $p_i-s_i$ are normal, we treat their sum $p_i$ as a logistic random variable centered at $r'_i$. By independence of its two components, $p_i$ has variance $\delta_i^2 = \gamma_i^2 + \sigma_i^2$.
+
+We'll adopt the convention that any symbol that represents a standard deviation is multiplied by $\frac{\sqrt{12}}{\pi}\approx 1.1$ when drawn with an upper-bar. For example, $\bar\delta_i = \frac{\sqrt{12}}{\pi} \delta_i$. In terms of $\bar\delta_i$, the logistic p.d.f. takes a convenient form:
+
+\[
+f(p_i)
+\approx \frac { 2e^{2(p_i-r'_i)/\bar\delta_i} } { \bar\delta_i\left( 1 + e^{2(p_i-r'_i)/\bar\delta_i} \right)^2}
+= \frac { 1 } { 2\bar\delta_i \cosh^2\frac{p_i-r'_i}{\bar\delta_i} }
+\]
+
+Since we are working in the limit of a large number of players, we have sufficient evidence to determine $p_i$ even after ignoring relations like $j \succ k$ which don't include $i$. Thus, we can imagine $e$ to be the evidence consisting solely of, for each $j\ne i$, whether $j \succ i$ or $j \prec i$. Taking $p_i$ as fixed in the following probability expressions, using the logistic cumulative density function (c.d.f.), and ignoring constants of proportionality that depend on $e$ but not on $p_i$:
+
+\begin{align*}
+\Pr(e\mid p_i)
+&= \prod_{j \succ i} \Pr(p_j > p_i) \prod_{j \prec i} \Pr(p_j < p_i)
+\\&\approx \prod_{j \succ i} \frac {1} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \prod_{j \prec i} \frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}}
+\\&\propto \frac {e^{2p_i\sum_{j\prec i}1/\bar\delta_j}} {\prod_{j\neq i} 1 + e^{2(p_i-r'_j)/\bar\delta_j}}
+\end{align*}
+
+Taking logarithms, there exist constants $C$ and $C'$ such that
+
+\begin{align*}
+C + \ln f(p_i\mid e)
+&= C' + \ln f(p_i) + \ln \Pr(e\mid p_i)
+\\&\approx \frac{2}{\bar\delta_i} (p_i-r'_i) - 2\ln\left(1 + e^{2(p_i-r'_i)/\bar\delta_i} \right) + 2p_i\sum_{j\prec i} \frac{1}{\bar\delta_j} - \sum_{j\neq i} \ln\left(1 + e^{2(p_i-r'_j)/\bar\delta_j}\right)
+\end{align*}
+
+To maximize this expression, differentiate it w.r.t. $p_i$ and set the result to zero:
+\begin{align*}
+0 &= \frac{2}{\bar\delta_i}\left(1 - \frac {2e^{2(p_i-r'_i)/\bar\delta_i}} {1 + e^{2(p_i-r'_i)/\bar\delta_i}} \right)
++ \sum_{j\neq i}\frac{2}{\bar\delta_j}\left(\mathbb{I}(j\prec i) - \frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
+\\&= \sum_{j\preceq i}\frac{2}{\bar\delta_j}\left(\frac {1} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
+- \sum_{j\succeq i}\frac{2}{\bar\delta_j}\left(\frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
+\\&= -\left( \sum_{j\preceq i}\frac{1}{\bar\delta_j}\left( \tanh\frac {p_i - r'_j} {\bar\delta_j} - 1 \right)
++ \sum_{j\succeq i}\frac{1}{\bar\delta_j}\left( \tanh\frac {p_i - r'_j} {\bar\delta_j} + 1 \right) \right)
+\end{align*}
+
+By monotonicity of the $\tanh$ function, we can solve for $p_i$ by a simple binary search. If faster convergence is desired, Newton's method can be used: since $\frac{d}{dx}\tanh(x) = 1 - \tanh^2(x)$, a Newton step is very efficient, requiring no more hyperbolic function evaluations than a binary search step.
+
+On the second line, the terms in parentheses can be thought of as a measure of surprise at the outcomes between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$. In addition to the actual outcomes which come from $e$, the prior hallucinates two regularizing outcomes: one in which player $i$ wins against itself, and one in which player $i$ loses against itself. This regularization prevents the first- and last-place players from achieving $p_i = \pm\infty$. By choosing $p_i$ such that the sum equals zero, we are effectively saying that the total surprise from wins should equal the total surprise from losses.
+
+Here's another intuitive interpretation: if the $\delta_j$s are all equal, this amounts to finding the performance level $p_i$ at which one's expected rank would equal player $i$'s actual rank, after accounting for the regularizing clones of player $i$. With unequal $\delta_j$s, this interpretation can be extended to a weighted ranking in which player $j$ counts $\frac{1}{\delta_j}$ times.
+
+Now we see an easy way to handle ties: simply treat them as half a win and half a loss. Since the above expression subtracts 1 for each win and adds 1 for each loss, averaging the two yields an offset of 0 for ties. It's a hack, but an elegant one!
