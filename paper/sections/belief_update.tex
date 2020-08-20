@@ -1,0 +1,47 @@
+
+
+\section{Belief Update}
+
+With $p_i$ in hand, we are ready for the second phase of the update! Recall that we seek to maximize
+
+\[f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)\]
+
+Ignoring for now the distinction between the posterior at round $t-1$ and the prior at round $t$ (we'll come back to this in the next section), we see that each round multiplies our belief p.d.f. by a logistic factor and a normalizing constant. Thus, our belief will always consist of a product of p.d.f.s.
+
+Let's be a tad more general here and allow the belief to be any normalized product of normal and logistic p.d.f.s. The normal p.d.f.s can be composed into a single normal with mean and variance $(\mu_0, \tau_0^2)$. Let $R_i$ be the set of rounds in which player $i$ has participated, each contributing a logistic factor with parameters $(\mu_k, \tau_k^2)$ for $k\in R_i\cap \{1,\ldots,t\}$. Naturally, the new factor from round $t$ will have $\mu_t = p_{i,t}$ and $\tau_t = \gamma_{i,t}$. The other factors also satisfy $\mu_k = p_{i,k}$ but, as we'll see in the next section, $\tau_k$ increases with time and will exceed $\gamma_{i,k}$ in general. Again defining $\bar\tau_k = \frac{\sqrt{12}}{\pi} \tau_k$,
+
+\[
+f(s_i\mid e)
+\propto e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_{k\ge 1} \frac { 1 } { \cosh^2\frac{s_i-\mu_k} {\bar\tau_k} }
+\]
+
+Hence, there exists a constant $C$ such that
+
+\[C - \frac 1 2 \ln f(s_i \mid e) = \frac{(s_i-\mu_0)^2}{2\tau_0^2} + \sum_{k\ge 1} \ln\left( \cosh\frac{s_i-\mu_k}{\bar\tau_k} \right)\]
+
+Maximizing $f(s_i\mid e)$ amounts to minimizing this expression, so let's differentiate it w.r.t. $s_i$ and set the result to zero:
+
+\[
+0 = \frac{s_i-\mu_0}{\tau_0^2} + \sum_{k\ge 1} \frac{1}{\bar\tau_k} \tanh \frac {s_i-\mu_k} {\bar\tau_k}
+\]
+
+Similar to the performance computation in the previous section, here we have a monotonic function of $s_i$. To compute the post-round rating $r_i = \arg\max_{s_i} f(s_i \mid e)$, we may use binary search or Newton's method.
+
+This time, the intuitive interpretation comes from the minimization objective that we differentiated. It has one term corresponding to each p.d.f. factor. The normal p.d.f. becomes a familiar $L^2$ penalty that pushes $s_i$ towards $\mu_0$. The logistic p.d.f.s are more interesting: they too become penalties that push $s_i$ towards $\mu_k$; however, instead of a simple squared error, each of these terms is a logarithm of a hyperbolic cosine!
+
+At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median.
+
+The net result of these penalties is that $r_i$ acts like a mean of the historical performances $\mu_k = p_{i,k}$: it's easily checked that
+
+\[r_i = \frac{\sum_k w_k\mu_k}{\sum_k w_k} \text{ where } w_0 = \frac{1}{\tau_0^2} \text{ and }
+w_k = \frac{1}{\bar\tau_k(r_i-\mu_k)}\tanh\frac{r_i-\mu_k}{\bar\tau_k} \text{ for }k\ge 1.\]
+
+$w_k$ is close to $1/\bar\tau_k^2$ for typical performances but vanishes for extreme outliers, making our rating algorithm robust to performances that are far below or above the usual. This robustness is due to the thicker tails of the logistic distribution, compared to the normal. Empirically, contest performances have indeed been seen to have thick tails, more like the logistic than the normal (TODO citation).
+
+Note that when the weights are fixed, as in the $L^2$ case, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
+
+Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. The exact means by which this is achieved depends on the noising method used, a matter we'll discuss later. For now, note that the $\tanh$ function behaves like the identity in the limit of large $\tau_k$. Hence, logistic factors with sufficiently large $\tau_k$ will come to resemble normal factors, which combine nicely.
+
+As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distribution on $s_i$. While this is intractable for general products of p.d.f.s, we take advantage of our observation that logistic factors behave in the limit like normal factors. Thus, we make an approximation based on a formula that holds for products of normal p.d.f.s:
+
+\[\frac{1}{\bar\sigma_i^2} = \frac{1}{\tau_0^2} + \sum_k \frac{1}{\bar\tau_k^2}\]
