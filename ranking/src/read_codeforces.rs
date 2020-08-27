@@ -1,3 +1,4 @@
+use super::contest_config::Contest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -23,15 +24,6 @@ struct CFRatingChange {
     ratingUpdateTimeSeconds: usize,
     oldRating: i32,
     newRating: i32,
-}
-
-/// Represents the outcome of a contest
-#[derive(Serialize, Deserialize)]
-pub struct Contest {
-    pub id: usize,
-    pub name: String,
-    pub time_seconds: usize,
-    pub standings: Vec<(String, usize, usize)>,
 }
 
 /// Check the integrity of our API response and convert it into a more convenient format
@@ -115,39 +107,29 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     }
 }
 
-/// Get a list of all the contest IDs in chronological order
-pub fn get_contest_ids() -> Vec<usize> {
-    let ids_file = Path::new("../data/contest_ids.json");
-    let contests_json = std::fs::read_to_string(&ids_file).expect("Failed to read contest IDs");
-    serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON")
-}
+
 
 /// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
-pub fn get_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
+pub fn fetch_cf_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
     let cache_file = cache_dir.as_ref().join(format!("{}.json", contest_id));
 
-    match std::fs::read_to_string(&cache_file) {
-        Ok(cached_json) => serde_json::from_str(&cached_json).expect("Failed to read cache"),
-        Err(_) => {
-            // The contest doesn't appear in our cache, so request it from the Codeforces API.
-            let url = format!(
-                "https://codeforces.com/api/contest.ratingChanges?contestId={}",
-                contest_id
-            );
-            let response = reqwest::blocking::get(&url).expect("HTTP error");
-            let packet: CFResponse<Vec<CFRatingChange>> = response
-                .json()
-                .expect("Failed to parse Codeforces API response as JSON");
-            let contest = match packet {
-                CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
-                CFResponse::FAILED { comment } => panic!(comment),
-            };
+    // The contest doesn't appear in our cache, so request it from the Codeforces API.
+    let url = format!(
+        "https://codeforces.com/api/contest.ratingChanges?contestId={}",
+        contest_id
+    );
+    let response = reqwest::blocking::get(&url).expect("HTTP error");
+    let packet: CFResponse<Vec<CFRatingChange>> = response
+        .json()
+        .expect("Failed to parse Codeforces API response as JSON");
+    let contest = match packet {
+        CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
+        CFResponse::FAILED { comment } => panic!(comment),
+    };
 
-            let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
-            std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
-            contest
-        }
-    }
+    let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
+    std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
+    contest
 }
