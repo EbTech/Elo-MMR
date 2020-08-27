@@ -3,15 +3,14 @@ mod read_codeforces;
 mod contest_config;
 
 use compute_ratings::{print_ratings, simulate_contest};
-use read_codeforces::{fetch_cf_contest};
-use contest_config::{get_contest_config, get_contest_ids, get_contest};
+use contest_config::{get_contest_config, get_contest_ids, get_contest, ContestSource};
 use std::collections::HashMap;
 
 /// simulates the entire history of Codeforces; runs on my laptop in 28 minutes,
 /// somewhat longer if accessing the Codeforces API
 fn main() {
     let mut players = HashMap::new();
-    let config = get_contest_config();
+    let config = get_contest_config(ContestSource::Codeforces);
     for contest_id in get_contest_ids(&config.contest_id_file) {
         let contest = get_contest(&config.contest_cache_folder, contest_id);
         println!(

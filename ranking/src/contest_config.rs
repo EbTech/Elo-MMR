@@ -11,15 +11,27 @@ pub struct Contest {
     pub standings: Vec<(String, usize, usize)>,
 }
 
+pub enum ContestSource {
+	Codeforces,
+	Reddit,
+	StackOverflow
+}
+
 pub struct ContestConfig {
 	pub contest_id_file : String,
 	pub contest_cache_folder : String,
 }
 
-pub fn get_contest_config() -> ContestConfig {
+pub fn get_contest_config(source: ContestSource) -> ContestConfig {
+	let source_name = match source {
+		ContestSource::Codeforces => "codeforces",
+		ContestSource::Reddit => "reddit",
+		ContestSource::StackOverflow => "stackoverflow"
+	};
+
 	let config = ContestConfig {
-		contest_id_file: String::from("../data/contest_ids.json"),
-		contest_cache_folder: String::from("../cache"),
+		contest_id_file: String::from(format!("../data/{}/contest_ids.json", source_name)),
+		contest_cache_folder: String::from(format!("../cache/{}", source_name)),
 	};
 	config
 }
