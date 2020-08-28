@@ -21,7 +21,7 @@ struct CFRatingChange {
     contestName: String,
     handle: String,
     rank: usize,
-    ratingUpdateTimeSeconds: usize,
+    ratingUpdateTimeSeconds: u64,
     oldRating: i32,
     newRating: i32,
 }
@@ -107,8 +107,6 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     }
 }
 
-
-
 /// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
@@ -125,7 +123,7 @@ pub fn fetch_cf_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Cont
         .json()
         .expect("Failed to parse Codeforces API response as JSON");
     let contest = match packet {
-        CFResponse::OK { result } => TryFrom::try_from(result).unwrap(),
+        CFResponse::OK { result } => TryFrom::try_from(result).expect("Failed conversion to Contest"),
         CFResponse::FAILED { comment } => panic!(comment),
     };
 

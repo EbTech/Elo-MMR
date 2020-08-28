@@ -1,9 +1,9 @@
 mod compute_ratings;
-mod read_codeforces;
 mod contest_config;
+mod read_codeforces;
 
 use compute_ratings::{print_ratings, simulate_contest};
-use contest_config::{get_contest_config, get_contest_ids, get_contest, ContestSource};
+use contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
 
 /// simulates the entire history of Codeforces; runs on my laptop in 28 minutes,
