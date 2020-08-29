@@ -1,6 +1,6 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
-use super::read_codeforces::Contest;
+use super::contest_config::Contest;
 use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
