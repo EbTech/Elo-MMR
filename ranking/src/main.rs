@@ -2,7 +2,7 @@ mod compute_ratings;
 mod contest_config;
 mod read_codeforces;
 
-use compute_ratings::{print_ratings, simulate_contest};
+use compute_ratings::{print_ratings, simulate_contest, EloRSystem};
 use contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
 
@@ -10,7 +10,8 @@ use std::collections::HashMap;
 /// somewhat longer if accessing the Codeforces API
 fn main() {
     let mut players = HashMap::new();
-    let config = get_contest_config(ContestSource::Reddit);
+    let config = get_contest_config(ContestSource::Codeforces);
+    let system = EloRSystem::default();
     for contest_id in get_contest_ids(&config.contest_id_file) {
         let contest = get_contest(&config.contest_cache_folder, contest_id);
         println!(
@@ -19,7 +20,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest);
+        simulate_contest(&mut players, &contest, &system);
     }
     print_ratings(&players, &get_contest_ids(&config.contest_id_file));
 }

@@ -37,7 +37,8 @@ pub fn get_contest_config(source: ContestSource) -> ContestConfig {
 
 /// Get a list of all the contest IDs in chronological order
 pub fn get_contest_ids<P: AsRef<Path>>(contest_id_file: &P) -> Vec<usize> {
-    let contests_json = std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
+    let contests_json =
+        std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
     serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON")
 }
 

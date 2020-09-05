@@ -8,8 +8,6 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 const MU_NEWBIE: f64 = 1500.0; // rating for a new player
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
-const SIG_LIMIT: f64 = 100.0; // limiting uncertainty for a player who competed a lot
-const SIG_PERF: f64 = 250.0; // variation in individual performances
 const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -18,26 +16,32 @@ struct Rating {
     sig: f64,
 }
 
-impl Default for Rating {
-    fn default() -> Self {
-        Rating {
-            mu: MU_NEWBIE,
-            sig: SIG_NEWBIE,
-        }
-    }
-}
-
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Player {
     normal_factor: Rating,
     logistic_factors: VecDeque<Rating>,
     approx_posterior: Rating,
+    num_contests: usize,
     max_rating: i32,
     last_rating: i32,
     last_contest: usize,
+    last_contest_time: u64,
 }
 
 impl Player {
+    fn with_rating(mu: f64, sig: f64) -> Self {
+        Player {
+            normal_factor: Rating { mu, sig },
+            logistic_factors: VecDeque::new(),
+            approx_posterior: Rating { mu, sig },
+            num_contests: 0,
+            max_rating: 0,
+            last_rating: 0,
+            last_contest: 0,
+            last_contest_time: 0,
+        }
+    }
+
     // the simplest noising method, in which the rating with uncertainty is a Markov state
     fn add_noise_and_collapse(&mut self, sig_noise: f64) {
         self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
@@ -68,7 +72,7 @@ impl Player {
 
         let (mut lo, mut hi) = (decay.sqrt(), decay);
         for _ in 0..30 {
-            let kappa = (lo + hi) / 2.0;
+            let kappa = (lo + hi) / 2.;
             let tau_0 = kappa * self.normal_factor.sig;
             let mut test = tau_0.powi(-2);
             for rating in &self.logistic_factors {
@@ -82,7 +86,7 @@ impl Player {
             }
         }
 
-        let kappa = (lo + hi) / 2.0;
+        let kappa = (lo + hi) / 2.;
         self.normal_factor.sig *= kappa;
         for rating in &mut self.logistic_factors {
             let tau = decay_factor_sig(self.approx_posterior.mu, rating, kappa);
@@ -93,10 +97,8 @@ impl Player {
 
     fn recompute_posterior(&mut self) {
         let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
-        let logistic_vec: Vec<Rating> = self.logistic_factors.iter().cloned().collect();
-        let mu = robust_mean(
-            &logistic_vec,
-            None,
+        let mu = robust_average(
+            self.logistic_factors.iter().cloned(),
             -self.normal_factor.mu * sig_inv_sq,
             sig_inv_sq,
         );
@@ -110,7 +112,7 @@ impl Player {
         self.max_rating = max(self.max_rating, self.conservative_rating());
     }
 
-    fn push_performance(&mut self, perf: f64) {
+    fn push_performance(&mut self, rating: Rating) {
         if self.logistic_factors.len() == MAX_HISTORY_LEN {
             let logistic = self.logistic_factors.pop_front().unwrap();
             let deviation = self.approx_posterior.mu - logistic.mu;
@@ -120,32 +122,30 @@ impl Player {
             self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
             self.normal_factor.sig = (wn + wl).recip().sqrt();
         }
-        self.logistic_factors.push_back(Rating {
-            mu: perf,
-            sig: SIG_PERF,
-        });
+        self.logistic_factors.push_back(rating);
     }
 
     fn conservative_rating(&self) -> i32 {
-        (self.approx_posterior.mu - 2.0 * (self.approx_posterior.sig - SIG_LIMIT)).round() as i32
+        // TODO: erase magic number 100.
+        (self.approx_posterior.mu - 2. * (self.approx_posterior.sig - 100.)).round() as i32
     }
 }
 
 fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
     let deviation = (center - factor.mu).abs();
     let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
-    let (mut lo, mut hi) = (factor.sig * kappa / 2.0, factor.sig * kappa * kappa * 2.0);
-    let mut guess = (lo + hi) / 2.0;
+    let (mut lo, mut hi) = (factor.sig * kappa / 2., factor.sig * kappa * kappa * 2.);
+    let mut guess = (lo + hi) / 2.;
     loop {
         let tanh_factor = (deviation / guess).tanh();
         let test = tanh_factor / guess;
         let test_prime =
-            ((tanh_factor * tanh_factor - 1.0) * deviation / guess - tanh_factor) / (guess * guess);
+            ((tanh_factor * tanh_factor - 1.) * deviation / guess - tanh_factor) / (guess * guess);
         let test_error = test - target;
         let next = (guess - test_error / test_prime)
             .max(0.75 * lo + 0.25 * guess)
             .min(0.25 * guess + 0.75 * hi);
-        if test_error * factor.sig * factor.sig > 0.0 {
+        if test_error * factor.sig * factor.sig > 0. {
             lo = guess;
         } else {
             hi = guess;
@@ -166,16 +166,22 @@ fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
     }
 }
 
-// Returns something near the mean if the ratings are consistent; near the median if they're far apart.
-// offC and offM are constant and slope offsets, respectively. Uses a hybrid of binary search
-// (to converge in the worst-case) and Newton's method (for speed in the typical case).
-fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: f64) -> f64 {
+// Returns the unique zero of the following strictly increasing function of x:
+// offset + slope * x + sum_i tanh((x-mu_i)/sig_i) / sig_i
+// We must have slope != 0 or |offset| < sum_i 1/sig_i in order for the zero to exist.
+// If offset == slope == 0, we get a robust weighted average of the mu_i's. Uses hybrid of
+// binary search (to converge in the worst-case) and Newton's method (for speed in the typical case).
+fn robust_average(
+    all_ratings: impl Iterator<Item = Rating> + Clone,
+    offset: f64,
+    slope: f64,
+) -> f64 {
     let (mut lo, mut hi) = (-1000.0, 4500.0);
     let mut guess = MU_NEWBIE;
     loop {
-        let mut sum = off_c + off_m * guess;
-        let mut sum_prime = off_m;
-        for &rating in all_ratings.iter().chain(extra.map(|i| &all_ratings[i])) {
+        let mut sum = offset + slope * guess;
+        let mut sum_prime = slope;
+        for rating in all_ratings.clone() {
             let incr = ((guess - rating.mu) / rating.sig).tanh() / rating.sig;
             sum += incr;
             sum_prime += rating.sig.powi(-2) - incr * incr
@@ -206,22 +212,240 @@ fn robust_mean(all_ratings: &[Rating], extra: Option<usize>, off_c: f64, off_m: 
 // ratings is a list of the participants, ordered from first to last place
 // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
 fn compute_performance(
+    better: impl Iterator<Item = Rating> + Clone,
+    tied: impl Iterator<Item = Rating> + Clone,
+    worse: impl Iterator<Item = Rating> + Clone,
+) -> f64 {
+    let all = better.clone().chain(tied).chain(worse.clone());
+    let pos_offset: f64 = better.map(|rating| rating.sig.recip()).sum();
+    let neg_offset: f64 = worse.map(|rating| rating.sig.recip()).sum();
+    robust_average(all, pos_offset - neg_offset, 0.)
+}
+
+// ratings is a list of the participants, ordered from first to last place
+// returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
+fn rate_performance_geo(
     better: &[Rating],
     worse: &[Rating],
     all: &[Rating],
-    extra: Option<usize>,
+    my_rating: Rating,
 ) -> f64 {
+    // The conversion is 2*rank - 1/my_sig = 2*pos_offset + tied_offset = pos - neg + all
     let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
     let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
-    robust_mean(all, extra, pos_offset - neg_offset, 0.0)
+    let all_offset: f64 = all.iter().map(|rating| rating.sig.recip()).sum();
+
+    let ac_rank = 0.5 * (pos_offset - neg_offset + all_offset + my_rating.sig.recip());
+    let ex_rank = 0.5
+        + 0.5
+            * all
+                .iter()
+                .map(|rating| (1. + ((rating.mu - my_rating.mu) / rating.sig).tanh()) / rating.sig)
+                .sum::<f64>();
+
+    let geo_rank = (ac_rank * ex_rank).sqrt();
+    let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
+    let geo_rating = robust_average(all.iter().cloned(), geo_offset, 0.);
+    0.5 * (my_rating.mu + geo_rating)
 }
 
-pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest: &Contest) {
-    let sig_noise = ((SIG_LIMIT.powi(-2) - SIG_PERF.powi(-2)).recip() - SIG_LIMIT.powi(2)).sqrt();
+pub trait RatingSystem {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
+}
 
+/// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
+pub struct EloRSystem {
+    sig_perf: f64,  // variation in individual performances
+    sig_limit: f64, // limiting uncertainty for a player who competed a lot
+}
+
+impl Default for EloRSystem {
+    fn default() -> Self {
+        Self {
+            sig_perf: 250.,
+            sig_limit: 100.,
+        }
+    }
+}
+
+impl RatingSystem for EloRSystem {
+    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
+        let sig_noise = ((self.sig_limit.powi(-2) - self.sig_perf.powi(-2)).recip()
+            - self.sig_limit.powi(2))
+        .sqrt();
+
+        // Update ratings due to waiting period between contests
+        let all_ratings: Vec<Rating> = standings
+            .par_iter_mut()
+            .map(|(player, _, _)| {
+                player.add_noise_and_collapse(sig_noise);
+                let rating = player.approx_posterior;
+                Rating {
+                    mu: rating.mu,
+                    sig: rating.sig.hypot(self.sig_perf),
+                }
+            })
+            .collect();
+
+        // The computational bottleneck: update ratings based on contest performance
+        standings
+            .into_par_iter()
+            .enumerate()
+            .for_each(|(i, (player, lo, hi))| {
+                let perf = compute_performance(
+                    all_ratings[..lo].iter().cloned(),
+                    all_ratings[lo..=hi]
+                        .iter()
+                        .cloned()
+                        .chain(std::iter::once(all_ratings[i])),
+                    all_ratings[hi + 1..].iter().cloned(),
+                );
+                player.push_performance(Rating {
+                    mu: perf,
+                    sig: self.sig_perf,
+                });
+                player.recompute_posterior();
+            });
+    }
+}
+
+/// Codeforces system details: https://codeforces.com/blog/entry/20762
+pub struct CodeforcesSystem {
+    sig_perf: f64,
+}
+
+impl Default for CodeforcesSystem {
+    fn default() -> Self {
+        Self {
+            sig_perf: 800. / 10f64.ln(),
+        }
+    }
+}
+
+impl RatingSystem for CodeforcesSystem {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+        let all_ratings: Vec<Rating> = standings
+            .par_iter()
+            .map(|(player, _, _)| Rating {
+                mu: player.approx_posterior.mu,
+                sig: self.sig_perf,
+            })
+            .collect();
+
+        standings
+            .into_par_iter()
+            .zip(all_ratings.par_iter())
+            .for_each(|((player, lo, hi), &my_rating)| {
+                player.approx_posterior.mu = rate_performance_geo(
+                    &all_ratings[..lo],
+                    &all_ratings[hi + 1..],
+                    &all_ratings,
+                    my_rating,
+                );
+            });
+    }
+}
+
+/// TopCoder system details: https://www.topcoder.com/thrive/articles/Ratings
+pub struct TopCoderSystem {}
+
+impl Default for TopCoderSystem {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
+impl RatingSystem for TopCoderSystem {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+        use statrs::function::erf::{erf, erf_inv};
+
+        let num_coders = standings.len() as f64;
+        let ave_rating = standings
+            .iter()
+            .map(|&(ref player, _, _)| player.approx_posterior.mu)
+            .sum::<f64>()
+            / num_coders;
+
+        let comp_factor = {
+            let mut mean_vol_sq = standings
+                .iter()
+                .map(|&(ref player, _, _)| player.approx_posterior.sig.powi(2))
+                .sum::<f64>()
+                / num_coders;
+            if num_coders > 1. {
+                mean_vol_sq += standings
+                    .iter()
+                    .map(|&(ref player, _, _)| (player.approx_posterior.mu - ave_rating).powi(2))
+                    .sum::<f64>()
+                    / (num_coders - 1.);
+            }
+            mean_vol_sq.sqrt()
+        };
+
+        let new_ratings: Vec<(f64, f64)> = standings
+            .par_iter()
+            .map(|(player, lo, hi)| {
+                let old_rating = player.approx_posterior.mu;
+                let vol_sq = player.approx_posterior.sig.powi(2);
+                let win_pr = |rating: &Rating| {
+                    0.5 * (1.
+                        + erf(
+                            (old_rating - rating.mu) / (2. * (vol_sq + rating.sig.powi(2))).sqrt()
+                        ))
+                };
+
+                let ex_rank = standings
+                    .iter()
+                    .map(|&(ref foe, _, _)| (win_pr(&foe.approx_posterior)))
+                    .sum::<f64>();
+                let ac_rank = 0.5 * (1 + lo + hi) as f64;
+
+                let ex_perf = -erf_inv(ex_rank / num_coders);
+                let ac_perf = -erf_inv(ac_rank / num_coders);
+
+                let perf_as = old_rating + comp_factor * (ac_perf - ex_perf);
+
+                let weight = 1. / (1. - (42. / (player.num_contests + 1) as f64 + 0.18)) - 1.;
+
+                let cap = 150. + 1500. / (player.num_contests + 2) as f64;
+
+                let try_rating = (old_rating + weight * perf_as) / (1. + weight);
+                let new_rating = try_rating.max(old_rating - cap).min(old_rating + cap);
+
+                let new_vol =
+                    ((new_rating - old_rating).powi(2) / weight + vol_sq / (1. + weight)).sqrt();
+
+                (new_rating, new_vol)
+            })
+            .collect();
+
+        standings.into_par_iter().zip(new_ratings).for_each(
+            |((player, _, _), (new_rating, new_vol))| {
+                player.approx_posterior.mu = new_rating;
+                player.approx_posterior.sig = new_vol;
+            },
+        );
+    }
+}
+
+fn update_player_metadata(player: &mut Player, contest: &Contest) {
+    player.num_contests += 1;
+    player.last_contest = contest.id;
+    assert!(player.last_contest_time <= contest.time_seconds);
+    player.last_contest_time = contest.time_seconds;
+    player.last_rating = player.conservative_rating();
+}
+
+pub fn simulate_contest(
+    players: &mut HashMap<String, RefCell<Player>>,
+    contest: &Contest,
+    system: &dyn RatingSystem,
+) {
     // Make sure the players exist, initializing newcomers with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
-        players.entry(handle.clone()).or_default();
+        players
+            .entry(handle.clone())
+            .or_insert_with(|| RefCell::new(Player::with_rating(MU_NEWBIE, SIG_NEWBIE)));
     });
 
     // Store guards so that the cells can be released later
@@ -232,42 +456,17 @@ pub fn simulate_contest(players: &mut HashMap<String, RefCell<Player>>, contest:
         .collect();
 
     // Get mut references to all requested players, panic if handles are not distinct
-    let mut players_ref: Vec<&mut Player> = guards
+    let standings: Vec<(&mut Player, usize, usize)> = guards
         .iter_mut()
-        .map(std::ops::DerefMut::deref_mut)
-        .collect();
-
-    // Update ratings due to waiting period between contests
-    let all_ratings: Vec<Rating> = players_ref
-        .par_iter_mut()
         .map(|player| {
-            player.last_rating = player.conservative_rating();
-            player.add_noise_uniform(sig_noise);
-            let rating = player.approx_posterior;
-            Rating {
-                mu: rating.mu,
-                sig: rating.sig.hypot(SIG_PERF),
-            }
+            update_player_metadata(player, contest);
+            std::ops::DerefMut::deref_mut(player)
         })
+        .zip(contest.standings.clone())
+        .map(|(player, (_, lo, hi))| (player, lo, hi))
         .collect();
 
-    // The computational bottleneck: update ratings based on contest performance
-    players_ref
-        .par_iter_mut()
-        .enumerate()
-        .for_each(|(i, player)| {
-            let (_, lo, hi) = contest.standings[i];
-
-            let perf = compute_performance(
-                &all_ratings[..lo],
-                &all_ratings[hi + 1..],
-                &all_ratings,
-                Some(i),
-            );
-            player.push_performance(perf);
-            player.recompute_posterior();
-            player.last_contest = contest.id;
-        });
+    system.round_update(standings);
 }
 
 // TODO: does everything below here belong in a separate file?
@@ -290,7 +489,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
     const TITLE: [&str; NUM_TITLES] = [
         "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
     ];
-    const SIX_MONTHS_AGO: usize = 1295;
+    const SIX_MONTHS_AGO: usize = 1321;
 
     use std::io::Write;
     let filename = "../data/CFratings_temp.txt";

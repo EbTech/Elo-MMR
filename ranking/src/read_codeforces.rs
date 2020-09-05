@@ -123,7 +123,9 @@ pub fn fetch_cf_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Cont
         .json()
         .expect("Failed to parse Codeforces API response as JSON");
     let contest = match packet {
-        CFResponse::OK { result } => TryFrom::try_from(result).expect("Failed conversion to Contest"),
+        CFResponse::OK { result } => {
+            TryFrom::try_from(result).expect("Failed conversion to Contest")
+        }
         CFResponse::FAILED { comment } => panic!(comment),
     };
 
