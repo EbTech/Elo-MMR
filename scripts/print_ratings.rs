@@ -7,7 +7,7 @@ use io::{BufRead, Write};
 
 fn main() {
     let mut ratings = HashMap::new();
-    let file = File::open("../data/CFratings.txt").expect("File not found");
+    let file = File::open("../data/codeforces/CFratings.txt").expect("File not found");
     let buf_file = io::BufReader::new(file);
 
     for line in buf_file.lines().map(|l| l.expect("Failed file read")) {
@@ -17,12 +17,13 @@ fn main() {
             ratings.insert(handle, rating);
         }
     }
+    println!("Type some handles on separate lines, followed by \"FLUSH\":");
 
     let (stdin, stdout) = (io::stdin(), io::stdout());
     let mut out = io::BufWriter::new(stdout.lock());
     for handle in stdin.lock().lines().map(|l| l.expect("Failed stdin read")) {
 	    if handle == "FLUSH" {
-		    out.flush().ok();
+		    break;
 	    }
         let rating = ratings.get(&handle).map(|r| r.as_str()).unwrap_or("");
         writeln!(out, "{}", rating).ok();

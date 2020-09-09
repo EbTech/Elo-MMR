@@ -4,7 +4,7 @@ use super::contest_config::Contest;
 use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, VecDeque};
 
 const MU_NEWBIE: f64 = 1500.0; // rating for a new player
 const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
@@ -237,11 +237,11 @@ fn rate_performance_geo(
 
     let ac_rank = 0.5 * (pos_offset - neg_offset + all_offset + my_rating.sig.recip());
     let ex_rank = 0.5
-        + 0.5
-            * all
+        * (my_rating.sig.recip()
+            + all
                 .iter()
                 .map(|rating| (1. + ((rating.mu - my_rating.mu) / rating.sig).tanh()) / rating.sig)
-                .sum::<f64>();
+                .sum::<f64>());
 
     let geo_rank = (ac_rank * ex_rank).sqrt();
     let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
@@ -346,7 +346,7 @@ impl RatingSystem for CodeforcesSystem {
     }
 }
 
-/// TopCoder system details: https://www.topcoder.com/thrive/articles/Ratings
+/// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 pub struct TopCoderSystem {}
 
 impl Default for TopCoderSystem {
@@ -357,7 +357,9 @@ impl Default for TopCoderSystem {
 
 impl RatingSystem for TopCoderSystem {
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
-        use statrs::function::erf::{erf, erf_inv};
+        use statrs::distribution::{InverseCDF, Normal};
+        use statrs::function::erf::erf;
+        let standard_normal = Normal::new(0.0, 1.0).unwrap();
 
         let num_coders = standings.len() as f64;
         let ave_rating = standings
@@ -366,7 +368,7 @@ impl RatingSystem for TopCoderSystem {
             .sum::<f64>()
             / num_coders;
 
-        let comp_factor = {
+        let c_factor = {
             let mut mean_vol_sq = standings
                 .iter()
                 .map(|&(ref player, _, _)| player.approx_posterior.sig.powi(2))
@@ -382,7 +384,7 @@ impl RatingSystem for TopCoderSystem {
             mean_vol_sq.sqrt()
         };
 
-        let new_ratings: Vec<(f64, f64)> = standings
+        let new_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, lo, hi)| {
                 let old_rating = player.approx_posterior.mu;
@@ -390,7 +392,7 @@ impl RatingSystem for TopCoderSystem {
                 let win_pr = |rating: &Rating| {
                     0.5 * (1.
                         + erf(
-                            (old_rating - rating.mu) / (2. * (vol_sq + rating.sig.powi(2))).sqrt()
+                            (rating.mu - old_rating) / (2. * (rating.sig.powi(2) + vol_sq)).sqrt()
                         ))
                 };
 
@@ -400,12 +402,12 @@ impl RatingSystem for TopCoderSystem {
                     .sum::<f64>();
                 let ac_rank = 0.5 * (1 + lo + hi) as f64;
 
-                let ex_perf = -erf_inv(ex_rank / num_coders);
-                let ac_perf = -erf_inv(ac_rank / num_coders);
+                let ex_perf = -standard_normal.inverse_cdf(ex_rank / num_coders);
+                let ac_perf = -standard_normal.inverse_cdf(ac_rank / num_coders);
 
-                let perf_as = old_rating + comp_factor * (ac_perf - ex_perf);
+                let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
-                let weight = 1. / (1. - (42. / (player.num_contests + 1) as f64 + 0.18)) - 1.;
+                let weight = 1. / (1. - (0.42 / (player.num_contests + 1) as f64 + 0.18)) - 1.;
 
                 let cap = 150. + 1500. / (player.num_contests + 2) as f64;
 
@@ -415,16 +417,19 @@ impl RatingSystem for TopCoderSystem {
                 let new_vol =
                     ((new_rating - old_rating).powi(2) / weight + vol_sq / (1. + weight)).sqrt();
 
-                (new_rating, new_vol)
+                Rating {
+                    mu: new_rating,
+                    sig: new_vol,
+                }
             })
             .collect();
 
-        standings.into_par_iter().zip(new_ratings).for_each(
-            |((player, _, _), (new_rating, new_vol))| {
-                player.approx_posterior.mu = new_rating;
-                player.approx_posterior.sig = new_vol;
-            },
-        );
+        standings
+            .into_par_iter()
+            .zip(new_ratings)
+            .for_each(|((player, _, _), new_rating)| {
+                player.approx_posterior = new_rating;
+            });
     }
 }
 
@@ -477,11 +482,12 @@ struct RatingData {
     max_rating: i32,
     handle: String,
     last_contest: usize,
+    last_contest_time: u64,
     last_perf: i32,
     last_delta: i32,
 }
 
-pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usize]) {
+pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u64) {
     const NUM_TITLES: usize = 11;
     const TITLE_BOUND: [i32; NUM_TITLES] = [
         -999, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2700, 3000,
@@ -489,41 +495,46 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
     const TITLE: [&str; NUM_TITLES] = [
         "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
     ];
-    const SIX_MONTHS_AGO: usize = 1321;
 
     use std::io::Write;
     let filename = "../data/CFratings_temp.txt";
     let file = std::fs::File::create(filename).expect("Output file not found");
     let mut out = std::io::BufWriter::new(file);
-    let recent_contests: HashSet<usize> = contests
-        .iter()
-        .copied()
-        .skip_while(|&i| i != SIX_MONTHS_AGO)
-        .collect();
 
-    let mut sum_ratings = 0.0;
     let mut rating_data = Vec::with_capacity(players.len());
     let mut title_count = vec![0; NUM_TITLES];
+    let sum_ratings = {
+        let mut ratings: Vec<f64> = players
+            .iter()
+            .map(|(_, player)| player.borrow().approx_posterior.mu)
+            .collect();
+        ratings.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        ratings.into_iter().sum::<f64>()
+    };
     for (handle, player) in players {
-        // non-determinism comes from ordering of players
         let player = player.borrow_mut();
-        sum_ratings += player.approx_posterior.mu;
         let cur_rating = player.conservative_rating();
         let max_rating = player.max_rating;
         let handle = handle.clone();
         let last_contest = player.last_contest;
-        let last_perf = player.logistic_factors.back().unwrap().mu.round() as i32;
+        let last_contest_time = player.last_contest_time;
+        let last_perf = player
+            .logistic_factors
+            .back()
+            .map(|r| r.mu.round() as i32)
+            .unwrap_or(0);
         let last_delta = cur_rating - player.last_rating;
         rating_data.push(RatingData {
             cur_rating,
             max_rating,
             handle,
             last_contest,
+            last_contest_time,
             last_perf,
             last_delta,
         });
 
-        if recent_contests.contains(&last_contest) {
+        if last_contest_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
                 .find(|&i| cur_rating >= TITLE_BOUND[i])
@@ -532,7 +543,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
             }
         }
     }
-    rating_data.sort_unstable_by_key(|data| -data.cur_rating);
+    rating_data.sort_unstable_by_key(|data| (-data.cur_rating, data.handle.clone()));
 
     writeln!(
         out,
@@ -547,7 +558,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, contests: &[usi
 
     let mut rank = 0;
     for data in rating_data {
-        if recent_contests.contains(&data.last_contest) {
+        if data.last_contest_time > rated_since {
             rank += 1;
             write!(out, "{:6}", rank).ok();
         } else {
