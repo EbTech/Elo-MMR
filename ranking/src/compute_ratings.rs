@@ -182,7 +182,8 @@ fn robust_average(
         let mut sum = offset + slope * guess;
         let mut sum_prime = slope;
         for rating in all_ratings.clone() {
-            let incr = ((guess - rating.mu) / rating.sig).tanh() / rating.sig;
+            let z = (guess - rating.mu) / rating.sig;
+            let incr = z.tanh() / rating.sig;
             sum += incr;
             sum_prime += rating.sig.powi(-2) - incr * incr
         }
@@ -229,9 +230,52 @@ impl Default for EloRSystem {
 }
 
 impl EloRSystem {
-    // ratings is a list of the participants, ordered from first to last place
-    // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-    fn compute_performance(
+    // Given the participants which beat us, tied with us, and lost against us,
+    // returns our Gaussian-weighted performance score for this round
+    fn compute_performance_gaussian(
+        better: impl Iterator<Item = Rating> + Clone,
+        tied: impl Iterator<Item = Rating> + Clone,
+        worse: impl Iterator<Item = Rating> + Clone,
+    ) -> f64 {
+        use statrs::function::erf::erf;
+        use std::f64::consts::{PI, SQRT_2};
+        let sqrt_2_pi = (2. * PI).sqrt();
+
+        // This is a slow binary search, without Newton steps
+        let (mut lo, mut hi) = (-1000.0, 4500.0);
+        while hi - lo > 1e-9 {
+            let guess = 0.5 * (lo + hi);
+            let mut sum = 0.;
+            for rating in better.clone() {
+                let z = (guess - rating.mu) / rating.sig;
+                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
+                let cdf = 0.5 * (1. + erf(z / SQRT_2));
+                sum += pdf / (cdf - 1.);
+            }
+            for rating in tied.clone() {
+                let z = (guess - rating.mu) / rating.sig;
+                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
+                let pdf_prime = -z * pdf / rating.sig;
+                sum += pdf_prime / pdf;
+            }
+            for rating in worse.clone() {
+                let z = (guess - rating.mu) / rating.sig;
+                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
+                let cdf = 0.5 * (1. + erf(z / SQRT_2));
+                sum += pdf / cdf;
+            }
+            if sum < 0.0 {
+                hi = guess;
+            } else {
+                lo = guess;
+            }
+        }
+        0.5 * (lo + hi)
+    }
+
+    // Given the participants which beat us, tied with us, and lost against us,
+    // returns our logistic-weighted performance score for this round
+    fn compute_performance_logistic(
         better: impl Iterator<Item = Rating> + Clone,
         tied: impl Iterator<Item = Rating> + Clone,
         worse: impl Iterator<Item = Rating> + Clone,
@@ -267,7 +311,7 @@ impl RatingSystem for EloRSystem {
             .into_par_iter()
             .enumerate()
             .for_each(|(i, (player, lo, hi))| {
-                let perf = Self::compute_performance(
+                let perf = Self::compute_performance_logistic(
                     all_ratings[..lo].iter().cloned(),
                     all_ratings[lo..=hi]
                         .iter()
