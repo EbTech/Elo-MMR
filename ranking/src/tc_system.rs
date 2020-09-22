@@ -16,7 +16,7 @@ impl Default for TopCoderSystem {
 }
 
 impl RatingSystem for TopCoderSystem {
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
         use statrs::function::erf::{erfc, erfc_inv};
         use std::f64::consts::SQRT_2;
 

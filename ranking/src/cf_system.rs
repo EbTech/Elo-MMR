@@ -52,7 +52,7 @@ impl CodeforcesSystem {
 }
 
 impl RatingSystem for CodeforcesSystem {
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
         let all_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, _, _)| Rating {

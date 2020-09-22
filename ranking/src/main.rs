@@ -16,7 +16,7 @@ use std::collections::HashMap;
 fn main() {
     let mut players = HashMap::new();
     let config = get_contest_config(ContestSource::Codeforces);
-    let system = elor_system::EloRSystem::default();
+    let mut system = ts_system::TrueSkillSPBSystem::default();
     let mut last_contest_time = 0;
     for contest_id in get_contest_ids(&config.contest_id_file) {
         let contest = get_contest(&config.contest_cache_folder, contest_id);
@@ -26,7 +26,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &system);
+        simulate_contest(&mut players, &contest, &mut system);
         last_contest_time = contest.time_seconds;
     }
     print_ratings(&players, last_contest_time - 183 * 86_400);

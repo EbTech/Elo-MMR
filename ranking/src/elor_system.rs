@@ -79,7 +79,7 @@ impl EloRSystem {
 }
 
 impl RatingSystem for EloRSystem {
-    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&mut self, mut standings: Vec<(&mut Player, usize, usize)>) {
         let sig_noise = ((self.sig_limit.powi(-2) - self.sig_perf.powi(-2)).recip()
             - self.sig_limit.powi(2))
         .sqrt();

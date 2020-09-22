@@ -2,7 +2,7 @@ mod normal;
 mod nodes;
 
 use super::contest_config::Contest;
-use super::compute_ratings::{RatingSystem, Player};
+use super::compute_ratings::{RatingSystem, Player, Rating};
 
 use nodes::{ProdNode, LeqNode, GreaterNode, SumNode, TreeNode, ValueNode, FuncNode};
 use normal::Gaussian;
@@ -11,6 +11,7 @@ use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
+use std::collections::hash_map::Entry;
 
 use std::rc::{Rc, Weak};
 use std::f64::INFINITY;
@@ -22,7 +23,6 @@ type TSTeam = Vec<TSPlayer>;
 type TSContestPlace = Vec<TSTeam>;
 type TSContest = Vec<TSContestPlace>;
 type TSRating = HashMap<TSPlayer, TSPlayerRating>;
-type TSRatingHistory = HashMap<TSPlayer, Vec<(TSPlayerRating, usize)>>;
 
 // TrueSkillStPB rating system
 pub struct TrueSkillSPBSystem {
@@ -38,6 +38,8 @@ pub struct TrueSkillSPBSystem {
     convergence_eps: f64,
     // defines sigma growth per second
     sigma_growth: f64,
+    // history of ratings for all players
+    rating: TSRating,
 }
 
 impl Default for TrueSkillSPBSystem {
@@ -48,20 +50,21 @@ impl Default for TrueSkillSPBSystem {
             sigma: 1500. / 3., // mu/3
             beta: 1500. / 6., // sigma/2
             convergence_eps: 2e-4,
-            sigma_growth: 0.01,
+            sigma_growth: 5.,
+            rating: TSRating::new(),
         }
     }
 }
 
-fn update_rating(old: &TSRating, new: &mut TSRatingHistory, contest: &TSContest, when: usize) {
-    for place in &contest[..] {
-        for team in &place[..] {
-            for player in &team[..] {
-                new.entry(player.clone()).or_insert(Vec::new()).push((old.get(player).unwrap().clone(), when));
-            }
-        }
-    }
-}
+// fn update_rating(old: &TSRating, new: &mut TSRatingHistory, contest: &TSContest, when: usize) {
+//     for place in &contest[..] {
+//         for team in &place[..] {
+//             for player in &team[..] {
+//                 new.entry(player.clone()).or_insert(Vec::new()).push((old.get(player).unwrap().clone(), when));
+//             }
+//         }
+//     }
+// }
 
 
 fn gen_team_message<T, K: Clone>(places: &Vec<Vec<T>>, default: &K) -> Vec<Vec<K>> {
@@ -147,7 +150,7 @@ fn check_convergence(a: &Vec<Rc<RefCell<(TSMessage, TSMessage)>>>,
 }
 
 impl TrueSkillSPBSystem {
-    fn inference(&self, rating: &mut TSRating, contest: &TSContest) {
+    fn inference(&mut self, contest: &TSContest) {
         if contest.is_empty() {
             return;
         }
@@ -173,7 +176,7 @@ impl TrueSkillSPBSystem {
                 for k in 0..contest[i][j].len() {
                     players.push((contest[i][j][k].clone(), s[i][j][k].add_edge()));
                     RefCell::borrow_mut(&players.last().unwrap().1.upgrade().unwrap()).0 =
-                        rating.get(&players.last().unwrap().0).unwrap().clone();
+                        self.rating.get(&players.last().unwrap().0).unwrap().clone();
 
                     let mut tmp: Vec<&mut dyn ValueNode> = Vec::with_capacity(3);
                     tmp.push(&mut p[i][j][k]);
@@ -247,12 +250,65 @@ impl TrueSkillSPBSystem {
             prior = RefCell::borrow(&Weak::upgrade(mess).unwrap()).0.clone();
             performance = RefCell::borrow(&Weak::upgrade(mess).unwrap()).1.clone();
 
-            *rating.get_mut(name).unwrap() = prior * performance;
+            *self.rating.get_mut(name).unwrap() = prior * performance;
         }
     }
 }
 
 impl RatingSystem for TrueSkillSPBSystem {
-    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&mut self, mut standings: Vec<(&mut Player, usize, usize)>) {
+        let mut contest = TSContest::new();
+
+        for i in 1..standings.len() {
+            assert!(standings[i - 1].1 <= standings[i].1);
+        }
+
+        let mut prev = usize::MAX;
+
+        for (user, lo, _hi) in &standings {
+            if *lo != prev {
+                contest.push(Vec::new());
+            }
+            contest.last_mut().unwrap().push(vec![user.name.clone()]);
+
+            prev = *lo;
+        }
+
+        // load rating
+        for place in &contest[..] {
+            for team in &place[..] {
+                for player in &team[..] {
+                    match self.rating.entry(player.clone()) {
+                        Entry::Occupied(o) => {
+                            let g = o.into_mut();
+                            // The multiplier of 1 here assumes time between contests is a constant "time unit"
+                            g.sigma = f64::min(self.sigma, (g.sigma.powi(2) + 1. * self.sigma_growth.powi(2)).sqrt());
+                        },
+                        Entry::Vacant(v) => {
+                            v.insert(Gaussian {mu: self.mu, sigma: self.sigma});
+                        }
+                    }
+                }
+            }
+        }
+
+        // do inference
+        self.inference(&contest);
+
+        // update the ratings
+        for (user, _, _) in standings {
+            match self.rating.entry(user.name.clone()) {
+                Entry::Occupied(o) => {
+                    let g = o.into_mut();
+                    let player_mu = &mut user.approx_posterior.mu;
+                    let player_sig = &mut user.approx_posterior.sig;
+                    *player_mu = g.mu;
+                    *player_sig = g.sigma;
+                },
+                Entry::Vacant(_) => {
+                    println!("Player {} not found in rating system.", user.name.clone());
+                }
+            }
+        }
     }
 }
