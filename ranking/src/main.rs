@@ -2,6 +2,11 @@ mod compute_ratings;
 mod contest_config;
 mod read_codeforces;
 
+mod cf_system;
+mod tc_system;
+mod elor_system;
+mod ts_system;
+
 use compute_ratings::{print_ratings, simulate_contest};
 use contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
@@ -11,7 +16,7 @@ use std::collections::HashMap;
 fn main() {
     let mut players = HashMap::new();
     let config = get_contest_config(ContestSource::Codeforces);
-    let system = compute_ratings::EloRSystem::default();
+    let system = elor_system::EloRSystem::default();
     let mut last_contest_time = 0;
     for contest_id in get_contest_ids(&config.contest_id_file) {
         let contest = get_contest(&config.contest_cache_folder, contest_id);
