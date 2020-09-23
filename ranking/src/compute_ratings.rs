@@ -1,36 +1,37 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
 use super::contest_config::Contest;
-use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
 
-const MU_NEWBIE: f64 = 1500.0; // rating for a new player
-const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
-const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
+pub const MU_NEWBIE: f64 = 1500.0; // rating for a new player
+pub const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
+pub const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
 #[derive(Clone, Copy, PartialEq, Debug)]
-struct Rating {
-    mu: f64,
-    sig: f64,
+pub struct Rating {
+    pub mu: f64,
+    pub sig: f64,
 }
 
 #[derive(Clone)]
 pub struct Player {
-    normal_factor: Rating,
-    logistic_factors: VecDeque<Rating>,
-    approx_posterior: Rating,
-    num_contests: usize,
-    max_rating: i32,
-    last_rating: i32,
-    last_contest: usize,
-    last_contest_time: u64,
+    pub name: String,
+    pub normal_factor: Rating,
+    pub logistic_factors: VecDeque<Rating>,
+    pub approx_posterior: Rating,
+    pub num_contests: usize,
+    pub max_rating: i32,
+    pub last_rating: i32,
+    pub last_contest: usize,
+    pub last_contest_time: u64,
 }
 
 impl Player {
-    fn with_rating(mu: f64, sig: f64) -> Self {
+    pub fn with_rating(name: String, mu: f64, sig: f64) -> Self {
         Player {
+            name: name,
             normal_factor: Rating { mu, sig },
             logistic_factors: VecDeque::new(),
             approx_posterior: Rating { mu, sig },
@@ -43,14 +44,15 @@ impl Player {
     }
 
     // the simplest noising method, in which the rating with uncertainty is a Markov state
-    fn add_noise_and_collapse(&mut self, sig_noise: f64) {
+    pub fn add_noise_and_collapse(&mut self, sig_noise: f64) {
         self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
         self.normal_factor = self.approx_posterior;
         self.logistic_factors.clear();
     }
 
     // apply noise to one variable for which we have many estimates
-    fn add_noise_uniform(&mut self, sig_noise: f64) {
+    #[allow(dead_code)]
+    pub fn add_noise_uniform(&mut self, sig_noise: f64) {
         // multiply all sigmas by the same decay
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.normal_factor.sig *= decay;
@@ -65,7 +67,8 @@ impl Player {
 
     // a fancier but slower substitute for add_noise_uniform(). See paper for details.
     // TODO: optimize using Newton's method.
-    fn add_noise_fancy(&mut self, sig_noise: f64) {
+    #[allow(dead_code)]
+    pub fn add_noise_fancy(&mut self, sig_noise: f64) {
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.approx_posterior.sig *= decay;
         let target = self.approx_posterior.sig.powi(-2);
@@ -95,7 +98,7 @@ impl Player {
         //println!("{} < {} < {}", decay.sqrt(), kappa, decay);
     }
 
-    fn recompute_posterior(&mut self) {
+    pub fn recompute_posterior(&mut self) {
         let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
         let mu = robust_average(
             self.logistic_factors.iter().cloned(),
@@ -112,7 +115,7 @@ impl Player {
         self.max_rating = max(self.max_rating, self.conservative_rating());
     }
 
-    fn push_performance(&mut self, rating: Rating) {
+    pub fn push_performance(&mut self, rating: Rating) {
         if self.logistic_factors.len() == MAX_HISTORY_LEN {
             let logistic = self.logistic_factors.pop_front().unwrap();
             let deviation = self.approx_posterior.mu - logistic.mu;
@@ -125,12 +128,13 @@ impl Player {
         self.logistic_factors.push_back(rating);
     }
 
-    fn conservative_rating(&self) -> i32 {
+    pub fn conservative_rating(&self) -> i32 {
         // TODO: erase magic number 100.
         (self.approx_posterior.mu - 2. * (self.approx_posterior.sig - 100.)).round() as i32
     }
 }
 
+#[allow(dead_code)]
 fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
     let deviation = (center - factor.mu).abs();
     let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
@@ -171,7 +175,7 @@ fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
 // We must have slope != 0 or |offset| < sum_i 1/sig_i in order for the zero to exist.
 // If offset == slope == 0, we get a robust weighted average of the mu_i's. Uses hybrid of
 // binary search (to converge in the worst-case) and Newton's method (for speed in the typical case).
-fn robust_average(
+pub fn robust_average(
     all_ratings: impl Iterator<Item = Rating> + Clone,
     offset: f64,
     slope: f64,
@@ -211,284 +215,7 @@ fn robust_average(
 }
 
 pub trait RatingSystem {
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
-}
-
-/// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
-pub struct EloRSystem {
-    sig_perf: f64,  // variation in individual performances
-    sig_limit: f64, // limiting uncertainty for a player who competed a lot
-}
-
-impl Default for EloRSystem {
-    fn default() -> Self {
-        Self {
-            sig_perf: 250.,
-            sig_limit: 100.,
-        }
-    }
-}
-
-impl EloRSystem {
-    // Given the participants which beat us, tied with us, and lost against us,
-    // returns our Gaussian-weighted performance score for this round
-    fn compute_performance_gaussian(
-        better: impl Iterator<Item = Rating> + Clone,
-        tied: impl Iterator<Item = Rating> + Clone,
-        worse: impl Iterator<Item = Rating> + Clone,
-    ) -> f64 {
-        use statrs::function::erf::erf;
-        use std::f64::consts::{PI, SQRT_2};
-        let sqrt_2_pi = (2. * PI).sqrt();
-
-        // This is a slow binary search, without Newton steps
-        let (mut lo, mut hi) = (-1000.0, 4500.0);
-        while hi - lo > 1e-9 {
-            let guess = 0.5 * (lo + hi);
-            let mut sum = 0.;
-            for rating in better.clone() {
-                let z = (guess - rating.mu) / rating.sig;
-                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
-                let cdf = 0.5 * (1. + erf(z / SQRT_2));
-                sum += pdf / (cdf - 1.);
-            }
-            for rating in tied.clone() {
-                let z = (guess - rating.mu) / rating.sig;
-                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
-                let pdf_prime = -z * pdf / rating.sig;
-                sum += pdf_prime / pdf;
-            }
-            for rating in worse.clone() {
-                let z = (guess - rating.mu) / rating.sig;
-                let pdf = (-0.5 * z * z).exp() / rating.sig / sqrt_2_pi;
-                let cdf = 0.5 * (1. + erf(z / SQRT_2));
-                sum += pdf / cdf;
-            }
-            if sum < 0.0 {
-                hi = guess;
-            } else {
-                lo = guess;
-            }
-        }
-        0.5 * (lo + hi)
-    }
-
-    // Given the participants which beat us, tied with us, and lost against us,
-    // returns our logistic-weighted performance score for this round
-    fn compute_performance_logistic(
-        better: impl Iterator<Item = Rating> + Clone,
-        tied: impl Iterator<Item = Rating> + Clone,
-        worse: impl Iterator<Item = Rating> + Clone,
-    ) -> f64 {
-        let all = better.clone().chain(tied).chain(worse.clone());
-        let pos_offset: f64 = better.map(|rating| rating.sig.recip()).sum();
-        let neg_offset: f64 = worse.map(|rating| rating.sig.recip()).sum();
-        robust_average(all, pos_offset - neg_offset, 0.)
-    }
-}
-
-impl RatingSystem for EloRSystem {
-    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let sig_noise = ((self.sig_limit.powi(-2) - self.sig_perf.powi(-2)).recip()
-            - self.sig_limit.powi(2))
-        .sqrt();
-
-        // Update ratings due to waiting period between contests
-        let all_ratings: Vec<Rating> = standings
-            .par_iter_mut()
-            .map(|(player, _, _)| {
-                player.add_noise_and_collapse(sig_noise);
-                let rating = player.approx_posterior;
-                Rating {
-                    mu: rating.mu,
-                    sig: rating.sig.hypot(self.sig_perf),
-                }
-            })
-            .collect();
-
-        // The computational bottleneck: update ratings based on contest performance
-        standings
-            .into_par_iter()
-            .enumerate()
-            .for_each(|(i, (player, lo, hi))| {
-                let perf = Self::compute_performance_logistic(
-                    all_ratings[..lo].iter().cloned(),
-                    all_ratings[lo..=hi]
-                        .iter()
-                        .cloned()
-                        .chain(std::iter::once(all_ratings[i])),
-                    all_ratings[hi + 1..].iter().cloned(),
-                );
-                player.push_performance(Rating {
-                    mu: perf,
-                    sig: self.sig_perf,
-                });
-                player.recompute_posterior();
-            });
-    }
-}
-
-/// Codeforces system details: https://codeforces.com/blog/entry/20762
-pub struct CodeforcesSystem {
-    sig_perf: f64,
-    weight: f64,
-}
-
-impl Default for CodeforcesSystem {
-    fn default() -> Self {
-        Self {
-            sig_perf: 800. / std::f64::consts::LN_10,
-            weight: 1.,
-        }
-    }
-}
-
-impl CodeforcesSystem {
-    // ratings is a list of the participants, ordered from first to last place
-    // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
-    fn compute_performance(
-        better: &[Rating],
-        worse: &[Rating],
-        all: &[Rating],
-        my_rating: Rating,
-    ) -> f64 {
-        // The conversion is 2*rank - 1/my_sig = 2*pos_offset + tied_offset = pos - neg + all
-        let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
-        let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
-        let all_offset: f64 = all.iter().map(|rating| rating.sig.recip()).sum();
-
-        let ac_rank = 0.5 * (pos_offset - neg_offset + all_offset + my_rating.sig.recip());
-        let ex_rank = 0.5
-            * (my_rating.sig.recip()
-                + all
-                    .iter()
-                    .map(|rating| {
-                        (1. + ((rating.mu - my_rating.mu) / rating.sig).tanh()) / rating.sig
-                    })
-                    .sum::<f64>());
-
-        let geo_rank = (ac_rank * ex_rank).sqrt();
-        let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
-        let geo_rating = robust_average(all.iter().cloned(), geo_offset, 0.);
-        geo_rating
-    }
-}
-
-impl RatingSystem for CodeforcesSystem {
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
-        let all_ratings: Vec<Rating> = standings
-            .par_iter()
-            .map(|(player, _, _)| Rating {
-                mu: player.approx_posterior.mu,
-                sig: self.sig_perf,
-            })
-            .collect();
-
-        standings
-            .into_par_iter()
-            .zip(all_ratings.par_iter())
-            .for_each(|((player, lo, hi), &my_rating)| {
-                let geo_perf = Self::compute_performance(
-                    &all_ratings[..lo],
-                    &all_ratings[hi + 1..],
-                    &all_ratings,
-                    my_rating,
-                );
-                let player_mu = &mut player.approx_posterior.mu;
-                *player_mu = (*player_mu + self.weight * geo_perf) / (1. + self.weight);
-            });
-    }
-}
-
-/// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
-/// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
-pub struct TopCoderSystem {}
-
-impl Default for TopCoderSystem {
-    fn default() -> Self {
-        Self {}
-    }
-}
-
-impl RatingSystem for TopCoderSystem {
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
-        use statrs::function::erf::{erfc, erfc_inv};
-        use std::f64::consts::SQRT_2;
-
-        let num_coders = standings.len() as f64;
-        let ave_rating = standings
-            .iter()
-            .map(|&(ref player, _, _)| player.approx_posterior.mu)
-            .sum::<f64>()
-            / num_coders;
-
-        let c_factor = {
-            let mut mean_vol_sq = standings
-                .iter()
-                .map(|&(ref player, _, _)| player.approx_posterior.sig.powi(2))
-                .sum::<f64>()
-                / num_coders;
-            if num_coders > 1. {
-                mean_vol_sq += standings
-                    .iter()
-                    .map(|&(ref player, _, _)| (player.approx_posterior.mu - ave_rating).powi(2))
-                    .sum::<f64>()
-                    / (num_coders - 1.);
-            }
-            mean_vol_sq.sqrt()
-        };
-
-        let new_ratings: Vec<Rating> = standings
-            .par_iter()
-            .map(|(player, lo, hi)| {
-                let old_rating = player.approx_posterior.mu;
-                let vol_sq = player.approx_posterior.sig.powi(2);
-                let win_pr = |rating: &Rating| {
-                    0.5 * erfc(
-                        (old_rating - rating.mu) / (2. * (vol_sq + rating.sig.powi(2))).sqrt(),
-                    )
-                };
-
-                let ex_rank = standings
-                    .iter()
-                    .map(|&(ref foe, _, _)| (win_pr(&foe.approx_posterior)))
-                    .sum::<f64>();
-                let ac_rank = 0.5 * (1 + lo + hi) as f64;
-
-                // cdf(-perf) = rank / num_coders
-                //   => perf  = -inverse_cdf(rank / num_coders)
-                // If perf is standard normal, we get inverse_cdf using erfc_inv:
-                let ex_perf = SQRT_2 * erfc_inv(2. * ex_rank / num_coders);
-                let ac_perf = SQRT_2 * erfc_inv(2. * ac_rank / num_coders);
-                let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
-
-                let mut weight = 1. / (0.82 - 0.42 / player.num_contests as f64) - 1.;
-                if old_rating >= 2500. {
-                    weight *= 0.8;
-                } else if old_rating >= 2000. {
-                    weight *= 0.9;
-                }
-                let cap = 150. + 1500. / (player.num_contests + 1) as f64;
-
-                let try_rating = (old_rating + weight * perf_as) / (1. + weight);
-                let new_rating = try_rating.max(old_rating - cap).min(old_rating + cap);
-                let new_vol =
-                    ((try_rating - old_rating).powi(2) / weight + vol_sq / (1. + weight)).sqrt();
-
-                Rating {
-                    mu: new_rating,
-                    sig: new_vol,
-                }
-            })
-            .collect();
-
-        standings
-            .into_par_iter()
-            .zip(new_ratings)
-            .for_each(|((player, _, _), new_rating)| {
-                player.approx_posterior = new_rating;
-            });
-    }
+    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>);
 }
 
 fn update_player_metadata(player: &mut Player, contest: &Contest) {
@@ -502,13 +229,13 @@ fn update_player_metadata(player: &mut Player, contest: &Contest) {
 pub fn simulate_contest(
     players: &mut HashMap<String, RefCell<Player>>,
     contest: &Contest,
-    system: &dyn RatingSystem,
+    system: &mut dyn RatingSystem,
 ) {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
-        players
-            .entry(handle.clone())
-            .or_insert_with(|| RefCell::new(Player::with_rating(MU_NEWBIE, SIG_NEWBIE)));
+        players.entry(handle.clone()).or_insert_with(|| {
+            RefCell::new(Player::with_rating(handle.clone(), MU_NEWBIE, SIG_NEWBIE))
+        });
     });
 
     // Low-level magic: verify that handles are distinct and store guards so that the cells
