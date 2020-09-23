@@ -1,9 +1,5 @@
-use super::contest_config::Contest;
-use super::compute_ratings::{RatingSystem, Rating, Player, robust_average};
+use super::compute_ratings::{robust_average, Player, Rating, RatingSystem};
 use rayon::prelude::*;
-use std::cell::{RefCell, RefMut};
-use std::cmp::max;
-use std::collections::{HashMap, VecDeque};
 
 /// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 pub struct EloRSystem {
@@ -23,6 +19,7 @@ impl Default for EloRSystem {
 impl EloRSystem {
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our Gaussian-weighted performance score for this round
+    #[allow(dead_code)]
     fn compute_performance_gaussian(
         better: impl Iterator<Item = Rating> + Clone,
         tied: impl Iterator<Item = Rating> + Clone,
@@ -118,4 +115,3 @@ impl RatingSystem for EloRSystem {
             });
     }
 }
-

@@ -1,9 +1,5 @@
-use super::contest_config::Contest;
-use super::compute_ratings::{RatingSystem, Rating, Player, robust_average};
+use super::compute_ratings::{Player, Rating, RatingSystem};
 use rayon::prelude::*;
-use std::cell::{RefCell, RefMut};
-use std::cmp::max;
-use std::collections::{HashMap, VecDeque};
 
 /// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 /// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf

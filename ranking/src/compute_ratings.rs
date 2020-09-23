@@ -1,14 +1,13 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
 use super::contest_config::Contest;
-use rayon::prelude::*;
 use std::cell::{RefCell, RefMut};
 use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
 
-const MU_NEWBIE: f64 = 1500.0; // rating for a new player
-const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
-const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
+pub const MU_NEWBIE: f64 = 1500.0; // rating for a new player
+pub const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
+pub const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Rating {
@@ -52,6 +51,7 @@ impl Player {
     }
 
     // apply noise to one variable for which we have many estimates
+    #[allow(dead_code)]
     pub fn add_noise_uniform(&mut self, sig_noise: f64) {
         // multiply all sigmas by the same decay
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
@@ -67,6 +67,7 @@ impl Player {
 
     // a fancier but slower substitute for add_noise_uniform(). See paper for details.
     // TODO: optimize using Newton's method.
+    #[allow(dead_code)]
     pub fn add_noise_fancy(&mut self, sig_noise: f64) {
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.approx_posterior.sig *= decay;
@@ -133,6 +134,7 @@ impl Player {
     }
 }
 
+#[allow(dead_code)]
 fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
     let deviation = (center - factor.mu).abs();
     let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
@@ -231,9 +233,9 @@ pub fn simulate_contest(
 ) {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
-        players
-            .entry(handle.clone())
-            .or_insert_with(|| RefCell::new(Player::with_rating(handle.clone(), MU_NEWBIE, SIG_NEWBIE)));
+        players.entry(handle.clone()).or_insert_with(|| {
+            RefCell::new(Player::with_rating(handle.clone(), MU_NEWBIE, SIG_NEWBIE))
+        });
     });
 
     // Low-level magic: verify that handles are distinct and store guards so that the cells

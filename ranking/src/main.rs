@@ -3,8 +3,8 @@ mod contest_config;
 mod read_codeforces;
 
 mod cf_system;
-mod tc_system;
 mod elor_system;
+mod tc_system;
 mod ts_system;
 
 use compute_ratings::{print_ratings, simulate_contest};

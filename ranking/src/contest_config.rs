@@ -11,6 +11,7 @@ pub struct Contest {
     pub standings: Vec<(String, usize, usize)>,
 }
 
+#[allow(dead_code)]
 pub enum ContestSource {
     Codeforces,
     Reddit,

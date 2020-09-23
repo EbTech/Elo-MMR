@@ -1,7 +1,7 @@
 use super::normal::Gaussian;
-use super::normal::{ZERO, ONE};
-use std::rc::{Rc, Weak};
+use super::normal::{ONE, ZERO};
 use std::cell::RefCell;
+use std::rc::{Rc, Weak};
 
 pub type Message = Gaussian;
 
@@ -19,7 +19,7 @@ pub trait FuncNode: TreeNode {
 
 #[derive(Clone)]
 pub struct ProdNode {
-    edges: Vec<Rc<RefCell<(Message, Message)>>>
+    edges: Vec<Rc<RefCell<(Message, Message)>>>,
 }
 
 #[derive(Clone)]
@@ -103,7 +103,10 @@ impl ValueNode for LeqNode {
 
 impl LeqNode {
     pub fn new(eps: f64) -> LeqNode {
-        LeqNode { eps, edge: Rc::new(RefCell::new((ZERO, ZERO))) }
+        LeqNode {
+            eps,
+            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+        }
     }
 }
 
@@ -125,7 +128,10 @@ impl ValueNode for GreaterNode {
 
 impl GreaterNode {
     pub fn new(eps: f64) -> GreaterNode {
-        GreaterNode { eps, edge: Rc::new(RefCell::new((ZERO, ZERO))) }
+        GreaterNode {
+            eps,
+            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+        }
     }
 }
 
@@ -151,8 +157,8 @@ impl TreeNode for SumNode {
             let mut prefix_sums = vec![ZERO; from.len() + 1];
 
             for i in 1..prefix_sums.len() {
-                prefix_sums[i] = &prefix_sums[i - 1] +
-                    &RefCell::borrow(&Weak::upgrade(&from[i - 1]).unwrap()).1;
+                prefix_sums[i] =
+                    &prefix_sums[i - 1] + &RefCell::borrow(&Weak::upgrade(&from[i - 1]).unwrap()).1;
             }
 
             prefix_sums
@@ -165,12 +171,14 @@ impl TreeNode for SumNode {
         suffix_sums.reverse();
         let suffix_sums = suffix_sums;
 
-        RefCell::borrow_mut(&self.out_edge.upgrade().unwrap()).0 = prefix_sums.last().unwrap().clone();
+        RefCell::borrow_mut(&self.out_edge.upgrade().unwrap()).0 =
+            prefix_sums.last().unwrap().clone();
 
         for i in 0..self.sum_edges.len() {
             RefCell::borrow_mut(&self.sum_edges[i].upgrade().unwrap()).0 =
-                &RefCell::borrow(&self.out_edge.upgrade().unwrap()).1 -
-                    &prefix_sums[i] - &suffix_sums[i + 1];
+                &RefCell::borrow(&self.out_edge.upgrade().unwrap()).1
+                    - &prefix_sums[i]
+                    - &suffix_sums[i + 1];
         }
     }
 }

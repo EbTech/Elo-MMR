@@ -1,9 +1,5 @@
-use super::contest_config::Contest;
-use super::compute_ratings::{RatingSystem, Rating, Player, robust_average};
+use super::compute_ratings::{robust_average, Player, Rating, RatingSystem};
 use rayon::prelude::*;
-use std::cell::{RefCell, RefMut};
-use std::cmp::max;
-use std::collections::{HashMap, VecDeque};
 
 /// Codeforces system details: https://codeforces.com/blog/entry/20762
 pub struct CodeforcesSystem {

@@ -18,8 +18,10 @@ pub struct Gaussian {
 #[allow(unused)]
 pub const ZERO: Gaussian = Gaussian { mu: 0., sigma: 0. };
 #[allow(unused)]
-pub const ONE: Gaussian = Gaussian { mu: 0., sigma: INFINITY };
-
+pub const ONE: Gaussian = Gaussian {
+    mu: 0.,
+    sigma: INFINITY,
+};
 
 overload!((a: ?Gaussian) + (b: ?Gaussian) -> Gaussian {
     Gaussian {
@@ -52,7 +54,6 @@ overload!(-(a: &mut Gaussian) -> Gaussian {
     }
 });
 
-
 overload!((a: ?Gaussian) * (b: ?f64) -> Gaussian {
     Gaussian {
         mu: a.mu * b,
@@ -76,7 +77,6 @@ overload!((a: &mut Gaussian) /= (b: ?f64) {
     a.mu /= b;
     a.sigma /= b.abs();
 });
-
 
 overload!((a: ?Gaussian) * (b: ?Gaussian) -> Gaussian {
     if a.sigma.is_infinite() {
@@ -115,7 +115,6 @@ overload!((a: &mut Gaussian) /= (b: ?Gaussian) {
     *a = a.clone() / b;
 });
 
-
 fn gauss_exponent(mu: f64, sigma: f64, t: f64) -> f64 {
     (-((t - mu) / sigma).powi(2)).exp()
 }
@@ -129,11 +128,12 @@ fn moment1(mu: f64, sigma: f64, t: f64) -> f64 {
 }
 
 fn moment2(mu: f64, sigma: f64, t: f64) -> f64 {
-    mu.powi(2) * moment0(0., sigma, t - mu) + 2. * mu * moment1(0., sigma, t - mu) +
-        sigma.powi(2) / 4. * (2. * gauss_exponent(mu, sigma, t) * (t - mu) +
-            sigma * PI.sqrt() * erfc((t - mu) / sigma))
+    mu.powi(2) * moment0(0., sigma, t - mu)
+        + 2. * mu * moment1(0., sigma, t - mu)
+        + sigma.powi(2) / 4.
+            * (2. * gauss_exponent(mu, sigma, t) * (t - mu)
+                + sigma * PI.sqrt() * erfc((t - mu) / sigma))
 }
-
 
 impl Gaussian {
     pub fn leq_eps(&self, eps: f64) -> Gaussian {
@@ -142,11 +142,17 @@ impl Gaussian {
         let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
 
         if alpha < PREC {
-            return Gaussian { mu: 0., sigma: (1. / 3. as f64).sqrt() } / self;
+            return Gaussian {
+                mu: 0.,
+                sigma: (1. / 3. as f64).sqrt(),
+            } / self;
         }
 
-        let mu = 1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
-        let sigma2 = 1. / alpha * (moment2(self.mu, self.sigma, -eps) - moment2(self.mu, self.sigma, eps)) - mu.powi(2);
+        let mu =
+            1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
+        let sigma2 = 1. / alpha
+            * (moment2(self.mu, self.sigma, -eps) - moment2(self.mu, self.sigma, eps))
+            - mu.powi(2);
         let sigma = sigma2.sqrt();
 
         assert!(!mu.is_nan() && !sigma.is_nan(), "{:?}\teps {}", self, eps);
@@ -158,14 +164,16 @@ impl Gaussian {
         ans
     }
 
-
     pub fn greater_eps(&self, eps: f64) -> Gaussian {
         assert!(eps >= 0.);
 
         let alpha = moment0(self.mu, self.sigma, eps);
 
         if alpha < PREC {
-            return Gaussian { mu: eps, sigma: self.sigma / (2. as f64).sqrt() } / self;
+            return Gaussian {
+                mu: eps,
+                sigma: self.sigma / (2. as f64).sqrt(),
+            } / self;
         }
 
         let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
