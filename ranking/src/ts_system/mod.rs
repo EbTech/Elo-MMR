@@ -47,27 +47,23 @@ impl Default for TrueSkillSPBSystem {
     }
 }
 
-fn gen_team_message<T, K: Clone>(places: &Vec<Vec<T>>, default: &K) -> Vec<Vec<K>> {
+fn gen_team_message<T, K: Clone>(places: &[Vec<T>], default: &K) -> Vec<Vec<K>> {
     places
         .iter()
         .map(|place| vec![default.clone(); place.len()])
         .collect()
 }
 
-fn gen_player_message<T, K: Clone>(places: &Vec<Vec<Vec<T>>>, default: &K) -> Vec<Vec<Vec<K>>> {
-    let mut ret = Vec::with_capacity(places.len());
-
-    for place in places {
-        ret.push(Vec::with_capacity(place.len()));
-
-        for team in place {
-            ret.last_mut()
-                .unwrap()
-                .push(vec![default.clone(); team.len()]);
-        }
-    }
-
-    ret
+fn gen_player_message<T, K: Clone>(places: &[Vec<Vec<T>>], default: &K) -> Vec<Vec<Vec<K>>> {
+    places
+        .iter()
+        .map(|place| {
+            place
+                .iter()
+                .map(|team| vec![default.clone(); team.len()])
+                .collect()
+        })
+        .collect()
 }
 
 fn infer1(who: &mut Vec<impl TreeNode>) {
@@ -108,25 +104,20 @@ fn check_convergence(
         return INFINITY;
     }
 
-    let mut ret = 0.;
-
-    for i in 0..a.len() {
-        ret = f64::max(
-            ret,
-            f64::max(
-                f64::max(
-                    f64::abs(RefCell::borrow(&a[i]).0.mu - b[i].0.mu),
-                    f64::abs(RefCell::borrow(&a[i]).0.sigma - b[i].0.sigma),
-                ),
-                f64::max(
-                    f64::abs(RefCell::borrow(&a[i]).1.mu - b[i].1.mu),
-                    f64::abs(RefCell::borrow(&a[i]).1.sigma - b[i].1.sigma),
-                ),
-            ),
-        );
-    }
-
-    ret
+    a.iter()
+        .map(|ai| ai.borrow())
+        .zip(b.iter())
+        .flat_map(|(ai, bi)| {
+            vec![
+                ai.0.mu - bi.0.mu,
+                ai.0.sigma - bi.0.sigma,
+                ai.1.mu - bi.1.mu,
+                ai.1.sigma - bi.1.sigma,
+            ]
+        })
+        .map(f64::abs)
+        .max_by(|x, y| x.partial_cmp(y).expect("Difference became NaN"))
+        .unwrap_or(0.)
 }
 
 impl TrueSkillSPBSystem {
@@ -136,6 +127,7 @@ impl TrueSkillSPBSystem {
         }
 
         // could be optimized, written that way for simplicity
+        // TODO: make better variable names
         let mut s = gen_player_message(contest, &ProdNode::new());
         let mut perf = gen_player_message(contest, &ProdNode::new());
         let mut p = gen_player_message(contest, &ProdNode::new());
@@ -143,13 +135,13 @@ impl TrueSkillSPBSystem {
         let mut u = gen_team_message(contest, &LeqNode::new(self.eps));
         let mut l = vec![ProdNode::new(); contest.len()];
         let mut d = vec![GreaterNode::new(2. * self.eps); contest.len() - 1];
-        let mut sp = Vec::new();
-        let mut pt = Vec::new();
-        let mut tul = Vec::new();
-        let mut ld = Vec::new();
-        let mut players = Vec::new();
-        let mut conv = Vec::new();
-        let mut old_conv = Vec::new();
+        let mut sp = vec![];
+        let mut pt = vec![];
+        let mut tul = vec![];
+        let mut ld = vec![];
+        let mut players = vec![];
+        let mut conv = vec![];
+        let mut old_conv = vec![];
 
         for i in 0..contest.len() {
             for j in 0..contest[i].len() {
@@ -171,9 +163,8 @@ impl TrueSkillSPBSystem {
                 }
 
                 let mut tt: Vec<&mut dyn ValueNode> = vec![&mut t[i][j]];
-                for pp in &mut p[i][j] {
-                    tt.push(pp);
-                }
+                tt.extend(p[i][j].iter_mut().map(|pp| pp as &mut dyn ValueNode));
+
                 pt.push(SumNode::new(&mut tt));
                 tul.push(SumNode::new(&mut [&mut l[i], &mut t[i][j], &mut u[i][j]]));
                 conv.push(t[i][j].get_edges().last().unwrap().clone());
@@ -181,9 +172,9 @@ impl TrueSkillSPBSystem {
 
             if i != 0 {
                 let mut tmp: Vec<&mut dyn ValueNode> = Vec::with_capacity(3);
-                let (a, b) = l.split_at_mut(i);
-                tmp.push(a.last_mut().unwrap());
-                tmp.push(b.first_mut().unwrap());
+                let (pref, suf) = l.split_at_mut(i);
+                tmp.push(pref.last_mut().unwrap());
+                tmp.push(suf.first_mut().unwrap());
                 tmp.push(&mut d[i - 1]);
                 ld.push(SumNode::new(&mut tmp));
             }
@@ -251,7 +242,7 @@ impl RatingSystem for TrueSkillSPBSystem {
 
         for (user, lo, _hi) in &standings {
             if *lo != prev {
-                contest.push(Vec::new());
+                contest.push(vec![]);
             }
             contest.last_mut().unwrap().push(vec![user.name.clone()]);
             prev = *lo;

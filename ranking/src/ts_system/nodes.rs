@@ -43,15 +43,19 @@ pub struct SumNode {
 impl TreeNode for ProdNode {
     fn infer(&mut self) {
         fn get_prefix_prods(from: &[Rc<RefCell<(Message, Message)>>]) -> Vec<Message> {
-            let mut prefix_prods = vec![ONE; from.len() + 1];
+            let mut prefix_prods = Vec::with_capacity(from.len() + 1);
+            prefix_prods.push(ONE);
 
-            for i in 1..prefix_prods.len() {
-                prefix_prods[i] = &prefix_prods[i - 1] * &RefCell::borrow(&&from[i - 1]).0;
+            for val in from {
+                let (ref val, _) = *val.borrow();
+                prefix_prods.push(prefix_prods.last().unwrap() * val);
             }
 
             prefix_prods
         }
+
         let prefix_prods = get_prefix_prods(self.edges.as_slice());
+
         self.edges.reverse();
         let mut suffix_prods = get_prefix_prods(self.edges.as_slice());
         self.edges.reverse();
@@ -137,15 +141,16 @@ impl GreaterNode {
 
 impl FuncNode for SumNode {
     fn new(neighbours: &mut [&mut dyn ValueNode]) -> Self {
-        assert!(neighbours.len() >= 1);
+        assert!(!neighbours.is_empty());
 
-        let mut sum_edges = Vec::with_capacity(neighbours.len() - 1);
-        for i in 1..neighbours.len() {
-            sum_edges.push(neighbours[i].add_edge());
-        }
+        let sum_edges: Vec<_> = neighbours
+            .iter_mut()
+            .skip(1)
+            .map(|nb| nb.add_edge())
+            .collect();
 
         SumNode {
-            out_edge: neighbours.first_mut().unwrap().add_edge(),
+            out_edge: neighbours[0].add_edge(),
             sum_edges,
         }
     }
@@ -154,11 +159,13 @@ impl FuncNode for SumNode {
 impl TreeNode for SumNode {
     fn infer(&mut self) {
         fn get_prefix_sums(from: &[Weak<RefCell<(Message, Message)>>]) -> Vec<Message> {
-            let mut prefix_sums = vec![ZERO; from.len() + 1];
+            let mut prefix_sums = Vec::with_capacity(from.len() + 1);
+            prefix_sums.push(ZERO);
 
-            for i in 1..prefix_sums.len() {
-                prefix_sums[i] =
-                    &prefix_sums[i - 1] + &RefCell::borrow(&Weak::upgrade(&from[i - 1]).unwrap()).1;
+            for val in from {
+                let val = val.upgrade().unwrap();
+                let (_, ref val) = *val.borrow();
+                prefix_sums.push(prefix_sums.last().unwrap() + val);
             }
 
             prefix_sums
