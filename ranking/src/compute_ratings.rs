@@ -17,7 +17,6 @@ pub struct Rating {
 
 #[derive(Clone)]
 pub struct Player {
-    pub name: String,
     pub normal_factor: Rating,
     pub logistic_factors: VecDeque<Rating>,
     pub approx_posterior: Rating,
@@ -29,9 +28,8 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn with_rating(name: String, mu: f64, sig: f64) -> Self {
+    pub fn with_rating(mu: f64, sig: f64) -> Self {
         Player {
-            name: name,
             normal_factor: Rating { mu, sig },
             logistic_factors: VecDeque::new(),
             approx_posterior: Rating { mu, sig },
@@ -243,7 +241,7 @@ pub fn robust_average(
 
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
-    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>);
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
 }
 
 fn update_player_metadata(player: &mut Player, contest: &Contest) {
@@ -261,9 +259,9 @@ pub fn simulate_contest(
 ) {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
-        players.entry(handle.clone()).or_insert_with(|| {
-            RefCell::new(Player::with_rating(handle.clone(), MU_NEWBIE, SIG_NEWBIE))
-        });
+        players
+            .entry(handle.clone())
+            .or_insert_with(|| RefCell::new(Player::with_rating(MU_NEWBIE, SIG_NEWBIE)));
     });
 
     // Low-level magic: verify that handles are distinct and store guards so that the cells

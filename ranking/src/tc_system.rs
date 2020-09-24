@@ -23,7 +23,7 @@ impl RatingSystem for TopCoderSystem {
         standard_normal_cdf(z)
     }
 
-    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
             .iter()

@@ -52,7 +52,7 @@ impl RatingSystem for CodeforcesSystem {
         standard_logistic_cdf(z)
     }
 
-    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
         let all_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, _, _)| Rating {

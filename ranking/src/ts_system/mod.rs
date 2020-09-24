@@ -1,25 +1,19 @@
 mod nodes;
 mod normal;
 
-use super::compute_ratings::{Player, Rating, RatingSystem, MU_NEWBIE, SIG_NEWBIE};
+use super::compute_ratings::{Player, Rating, RatingSystem, MU_NEWBIE};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
 
 use std::cell::RefCell;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::rc::Rc;
 
-use std::f64::INFINITY;
-use std::rc::{Rc, Weak};
-
-type TSPlayerRating = Gaussian;
 type TSMessage = nodes::Message;
-type TSPlayer = String;
-type TSTeam = Vec<TSPlayer>;
-type TSContestPlace = Vec<TSTeam>;
-type TSContest = Vec<TSContestPlace>;
-type TSRating = HashMap<TSPlayer, TSPlayerRating>;
+type TSPlayer<'a> = (&'a mut Player, Gaussian);
+type TSTeam<'a> = Vec<TSPlayer<'a>>;
+type TSContestPlace<'a> = Vec<TSTeam<'a>>;
+type TSContest<'a> = Vec<TSContestPlace<'a>>;
 
 // TrueSkillStPB rating system
 pub struct TrueSkillSPBSystem {
@@ -31,8 +25,6 @@ pub struct TrueSkillSPBSystem {
     convergence_eps: f64,
     // defines sigma growth per second
     sigma_growth: f64,
-    // history of ratings for all players
-    rating: TSRating,
 }
 
 impl Default for TrueSkillSPBSystem {
@@ -42,7 +34,6 @@ impl Default for TrueSkillSPBSystem {
             beta: MU_NEWBIE / 6., // sigma/2
             convergence_eps: 2e-4,
             sigma_growth: 5.,
-            rating: TSRating::new(),
         }
     }
 }
@@ -101,7 +92,7 @@ fn check_convergence(
     b: &[(TSMessage, TSMessage)],
 ) -> f64 {
     if a.len() != b.len() {
-        return INFINITY;
+        return std::f64::INFINITY;
     }
 
     a.iter()
@@ -121,13 +112,13 @@ fn check_convergence(
 }
 
 impl TrueSkillSPBSystem {
-    fn inference(&mut self, contest: &TSContest) {
+    fn inference(&self, contest: &mut TSContest) {
         if contest.is_empty() {
             return;
         }
 
         // could be optimized, written that way for simplicity
-        // TODO: make better variable names
+        // TODO: invent better variable names
         let mut s = gen_player_message(contest, &ProdNode::new());
         let mut perf = gen_player_message(contest, &ProdNode::new());
         let mut p = gen_player_message(contest, &ProdNode::new());
@@ -146,9 +137,9 @@ impl TrueSkillSPBSystem {
         for i in 0..contest.len() {
             for j in 0..contest[i].len() {
                 for k in 0..contest[i][j].len() {
-                    players.push((contest[i][j][k].clone(), s[i][j][k].add_edge()));
-                    RefCell::borrow_mut(&players.last().unwrap().1.upgrade().unwrap()).0 =
-                        self.rating.get(&players.last().unwrap().0).unwrap().clone();
+                    let new_edge = s[i][j][k].add_edge();
+
+                    new_edge.upgrade().unwrap().borrow_mut().0 = contest[i][j][k].1.clone();
 
                     sp.push(SumNode::new(&mut [
                         &mut p[i][j][k],
@@ -160,6 +151,8 @@ impl TrueSkillSPBSystem {
                             mu: 0.,
                             sigma: self.beta,
                         };
+
+                    players.push((i, j, k, new_edge));
                 }
 
                 let mut tt: Vec<&mut dyn ValueNode> = vec![&mut t[i][j]];
@@ -214,14 +207,14 @@ impl TrueSkillSPBSystem {
         infer1(&mut sp);
         infer3(&mut s);
 
-        for (name, mess) in &players {
-            let prior;
-            let performance;
+        for (i, j, k, mess) in players {
+            let val = mess.upgrade().unwrap();
+            let (prior, performance) = &*val.borrow();
+            let (player, gaussian) = &mut contest[i][j][k];
 
-            prior = RefCell::borrow(&Weak::upgrade(mess).unwrap()).0.clone();
-            performance = RefCell::borrow(&Weak::upgrade(mess).unwrap()).1.clone();
-
-            *self.rating.get_mut(name).unwrap() = prior * performance;
+            *gaussian = prior * performance;
+            player.approx_posterior.mu = gaussian.mu;
+            player.approx_posterior.sig = gaussian.sigma;
         }
     }
 }
@@ -231,64 +224,29 @@ impl RatingSystem for TrueSkillSPBSystem {
         0.5 // TODO
     }
 
-    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
         let mut contest = TSContest::new();
 
         for i in 1..standings.len() {
             assert!(standings[i - 1].1 <= standings[i].1);
         }
 
+        // The multiplier of 1 here assumes time between contests is a constant "time unit"
+        let noise = 1. * self.sigma_growth.powi(2);
         let mut prev = usize::MAX;
-
-        for (user, lo, _hi) in &standings {
-            if *lo != prev {
+        for (user, lo, _hi) in standings {
+            if lo != prev {
                 contest.push(vec![]);
             }
-            contest.last_mut().unwrap().push(vec![user.name.clone()]);
-            prev = *lo;
-        }
-
-        // load rating
-        for place in &contest[..] {
-            for team in &place[..] {
-                for player in &team[..] {
-                    match self.rating.entry(player.clone()) {
-                        Entry::Occupied(o) => {
-                            let g = o.into_mut();
-                            // The multiplier of 1 here assumes time between contests is a constant "time unit"
-                            g.sigma = f64::min(
-                                g.sigma,
-                                (g.sigma.powi(2) + 1. * self.sigma_growth.powi(2)).sqrt(),
-                            );
-                        }
-                        Entry::Vacant(v) => {
-                            v.insert(Gaussian {
-                                mu: MU_NEWBIE,
-                                sigma: SIG_NEWBIE,
-                            });
-                        }
-                    }
-                }
-            }
+            let gaussian = Gaussian {
+                mu: user.approx_posterior.mu,
+                sigma: (user.approx_posterior.sig.powi(2) + noise).sqrt(),
+            };
+            contest.last_mut().unwrap().push(vec![(user, gaussian)]);
+            prev = lo;
         }
 
         // do inference
-        self.inference(&contest);
-
-        // update the ratings
-        for (user, _, _) in standings {
-            match self.rating.entry(user.name.clone()) {
-                Entry::Occupied(o) => {
-                    let g = o.into_mut();
-                    let player_mu = &mut user.approx_posterior.mu;
-                    let player_sig = &mut user.approx_posterior.sig;
-                    *player_mu = g.mu;
-                    *player_sig = g.sigma;
-                }
-                Entry::Vacant(_) => {
-                    println!("Player {} not found in rating system.", user.name.clone());
-                }
-            }
-        }
+        self.inference(&mut contest);
     }
 }
