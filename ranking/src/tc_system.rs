@@ -1,7 +1,7 @@
-use super::compute_ratings::{Player, Rating, RatingSystem};
+use super::compute_ratings::{
+    standard_normal_cdf, standard_normal_cdf_inv, Player, Rating, RatingSystem,
+};
 use rayon::prelude::*;
-use statrs::function::erf::{erfc, erfc_inv};
-use std::f64::consts::SQRT_2;
 
 /// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 /// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
@@ -19,7 +19,8 @@ impl Default for TopCoderSystem {
 
 impl RatingSystem for TopCoderSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        0.5 * erfc((foe.mu - player.mu) / foe.sig.hypot(player.sig) / SQRT_2)
+        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig);
+        standard_normal_cdf(z)
     }
 
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
@@ -66,9 +67,8 @@ impl RatingSystem for TopCoderSystem {
 
                 // cdf(-perf) = rank / num_coders
                 //   => perf  = -inverse_cdf(rank / num_coders)
-                // If perf is standard normal, we get inverse_cdf using erfc_inv:
-                let ex_perf = SQRT_2 * erfc_inv(2. * ex_rank / num_coders);
-                let ac_perf = SQRT_2 * erfc_inv(2. * ac_rank / num_coders);
+                let ex_perf = -standard_normal_cdf_inv(ex_rank / num_coders);
+                let ac_perf = -standard_normal_cdf_inv(ac_rank / num_coders);
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let mut weight = 1. / (0.82 - 0.42 / player.num_contests as f64) - 1.;

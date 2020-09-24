@@ -1,4 +1,4 @@
-use super::compute_ratings::{robust_average, Player, Rating, RatingSystem};
+use super::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rating, RatingSystem};
 use rayon::prelude::*;
 
 /// Codeforces system details: https://codeforces.com/blog/entry/20762
@@ -48,7 +48,8 @@ impl CodeforcesSystem {
 
 impl RatingSystem for CodeforcesSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        0.5 + 0.5 * ((player.mu - foe.mu) / self.sig_perf).tanh()
+        let z = (player.mu - foe.mu) / self.sig_perf;
+        standard_logistic_cdf(z)
     }
 
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {

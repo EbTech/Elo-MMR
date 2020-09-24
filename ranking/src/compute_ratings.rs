@@ -134,6 +134,33 @@ impl Player {
     }
 }
 
+pub fn standard_logistic_pdf(z: f64) -> f64 {
+    0.5 - 0.5 * z.tanh().powi(2)
+}
+
+pub fn standard_logistic_cdf(z: f64) -> f64 {
+    0.5 + 0.5 * z.tanh()
+}
+
+pub fn standard_logistic_cdf_inv(prob: f64) -> f64 {
+    (2. * prob - 1.).atanh()
+}
+
+pub fn standard_normal_pdf(z: f64) -> f64 {
+    const NORMALIZE: f64 = 0.5 * std::f64::consts::FRAC_2_SQRT_PI / std::f64::consts::SQRT_2;
+    NORMALIZE * (-0.5 * z * z).exp()
+}
+
+pub fn standard_normal_cdf(z: f64) -> f64 {
+    // Equivalently, 0.5 * erfc(-z / SQRT_2)
+    0.5 + 0.5 * statrs::function::erf::erf(z / std::f64::consts::SQRT_2)
+}
+
+pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
+    // Equivalently, -SQRT_2 * erfc_inv(2. * prob)
+    std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
+}
+
 #[allow(dead_code)]
 fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
     let deviation = (center - factor.mu).abs();

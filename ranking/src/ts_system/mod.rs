@@ -237,10 +237,7 @@ impl TrueSkillSPBSystem {
 
 impl RatingSystem for TrueSkillSPBSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        // This formula is copied from TopCoder, but should probably be revised for TrueSkill
-        0.5 * statrs::function::erf::erfc(
-            (foe.mu - player.mu) / foe.sig.hypot(player.sig) / std::f64::consts::SQRT_2,
-        )
+        0.5 // TODO
     }
 
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
