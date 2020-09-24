@@ -1,14 +1,14 @@
 mod nodes;
 mod normal;
 
-use super::compute_ratings::{Player, RatingSystem, MU_NEWBIE, SIG_NEWBIE};
+use super::compute_ratings::{Player, Rating, RatingSystem, MU_NEWBIE, SIG_NEWBIE};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
 
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::collections::hash_map::Entry;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 
 use std::f64::INFINITY;
 use std::rc::{Rc, Weak};
@@ -159,10 +159,10 @@ impl TrueSkillSPBSystem {
                         self.rating.get(&players.last().unwrap().0).unwrap().clone();
 
                     sp.push(SumNode::new(&mut [
-					    &mut p[i][j][k],
-					    &mut s[i][j][k],
-					    &mut perf[i][j][k]
-					]));
+                        &mut p[i][j][k],
+                        &mut s[i][j][k],
+                        &mut perf[i][j][k],
+                    ]));
                     RefCell::borrow_mut(perf[i][j][k].get_edges_mut().last_mut().unwrap()).1 =
                         Gaussian {
                             mu: 0.,
@@ -175,11 +175,7 @@ impl TrueSkillSPBSystem {
                     tt.push(pp);
                 }
                 pt.push(SumNode::new(&mut tt));
-                tul.push(SumNode::new(&mut [
-				    &mut l[i],
-				    &mut t[i][j],
-				    &mut u[i][j]
-				]));
+                tul.push(SumNode::new(&mut [&mut l[i], &mut t[i][j], &mut u[i][j]]));
                 conv.push(t[i][j].get_edges().last().unwrap().clone());
             }
 
@@ -240,6 +236,13 @@ impl TrueSkillSPBSystem {
 }
 
 impl RatingSystem for TrueSkillSPBSystem {
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+        // This formula is copied from TopCoder, but should probably be revised for TrueSkill
+        0.5 * statrs::function::erf::erfc(
+            (foe.mu - player.mu) / foe.sig.hypot(player.sig) / std::f64::consts::SQRT_2,
+        )
+    }
+
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
         let mut contest = TSContest::new();
 

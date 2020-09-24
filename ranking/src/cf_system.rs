@@ -20,25 +20,24 @@ impl CodeforcesSystem {
     // ratings is a list of the participants, ordered from first to last place
     // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
     fn compute_performance(
+        &self,
         better: &[Rating],
         worse: &[Rating],
         all: &[Rating],
         my_rating: Rating,
     ) -> f64 {
         // The conversion is 2*rank - 1/my_sig = 2*pos_offset + tied_offset = pos - neg + all
+        // Note: the caller currently guarantees that every .sig equals self.sig_perf
         let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
         let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
         let all_offset: f64 = all.iter().map(|rating| rating.sig.recip()).sum();
 
         let ac_rank = 0.5 * (pos_offset - neg_offset + all_offset + my_rating.sig.recip());
-        let ex_rank = 0.5
-            * (my_rating.sig.recip()
-                + all
-                    .iter()
-                    .map(|rating| {
-                        (1. + ((rating.mu - my_rating.mu) / rating.sig).tanh()) / rating.sig
-                    })
-                    .sum::<f64>());
+        let ex_rank = 0.5 / my_rating.sig
+            + all
+                .iter()
+                .map(|rating| self.win_probability(rating, &my_rating) / rating.sig)
+                .sum::<f64>();
 
         let geo_rank = (ac_rank * ex_rank).sqrt();
         let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
@@ -48,6 +47,10 @@ impl CodeforcesSystem {
 }
 
 impl RatingSystem for CodeforcesSystem {
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+        0.5 + 0.5 * ((player.mu - foe.mu) / self.sig_perf).tanh()
+    }
+
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
         let all_ratings: Vec<Rating> = standings
             .par_iter()
@@ -61,7 +64,7 @@ impl RatingSystem for CodeforcesSystem {
             .into_par_iter()
             .zip(all_ratings.par_iter())
             .for_each(|((player, lo, hi), &my_rating)| {
-                let geo_perf = Self::compute_performance(
+                let geo_perf = self.compute_performance(
                     &all_ratings[..lo],
                     &all_ratings[hi + 1..],
                     &all_ratings,

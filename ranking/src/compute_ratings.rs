@@ -215,6 +215,7 @@ pub fn robust_average(
 }
 
 pub trait RatingSystem {
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>);
 }
 

@@ -1,21 +1,28 @@
 use super::compute_ratings::{Player, Rating, RatingSystem};
 use rayon::prelude::*;
+use statrs::function::erf::{erfc, erfc_inv};
+use std::f64::consts::SQRT_2;
 
 /// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 /// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
-pub struct TopCoderSystem {}
+pub struct TopCoderSystem {
+    weight_multiplier: f64,
+}
 
 impl Default for TopCoderSystem {
     fn default() -> Self {
-        Self {}
+        Self {
+            weight_multiplier: 1.,
+        }
     }
 }
 
 impl RatingSystem for TopCoderSystem {
-    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
-        use statrs::function::erf::{erfc, erfc_inv};
-        use std::f64::consts::SQRT_2;
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+        0.5 * erfc((foe.mu - player.mu) / foe.sig.hypot(player.sig) / SQRT_2)
+    }
 
+    fn round_update(&mut self, standings: Vec<(&mut Player, usize, usize)>) {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
             .iter()
@@ -39,20 +46,21 @@ impl RatingSystem for TopCoderSystem {
             mean_vol_sq.sqrt()
         };
 
+        let limit_weight = 1. / 0.82 - 1.;
+        let cap_multiplier = self.weight_multiplier * (1. + limit_weight)
+            / (1. + limit_weight * self.weight_multiplier);
+
         let new_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, lo, hi)| {
                 let old_rating = player.approx_posterior.mu;
                 let vol_sq = player.approx_posterior.sig.powi(2);
-                let win_pr = |rating: &Rating| {
-                    0.5 * erfc(
-                        (old_rating - rating.mu) / (2. * (vol_sq + rating.sig.powi(2))).sqrt(),
-                    )
-                };
 
                 let ex_rank = standings
                     .iter()
-                    .map(|&(ref foe, _, _)| (win_pr(&foe.approx_posterior)))
+                    .map(|&(ref foe, _, _)| {
+                        self.win_probability(&foe.approx_posterior, &player.approx_posterior)
+                    })
                     .sum::<f64>();
                 let ac_rank = 0.5 * (1 + lo + hi) as f64;
 
@@ -64,12 +72,15 @@ impl RatingSystem for TopCoderSystem {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let mut weight = 1. / (0.82 - 0.42 / player.num_contests as f64) - 1.;
+                weight *= self.weight_multiplier;
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {
                     weight *= 0.9;
                 }
-                let cap = 150. + 1500. / (player.num_contests + 1) as f64;
+
+                let mut cap = 150. + 1500. / (player.num_contests + 1) as f64;
+                cap *= cap_multiplier;
 
                 let try_rating = (old_rating + weight * perf_as) / (1. + weight);
                 let new_rating = try_rating.max(old_rating - cap).min(old_rating + cap);

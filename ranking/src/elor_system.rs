@@ -76,6 +76,11 @@ impl EloRSystem {
 }
 
 impl RatingSystem for EloRSystem {
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.sig_perf.powi(2)).sqrt();
+        0.5 + 0.5 * ((player.mu - foe.mu) / sigma).tanh()
+    }
+
     fn round_update(&mut self, mut standings: Vec<(&mut Player, usize, usize)>) {
         let sig_noise = ((self.sig_limit.powi(-2) - self.sig_perf.powi(-2)).recip()
             - self.sig_limit.powi(2))
