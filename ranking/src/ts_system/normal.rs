@@ -15,9 +15,8 @@ pub struct Gaussian {
     pub sigma: f64,
 }
 
-#[allow(unused)]
 pub const ZERO: Gaussian = Gaussian { mu: 0., sigma: 0. };
-#[allow(unused)]
+
 pub const ONE: Gaussian = Gaussian {
     mu: 0.,
     sigma: INFINITY,
@@ -26,25 +25,25 @@ pub const ONE: Gaussian = Gaussian {
 overload!((a: ?Gaussian) + (b: ?Gaussian) -> Gaussian {
     Gaussian {
         mu: a.mu + b.mu,
-        sigma: (a.sigma.powi(2) + b.sigma.powi(2)).sqrt(),
+        sigma: a.sigma.hypot(b.sigma),
     }
 });
 
 overload!((a: &mut Gaussian) += (b: ?Gaussian) {
     a.mu += b.mu;
-    a.sigma = (a.sigma.powi(2) + b.sigma.powi(2)).sqrt();
+    a.sigma = a.sigma.hypot(b.sigma);
 });
 
 overload!((a: ?Gaussian) - (b: ?Gaussian) -> Gaussian {
     Gaussian {
         mu: a.mu - b.mu,
-        sigma: (a.sigma.powi(2) + b.sigma.powi(2)).sqrt(),
+        sigma: a.sigma.hypot(b.sigma),
     }
 });
 
 overload!((a: &mut Gaussian) -= (b: ?Gaussian) {
     a.mu -= b.mu;
-    a.sigma = (a.sigma.powi(2) + b.sigma.powi(2)).sqrt();
+    a.sigma = a.sigma.hypot(b.sigma);
 });
 
 overload!(-(a: &mut Gaussian) -> Gaussian {

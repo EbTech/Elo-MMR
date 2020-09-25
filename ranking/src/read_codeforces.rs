@@ -2,7 +2,6 @@ use super::contest_config::Contest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::path::Path;
 
 /// General response from the Codeforces API
 #[allow(non_snake_case)]
@@ -110,10 +109,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 /// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
-pub fn fetch_cf_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
-    let cache_file = cache_dir.as_ref().join(format!("{}.json", contest_id));
-
-    // The contest doesn't appear in our cache, so request it from the Codeforces API.
+pub fn fetch_cf_contest(contest_id: usize) -> Contest {
     let url = format!(
         "https://codeforces.com/api/contest.ratingChanges?contestId={}",
         contest_id
@@ -122,14 +118,10 @@ pub fn fetch_cf_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Cont
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
         .expect("Failed to parse Codeforces API response as JSON");
-    let contest = match packet {
+    match packet {
         CFResponse::OK { result } => {
             TryFrom::try_from(result).expect("Failed conversion to Contest")
         }
         CFResponse::FAILED { comment } => panic!(comment),
-    };
-
-    let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
-    std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
-    contest
+    }
 }

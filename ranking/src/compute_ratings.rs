@@ -132,6 +132,7 @@ impl Player {
     }
 }
 
+#[allow(dead_code)]
 pub fn standard_logistic_pdf(z: f64) -> f64 {
     0.5 - 0.5 * z.tanh().powi(2)
 }
@@ -140,6 +141,7 @@ pub fn standard_logistic_cdf(z: f64) -> f64 {
     0.5 + 0.5 * z.tanh()
 }
 
+#[allow(dead_code)]
 pub fn standard_logistic_cdf_inv(prob: f64) -> f64 {
     (2. * prob - 1.).atanh()
 }

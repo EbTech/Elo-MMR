@@ -45,11 +45,19 @@ pub fn get_contest_ids<P: AsRef<Path>>(contest_id_file: &P) -> Vec<usize> {
 
 pub fn get_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
     let cache_file = cache_dir.as_ref().join(format!("{}.json", contest_id));
+    // Try to read the contest from the cache
     match std::fs::read_to_string(&cache_file) {
         Ok(cached_json) => serde_json::from_str(&cached_json).expect("Failed to read cache"),
         Err(_) => {
-            // Eventually define data source specific getters
-            fetch_cf_contest(cache_dir, contest_id)
+            // The contest doesn't appear in our cache, so request it from the Codeforces API
+            // TODO: eventually define dataset-specific getters
+            let contest = fetch_cf_contest(contest_id);
+
+            // Write the contest to the cache
+            let cached_json = serde_json::to_string_pretty(&contest).expect("Serialization error");
+            std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
+
+            contest
         }
     }
 }
