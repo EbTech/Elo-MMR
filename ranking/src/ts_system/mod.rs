@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use super::compute_ratings::{Player, Rating, RatingSystem, MU_NEWBIE};
+use super::compute_ratings::{standard_normal_cdf, Player, Rating, RatingSystem, MU_NEWBIE};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -18,19 +18,19 @@ type TSContest<'a> = Vec<TSContestPlace<'a>>;
 // TrueSkillStPB rating system
 pub struct TrueSkillSPBSystem {
     // epsilon used for ties
-    eps: f64,
+    pub eps: f64,
     // performance sigma
-    beta: f64,
+    pub beta: f64,
     // epsilon used for convergence loop
-    convergence_eps: f64,
+    pub convergence_eps: f64,
     // defines sigma growth per second
-    sigma_growth: f64,
+    pub sigma_growth: f64,
 }
 
 impl Default for TrueSkillSPBSystem {
     fn default() -> Self {
         Self {
-            eps: 0.10,
+            eps: 0.90,
             beta: MU_NEWBIE / 6., // sigma/2
             convergence_eps: 2e-4,
             sigma_growth: 5.,
@@ -182,14 +182,14 @@ impl TrueSkillSPBSystem {
         infer2(&mut u);
         infer1(&mut tul);
 
-        let mut rounds = 0;
+        //let mut rounds = 0;
 
         while check_convergence(&conv, &old_conv) >= self.convergence_eps {
             old_conv.clear();
             for item in &conv {
                 old_conv.push(RefCell::borrow(item).clone());
             }
-            rounds += 1;
+            //rounds += 1;
 
             infer_ld(&mut ld, &mut l);
             infer1(&mut d);
@@ -199,7 +199,7 @@ impl TrueSkillSPBSystem {
             infer1(&mut tul);
         }
 
-        eprintln!("Rounds until convergence: {}", rounds);
+        // eprintln!("Rounds until convergence: {}", rounds);
 
         infer2(&mut t);
         infer1(&mut pt);
@@ -221,7 +221,9 @@ impl TrueSkillSPBSystem {
 
 impl RatingSystem for TrueSkillSPBSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        0.5 // TODO
+        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.beta.powi(2)).sqrt();
+        let z = (player.mu - foe.mu) / sigma;
+        standard_normal_cdf(z)
     }
 
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {

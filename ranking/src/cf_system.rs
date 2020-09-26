@@ -3,8 +3,8 @@ use rayon::prelude::*;
 
 /// Codeforces system details: https://codeforces.com/blog/entry/20762
 pub struct CodeforcesSystem {
-    sig_perf: f64,
-    weight: f64,
+    pub sig_perf: f64,
+    pub weight: f64,
 }
 
 impl Default for CodeforcesSystem {

@@ -6,7 +6,7 @@ use rayon::prelude::*;
 /// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 /// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
 pub struct TopCoderSystem {
-    weight_multiplier: f64,
+    pub weight_multiplier: f64,
 }
 
 impl Default for TopCoderSystem {

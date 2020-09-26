@@ -1,7 +1,7 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
 use super::contest_config::Contest;
-use std::cell::{RefCell, RefMut};
+use std::cell::{Ref, RefCell, RefMut};
 use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
 
@@ -244,6 +244,36 @@ pub fn robust_average(
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
+    fn topk_accuracy(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> f64 {
+        let mut ranks: Vec<(f64, usize)> = Vec::<(f64, usize)>::new();
+        for i in 0..standings.len() {
+            let mut pred_rank = 0.;
+            for j in 0..standings.len() {
+                let pa = standings[i].0.approx_posterior;
+                let pb = standings[j].0.approx_posterior;
+                pred_rank += 1. - self.win_probability(&pa, &pb);
+            }
+            ranks.push((pred_rank, i));
+        }
+        ranks.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+        let mut pairs_correct = 0.;
+        for i in 0..standings.len() {
+            if ranks[i].1 >= k as usize {
+                continue;
+            }
+            for j in i + 1..standings.len() {
+                if ranks[j].1 >= k as usize {
+                    continue;
+                }
+                if i < j && ranks[i].1 < ranks[j].1 {
+                    pairs_correct += 1.;
+                }
+            }
+        }
+
+        2. * pairs_correct / (k * (k - 1)) as f64
+    }
 }
 
 fn update_player_metadata(player: &mut Player, contest: &Contest) {
@@ -286,6 +316,36 @@ pub fn simulate_contest(
         .collect();
 
     system.round_update(standings);
+}
+
+pub fn predict_performance(
+    players: &mut HashMap<String, RefCell<Player>>,
+    contest: &Contest,
+    system: &dyn RatingSystem,
+) -> f64 {
+    // If a player is competing for the first time, initialize with a default rating
+    contest.standings.iter().for_each(|&(ref handle, _, _)| {
+        players
+            .entry(handle.clone())
+            .or_insert_with(|| RefCell::new(Player::with_rating(MU_NEWBIE, SIG_NEWBIE)));
+    });
+
+    let guards: Vec<Ref<Player>> = contest
+        .standings
+        .iter()
+        .map(|&(ref handle, _, _)| players.get(handle).expect("Duplicate handles").borrow())
+        .collect();
+
+    // Update player metadata and get &mut references to all requested players
+    let standings: Vec<(&Player, usize, usize)> = guards
+        .iter()
+        .map(|player| std::ops::Deref::deref(player))
+        .zip(contest.standings.clone())
+        .map(|(player, (_, lo, hi))| (player, lo, hi))
+        .collect();
+
+    let topk = 50;
+    system.topk_accuracy(standings, topk)
 }
 
 // TODO: does everything below here belong in a separate file?

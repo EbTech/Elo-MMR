@@ -6,9 +6,9 @@ use rayon::prelude::*;
 
 /// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 pub struct EloRSystem {
-    sig_perf: f64,  // variation in individual performances
-    sig_limit: f64, // limiting uncertainty for a player who competed a lot
-    logistic: bool, // whether to use logistic or Gaussian distributions
+    pub sig_perf: f64,  // variation in individual performances
+    pub sig_limit: f64, // limiting uncertainty for a player who competed a lot
+    pub logistic: bool, // whether to use logistic or Gaussian distributions
 }
 
 impl Default for EloRSystem {
