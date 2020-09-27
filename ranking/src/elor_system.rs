@@ -4,11 +4,17 @@ use super::compute_ratings::{
 };
 use rayon::prelude::*;
 
+pub enum EloRVariant {
+    Gaussian,
+    LogisticSimple,
+    LogisticFull,
+}
+
 /// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 pub struct EloRSystem {
-    sig_perf: f64,  // variation in individual performances
-    sig_limit: f64, // limiting uncertainty for a player who competed a lot
-    logistic: bool, // whether to use logistic or Gaussian distributions
+    sig_perf: f64,        // variation in individual performances
+    sig_limit: f64,       // limiting uncertainty for a player who competed a lot
+    variant: EloRVariant, // whether to use logistic or Gaussian distributions
 }
 
 impl Default for EloRSystem {
@@ -16,7 +22,7 @@ impl Default for EloRSystem {
         Self {
             sig_perf: 250.,
             sig_limit: 100.,
-            logistic: true,
+            variant: EloRVariant::LogisticFull,
         }
     }
 }
@@ -68,7 +74,11 @@ impl EloRSystem {
         tied: impl Iterator<Item = Rating> + Clone,
         worse: impl Iterator<Item = Rating> + Clone,
     ) -> f64 {
-        let all = better.clone().chain(tied).chain(worse.clone());
+        let all = better
+            .clone()
+            .chain(tied)
+            .chain(worse.clone())
+            .map(Into::into);
         let pos_offset: f64 = better.map(|rating| rating.sig.recip()).sum();
         let neg_offset: f64 = worse.map(|rating| rating.sig.recip()).sum();
         robust_average(all, pos_offset - neg_offset, 0.)
@@ -79,10 +89,9 @@ impl RatingSystem for EloRSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.sig_perf.powi(2)).sqrt();
         let z = (player.mu - foe.mu) / sigma;
-        if self.logistic {
-            standard_logistic_cdf(z)
-        } else {
-            standard_normal_cdf(z)
+        match &self.variant {
+            EloRVariant::Gaussian => standard_normal_cdf(z),
+            _ => standard_logistic_cdf(z),
         }
     }
 
@@ -95,7 +104,10 @@ impl RatingSystem for EloRSystem {
         let all_ratings: Vec<Rating> = standings
             .par_iter_mut()
             .map(|(player, _, _)| {
-                player.add_noise_and_collapse(sig_noise);
+                match &self.variant {
+                    EloRVariant::LogisticFull => player.add_noise_best(sig_noise),
+                    _ => player.add_noise_and_collapse(sig_noise),
+                }
                 let rating = player.approx_posterior;
                 Rating {
                     mu: rating.mu,
@@ -116,17 +128,17 @@ impl RatingSystem for EloRSystem {
                     .chain(std::iter::once(all_ratings[i]));
                 let worse = all_ratings[hi + 1..].iter().cloned();
 
-                let perf = if self.logistic {
-                    Self::compute_performance_logistic(better, tied, worse)
-                } else {
-                    Self::compute_performance_gaussian(better, tied, worse)
+                let perf = match &self.variant {
+                    EloRVariant::Gaussian => {
+                        Self::compute_performance_gaussian(better, tied, worse)
+                    }
+                    _ => Self::compute_performance_logistic(better, tied, worse),
                 };
 
-                player.push_performance(Rating {
+                player.update_rating_with_new_performance(Rating {
                     mu: perf,
                     sig: self.sig_perf,
                 });
-                player.recompute_posterior();
             });
     }
 }

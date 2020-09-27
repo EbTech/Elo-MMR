@@ -2,29 +2,46 @@
 // paste this program's output into the spreadsheet's ratings column.
 use super::contest_config::Contest;
 use std::cell::{RefCell, RefMut};
-use std::cmp::max;
 use std::collections::{HashMap, VecDeque};
 
 pub const MU_NEWBIE: f64 = 1500.0; // rating for a new player
 pub const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
 pub const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Rating {
     pub mu: f64,
     pub sig: f64,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
+pub struct TanhTerm {
+    pub mu: f64,
+    pub sig: f64,
+    pub weight: f64,
+}
+
+impl From<Rating> for TanhTerm {
+    fn from(rating: Rating) -> Self {
+        TanhTerm {
+            mu: rating.mu,
+            sig: rating.sig,
+            weight: rating.sig.recip(),
+        }
+    }
+}
+
+pub struct PlayerEvent {
+    contest_id: usize,
+    contest_time: u64,
+    display_rating: i32,
+}
+
 pub struct Player {
-    pub normal_factor: Rating,
-    pub logistic_factors: VecDeque<Rating>,
+    normal_factor: Rating,
+    logistic_factors: VecDeque<TanhTerm>,
+    pub event_history: Vec<PlayerEvent>,
     pub approx_posterior: Rating,
-    pub num_contests: usize,
-    pub max_rating: i32,
-    pub last_rating: i32,
-    pub last_contest: usize,
-    pub last_contest_time: u64,
 }
 
 impl Player {
@@ -32,30 +49,63 @@ impl Player {
         Player {
             normal_factor: Rating { mu, sig },
             logistic_factors: VecDeque::new(),
+            event_history: vec![],
             approx_posterior: Rating { mu, sig },
-            num_contests: 0,
-            max_rating: 0,
-            last_rating: 0,
-            last_contest: 0,
-            last_contest_time: 0,
         }
     }
 
-    // the simplest noising method, in which the rating with uncertainty is a Markov state
+    pub fn update_rating(&mut self, rating: Rating) {
+        // Assumes that a placeholder history item has been pushed with the right contest id
+        // TODO: get rid of the magic number 100, which is EloR's default sig_lim
+        self.approx_posterior = rating;
+        let last_event = self.event_history.last_mut().unwrap();
+        assert_eq!(last_event.display_rating, 0);
+        last_event.display_rating = (rating.mu - 2. * (rating.sig - 100.)).round() as i32;
+    }
+
+    pub fn update_rating_with_new_performance(&mut self, performance: Rating) {
+        /* TODO: update this
+        if self.logistic_factors.len() == MAX_HISTORY_LEN {
+            let logistic = self.logistic_factors.pop_front().unwrap();
+            let deviation = self.approx_posterior.mu - logistic.mu;
+            let wn = self.normal_factor.sig.powi(-2);
+            let wl = (deviation / logistic.sig).tanh() / (deviation * logistic.sig);
+            //let wl_as_normal = logistic.sig.powi(-2);
+            self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
+            self.normal_factor.sig = (wn + wl).recip().sqrt();
+        }*/
+        self.logistic_factors.push_back(performance.into());
+
+        let mut weight = self.normal_factor.sig.powi(-2);
+        let mu = robust_average(
+            self.logistic_factors.iter().cloned(),
+            -self.normal_factor.mu * weight,
+            weight,
+        );
+        for factor in &self.logistic_factors {
+            weight += factor.weight / factor.sig;
+        }
+        self.update_rating(Rating {
+            mu,
+            sig: weight.recip().sqrt(),
+        });
+    }
+
+    // #1: the simplest noising method, in which the rating with uncertainty is a Markov state
     pub fn add_noise_and_collapse(&mut self, sig_noise: f64) {
         self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
         self.normal_factor = self.approx_posterior;
         self.logistic_factors.clear();
     }
 
-    // apply noise to one variable for which we have many estimates
+    // #2: apply noise to one variable for which we have many estimates
     #[allow(dead_code)]
-    pub fn add_noise_uniform(&mut self, sig_noise: f64) {
+    pub fn add_noise_in_front(&mut self, sig_noise: f64) {
         // multiply all sigmas by the same decay
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
         self.normal_factor.sig *= decay;
         for rating in &mut self.logistic_factors {
-            rating.sig *= decay;
+            rating.weight /= decay;
         }
 
         // Update the variance, avoiding an expensive call to recompute_posterior().
@@ -63,11 +113,27 @@ impl Player {
         self.approx_posterior.sig *= decay;
     }
 
-    // a fancier but slower substitute for add_noise_uniform(). See paper for details.
+    // #3: apply noise to one variable for which we have many estimates
+    #[allow(dead_code)]
+    pub fn add_noise_uniform(&mut self, sig_noise: f64) {
+        // multiply all sigmas by the same decay
+        let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
+        self.normal_factor.sig *= decay;
+        for rating in &mut self.logistic_factors {
+            rating.sig *= decay;
+            rating.weight /= decay;
+        }
+
+        // Update the variance, avoiding an expensive call to recompute_posterior().
+        // Note that we don't update the mode, which may have changed slightly.
+        self.approx_posterior.sig *= decay;
+    }
+
+    // #4: a fancier but slower substitute for add_noise_uniform(). See paper for details.
     // TODO: optimize using Newton's method.
     #[allow(dead_code)]
     pub fn add_noise_fancy(&mut self, sig_noise: f64) {
-        let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
+        let decay = 1f64.hypot(sig_noise / self.approx_posterior.sig);
         self.approx_posterior.sig *= decay;
         let target = self.approx_posterior.sig.powi(-2);
 
@@ -96,39 +162,30 @@ impl Player {
         //println!("{} < {} < {}", decay.sqrt(), kappa, decay);
     }
 
-    pub fn recompute_posterior(&mut self) {
-        let mut sig_inv_sq = self.normal_factor.sig.powi(-2);
-        let mu = robust_average(
-            self.logistic_factors.iter().cloned(),
-            -self.normal_factor.mu * sig_inv_sq,
-            sig_inv_sq,
-        );
-        for &factor in &self.logistic_factors {
-            sig_inv_sq += factor.sig.powi(-2);
-        }
-        self.approx_posterior = Rating {
-            mu,
-            sig: sig_inv_sq.recip().sqrt(),
-        };
-        self.max_rating = max(self.max_rating, self.conservative_rating());
-    }
+    // #5: the best method
+    pub fn add_noise_best(&mut self, sig_noise: f64) {
+        let decay = (1. + (sig_noise / self.approx_posterior.sig).powi(2)).recip();
+        let transfer = decay; // could be set differently, but this works well
 
-    pub fn push_performance(&mut self, rating: Rating) {
-        if self.logistic_factors.len() == MAX_HISTORY_LEN {
-            let logistic = self.logistic_factors.pop_front().unwrap();
-            let deviation = self.approx_posterior.mu - logistic.mu;
-            let wn = self.normal_factor.sig.powi(-2);
-            let wl = (deviation / logistic.sig).tanh() / (deviation * logistic.sig);
-            //let wl_as_normal = logistic.sig.powi(-2);
-            self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
-            self.normal_factor.sig = (wn + wl).recip().sqrt();
-        }
-        self.logistic_factors.push_back(rating);
-    }
+        let wt_norm_old = self.normal_factor.sig.powi(-2);
+        let wt_from_norm_old = transfer * wt_norm_old;
+        let wt_from_transfers = (1. - transfer)
+            * (wt_norm_old
+                + self
+                    .logistic_factors
+                    .iter()
+                    .map(|r| r.weight / r.sig)
+                    .sum::<f64>());
+        let wt_total = wt_from_norm_old + wt_from_transfers;
 
-    pub fn conservative_rating(&self) -> i32 {
-        // TODO: erase magic number 100.
-        (self.approx_posterior.mu - 2. * (self.approx_posterior.sig - 100.)).round() as i32
+        self.normal_factor.mu = (wt_from_norm_old * self.normal_factor.mu
+            + wt_from_transfers * self.approx_posterior.mu)
+            / wt_total;
+        self.normal_factor.sig = (decay * wt_total).recip().sqrt();
+        for r in &mut self.logistic_factors {
+            r.weight *= transfer * decay;
+        }
+        self.approx_posterior.sig /= decay.sqrt();
     }
 }
 
@@ -162,7 +219,7 @@ pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
 }
 
 #[allow(dead_code)]
-fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
+fn decay_factor_sig(center: f64, factor: &TanhTerm, kappa: f64) -> f64 {
     let deviation = (center - factor.mu).abs();
     let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
     let (mut lo, mut hi) = (factor.sig * kappa / 2., factor.sig * kappa * kappa * 2.);
@@ -203,7 +260,7 @@ fn decay_factor_sig(center: f64, factor: &Rating, kappa: f64) -> f64 {
 // If offset == slope == 0, we get a robust weighted average of the mu_i's. Uses hybrid of
 // binary search (to converge in the worst-case) and Newton's method (for speed in the typical case).
 pub fn robust_average(
-    all_ratings: impl Iterator<Item = Rating> + Clone,
+    all_ratings: impl Iterator<Item = TanhTerm> + Clone,
     offset: f64,
     slope: f64,
 ) -> f64 {
@@ -212,11 +269,10 @@ pub fn robust_average(
     loop {
         let mut sum = offset + slope * guess;
         let mut sum_prime = slope;
-        for rating in all_ratings.clone() {
-            let z = (guess - rating.mu) / rating.sig;
-            let incr = z.tanh() / rating.sig;
-            sum += incr;
-            sum_prime += rating.sig.powi(-2) - incr * incr
+        for term in all_ratings.clone() {
+            let tanh_z = ((guess - term.mu) / term.sig).tanh();
+            sum += term.weight * tanh_z;
+            sum_prime += term.weight * (1. - tanh_z * tanh_z) / term.sig;
         }
         let next = (guess - sum / sum_prime)
             .max(0.75 * lo + 0.25 * guess)
@@ -246,14 +302,6 @@ pub trait RatingSystem {
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
 }
 
-fn update_player_metadata(player: &mut Player, contest: &Contest) {
-    player.num_contests += 1;
-    player.last_contest = contest.id;
-    assert!(player.last_contest_time <= contest.time_seconds);
-    player.last_contest_time = contest.time_seconds;
-    player.last_rating = player.conservative_rating();
-}
-
 pub fn simulate_contest(
     players: &mut HashMap<String, RefCell<Player>>,
     contest: &Contest,
@@ -278,11 +326,15 @@ pub fn simulate_contest(
     let standings: Vec<(&mut Player, usize, usize)> = guards
         .iter_mut()
         .map(|player| {
-            update_player_metadata(player, contest);
+            player.event_history.push(PlayerEvent {
+                contest_id: contest.id,
+                contest_time: contest.time_seconds,
+                display_rating: 0,
+            });
             std::ops::DerefMut::deref_mut(player)
         })
-        .zip(contest.standings.clone())
-        .map(|(player, (_, lo, hi))| (player, lo, hi))
+        .zip(contest.standings.iter())
+        .map(|(player, &(_, lo, hi))| (player, lo, hi))
         .collect();
 
     system.round_update(standings);
@@ -327,31 +379,37 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
     };
     for (handle, player) in players {
         let player = player.borrow_mut();
-        let cur_rating = player.conservative_rating();
-        let max_rating = player.max_rating;
-        let handle = handle.clone();
-        let last_contest = player.last_contest;
-        let last_contest_time = player.last_contest_time;
+        let last_event = player.event_history.last().unwrap();
+        let max_rating = player
+            .event_history
+            .iter()
+            .map(|event| event.display_rating)
+            .max()
+            .unwrap();
         let last_perf = player
             .logistic_factors
             .back()
             .map(|r| r.mu.round() as i32)
             .unwrap_or(0);
-        let last_delta = cur_rating - player.last_rating;
+        let previous_rating = if player.event_history.len() == 1 {
+            1000
+        } else {
+            player.event_history[player.event_history.len() - 2].display_rating
+        };
         rating_data.push(RatingData {
-            cur_rating,
+            cur_rating: last_event.display_rating,
             max_rating,
-            handle,
-            last_contest,
-            last_contest_time,
+            handle: handle.clone(),
+            last_contest: last_event.contest_id,
+            last_contest_time: last_event.contest_time,
             last_perf,
-            last_delta,
+            last_delta: last_event.display_rating - previous_rating,
         });
 
-        if last_contest_time > rated_since {
+        if last_event.contest_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
-                .find(|&i| cur_rating >= TITLE_BOUND[i])
+                .find(|&i| last_event.display_rating >= TITLE_BOUND[i])
             {
                 title_count[title_id] += 1;
             }
