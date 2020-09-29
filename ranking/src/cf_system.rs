@@ -1,10 +1,11 @@
+//! Codeforces system details: https://codeforces.com/blog/entry/20762
+
 use super::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rating, RatingSystem};
 use rayon::prelude::*;
 
-/// Codeforces system details: https://codeforces.com/blog/entry/20762
 pub struct CodeforcesSystem {
-    sig_perf: f64,
-    weight: f64,
+    sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
+    weight: f64,   // must be positive
 }
 
 impl Default for CodeforcesSystem {

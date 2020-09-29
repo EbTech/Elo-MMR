@@ -1,12 +1,13 @@
+//! TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
+//! Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
+
 use super::compute_ratings::{
     standard_normal_cdf, standard_normal_cdf_inv, Player, Rating, RatingSystem,
 };
 use rayon::prelude::*;
 
-/// TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
-/// Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
 pub struct TopCoderSystem {
-    weight_multiplier: f64,
+    weight_multiplier: f64, // must be positive
 }
 
 impl Default for TopCoderSystem {

@@ -1,3 +1,5 @@
+//! Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
+
 use super::compute_ratings::{
     robust_average, standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player,
     Rating, RatingSystem,
@@ -6,28 +8,36 @@ use rayon::prelude::*;
 
 pub enum EloRVariant {
     Gaussian,
-    LogisticSimple,
-    LogisticFull,
+    Logistic(f64),
 }
 
-/// Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 pub struct EloRSystem {
     sig_perf: f64,        // variation in individual performances
-    sig_limit: f64,       // limiting uncertainty for a player who competed a lot
+    sig_drift: f64,       // skill drift between successive performances
     variant: EloRVariant, // whether to use logistic or Gaussian distributions
 }
 
 impl Default for EloRSystem {
     fn default() -> Self {
-        Self {
-            sig_perf: 250.,
-            sig_limit: 100.,
-            variant: EloRVariant::LogisticFull,
-        }
+        Self::from_limit(250., 100., EloRVariant::Logistic(1.))
     }
 }
 
 impl EloRSystem {
+    // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
+    // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
+    pub fn from_limit(sig_perf: f64, sig_limit: f64, variant: EloRVariant) -> Self {
+        assert!(sig_limit > 0.);
+        assert!(sig_perf > sig_limit);
+        let sig_drift =
+            ((sig_limit.powi(-2) - sig_perf.powi(-2)).recip() - sig_limit.powi(2)).sqrt();
+        Self {
+            sig_perf,
+            sig_drift,
+            variant,
+        }
+    }
+
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our Gaussian-weighted performance score for this round
     fn compute_performance_gaussian(
@@ -89,24 +99,22 @@ impl RatingSystem for EloRSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.sig_perf.powi(2)).sqrt();
         let z = (player.mu - foe.mu) / sigma;
-        match &self.variant {
+        match self.variant {
             EloRVariant::Gaussian => standard_normal_cdf(z),
             _ => standard_logistic_cdf(z),
         }
     }
 
     fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let sig_noise = ((self.sig_limit.powi(-2) - self.sig_perf.powi(-2)).recip()
-            - self.sig_limit.powi(2))
-        .sqrt();
-
         // Update ratings due to waiting period between contests
         let all_ratings: Vec<Rating> = standings
             .par_iter_mut()
             .map(|(player, _, _)| {
-                match &self.variant {
-                    EloRVariant::LogisticFull => player.add_noise_best(sig_noise),
-                    _ => player.add_noise_and_collapse(sig_noise),
+                match self.variant {
+                    EloRVariant::Logistic(transfer_speed) if transfer_speed < f64::INFINITY => {
+                        player.add_noise_best(self.sig_drift, transfer_speed)
+                    }
+                    _ => player.add_noise_and_collapse(self.sig_drift),
                 }
                 let rating = player.approx_posterior;
                 Rating {
@@ -128,7 +136,7 @@ impl RatingSystem for EloRSystem {
                     .chain(std::iter::once(all_ratings[i]));
                 let worse = all_ratings[hi + 1..].iter().cloned();
 
-                let perf = match &self.variant {
+                let perf = match self.variant {
                     EloRVariant::Gaussian => {
                         Self::compute_performance_gaussian(better, tied, worse)
                     }

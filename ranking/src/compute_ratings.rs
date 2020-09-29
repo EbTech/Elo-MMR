@@ -23,7 +23,7 @@ pub struct TanhTerm {
 
 impl From<Rating> for TanhTerm {
     fn from(rating: Rating) -> Self {
-        TanhTerm {
+        Self {
             mu: rating.mu,
             sig: rating.sig,
             weight: rating.sig.recip(),
@@ -55,7 +55,7 @@ impl Player {
     }
 
     pub fn update_rating(&mut self, rating: Rating) {
-        // Assumes that a placeholder history item has been pushed with the right contest id
+        // Assumes that a placeholder history item has been pushed containing contest id and time
         // TODO: get rid of the magic number 100, which is EloR's default sig_lim
         self.approx_posterior = rating;
         let last_event = self.event_history.last_mut().unwrap();
@@ -64,75 +64,106 @@ impl Player {
     }
 
     pub fn update_rating_with_new_performance(&mut self, performance: Rating) {
-        /* TODO: update this
         if self.logistic_factors.len() == MAX_HISTORY_LEN {
+            // wl can be chosen so as to preserve total weight or rating; we choose the former.
+            // Either way, the deleted element should be small enough not to matter.
             let logistic = self.logistic_factors.pop_front().unwrap();
-            let deviation = self.approx_posterior.mu - logistic.mu;
             let wn = self.normal_factor.sig.powi(-2);
-            let wl = (deviation / logistic.sig).tanh() / (deviation * logistic.sig);
-            //let wl_as_normal = logistic.sig.powi(-2);
+            let wl = logistic.weight / logistic.sig;
             self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
             self.normal_factor.sig = (wn + wl).recip().sqrt();
-        }*/
+        }
         self.logistic_factors.push_back(performance.into());
 
-        let mut weight = self.normal_factor.sig.powi(-2);
+        let weight = self.normal_factor.sig.powi(-2);
         let mu = robust_average(
             self.logistic_factors.iter().cloned(),
             -self.normal_factor.mu * weight,
             weight,
         );
-        for factor in &self.logistic_factors {
-            weight += factor.weight / factor.sig;
-        }
-        self.update_rating(Rating {
-            mu,
-            sig: weight.recip().sqrt(),
-        });
+        let sig = (self.approx_posterior.sig.powi(-2) + performance.sig.powi(-2))
+            .recip()
+            .sqrt();
+        self.update_rating(Rating { mu, sig });
     }
 
-    // #1: the simplest noising method, in which the rating with uncertainty is a Markov state
+    // Method #1: the Gaussian/Brownian approximation, in which rating is a Markov state
+    // Equivalent to method #5 with transfer_speed == f64::INFINITY
     pub fn add_noise_and_collapse(&mut self, sig_noise: f64) {
         self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
         self.normal_factor = self.approx_posterior;
         self.logistic_factors.clear();
     }
 
-    // #2: apply noise to one variable for which we have many estimates
+    // Method #2: decrease weights without changing logistic sigmas
+    // Equivalent to method #5 with transfer_speed == 0
     #[allow(dead_code)]
     pub fn add_noise_in_front(&mut self, sig_noise: f64) {
-        // multiply all sigmas by the same decay
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
+        self.approx_posterior.sig *= decay;
+
         self.normal_factor.sig *= decay;
         for rating in &mut self.logistic_factors {
-            rating.weight /= decay;
+            rating.weight /= decay * decay;
         }
-
-        // Update the variance, avoiding an expensive call to recompute_posterior().
-        // Note that we don't update the mode, which may have changed slightly.
-        self.approx_posterior.sig *= decay;
+        
     }
 
-    // #3: apply noise to one variable for which we have many estimates
+    // Method #3: gradually grow the sigmas so that logistic terms approach normal
     #[allow(dead_code)]
     pub fn add_noise_uniform(&mut self, sig_noise: f64) {
-        // multiply all sigmas by the same decay
+        // Note: here we don't update approx_posterior.mu, which we eventually should
+        //       because changing a logistic's sigma can change the posterior mode
         let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
+        self.approx_posterior.sig *= decay;
+
         self.normal_factor.sig *= decay;
         for rating in &mut self.logistic_factors {
             rating.sig *= decay;
             rating.weight /= decay;
         }
-
-        // Update the variance, avoiding an expensive call to recompute_posterior().
-        // Note that we don't update the mode, which may have changed slightly.
-        self.approx_posterior.sig *= decay;
     }
 
-    // #4: a fancier but slower substitute for add_noise_uniform(). See paper for details.
-    // TODO: optimize using Newton's method.
+    // Method #4: a fancier and slower way to grow sigmas over time
+    // TODO: optimize using Newton's method
     #[allow(dead_code)]
     pub fn add_noise_fancy(&mut self, sig_noise: f64) {
+        fn decay_factor_sig(center: f64, factor: &TanhTerm, kappa: f64) -> f64 {
+            let deviation = (center - factor.mu).abs();
+            let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
+            let (mut lo, mut hi) = (factor.sig * kappa / 2., factor.sig * kappa * kappa * 2.);
+            let mut guess = (lo + hi) / 2.;
+            loop {
+                let tanh_factor = (deviation / guess).tanh();
+                let test = tanh_factor / guess;
+                let test_prime = ((tanh_factor * tanh_factor - 1.) * deviation / guess
+                    - tanh_factor)
+                    / (guess * guess);
+                let test_error = test - target;
+                let next = (guess - test_error / test_prime)
+                    .max(0.75 * lo + 0.25 * guess)
+                    .min(0.25 * guess + 0.75 * hi);
+                if test_error * factor.sig * factor.sig > 0. {
+                    lo = guess;
+                } else {
+                    hi = guess;
+                }
+
+                if test_error.abs() * factor.sig * factor.sig < 1e-11 {
+                    //println!("{} < {} < {}", factor.sig * kappa, guess, factor.sig * kappa * kappa);
+                    return next;
+                }
+                if hi - lo < 1e-15 * factor.sig {
+                    println!(
+                        "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} e={} e'={}",
+                        guess, next, test_error, test_prime
+                    );
+                    return next;
+                }
+                guess = next;
+            }
+        }
+
         let decay = 1f64.hypot(sig_noise / self.approx_posterior.sig);
         self.approx_posterior.sig *= decay;
         let target = self.approx_posterior.sig.powi(-2);
@@ -162,10 +193,15 @@ impl Player {
         //println!("{} < {} < {}", decay.sqrt(), kappa, decay);
     }
 
-    // #5: the best method
-    pub fn add_noise_best(&mut self, sig_noise: f64) {
-        let decay = (1. + (sig_noise / self.approx_posterior.sig).powi(2)).recip();
-        let transfer = decay; // could be set differently, but this works well
+    // #5: a general method with the nicest properties, parametrized by transfer_speed >= 0
+    // Reduces to method #1 when transfer_speed == f64::INFINITY
+    // Reduces to method #2 when transfer_speed == 0
+    pub fn add_noise_best(&mut self, sig_noise: f64, transfer_speed: f64) {
+        let new_sig = self.approx_posterior.sig.hypot(sig_noise);
+
+        let decay = (self.approx_posterior.sig / new_sig).powi(2);
+        let transfer = decay.powf(transfer_speed);
+        self.approx_posterior.sig = new_sig;
 
         let wt_norm_old = self.normal_factor.sig.powi(-2);
         let wt_from_norm_old = transfer * wt_norm_old;
@@ -185,7 +221,6 @@ impl Player {
         for r in &mut self.logistic_factors {
             r.weight *= transfer * decay;
         }
-        self.approx_posterior.sig /= decay.sqrt();
     }
 }
 
@@ -218,45 +253,9 @@ pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
     std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
 }
 
-#[allow(dead_code)]
-fn decay_factor_sig(center: f64, factor: &TanhTerm, kappa: f64) -> f64 {
-    let deviation = (center - factor.mu).abs();
-    let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
-    let (mut lo, mut hi) = (factor.sig * kappa / 2., factor.sig * kappa * kappa * 2.);
-    let mut guess = (lo + hi) / 2.;
-    loop {
-        let tanh_factor = (deviation / guess).tanh();
-        let test = tanh_factor / guess;
-        let test_prime =
-            ((tanh_factor * tanh_factor - 1.) * deviation / guess - tanh_factor) / (guess * guess);
-        let test_error = test - target;
-        let next = (guess - test_error / test_prime)
-            .max(0.75 * lo + 0.25 * guess)
-            .min(0.25 * guess + 0.75 * hi);
-        if test_error * factor.sig * factor.sig > 0. {
-            lo = guess;
-        } else {
-            hi = guess;
-        }
-
-        if test_error.abs() * factor.sig * factor.sig < 1e-11 {
-            //println!("{} < {} < {}", factor.sig * kappa, guess, factor.sig * kappa * kappa);
-            return next;
-        }
-        if hi - lo < 1e-15 * factor.sig {
-            println!(
-                "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} e={} e'={}",
-                guess, next, test_error, test_prime
-            );
-            return next;
-        }
-        guess = next;
-    }
-}
-
 // Returns the unique zero of the following strictly increasing function of x:
-// offset + slope * x + sum_i tanh((x-mu_i)/sig_i) / sig_i
-// We must have slope != 0 or |offset| < sum_i 1/sig_i in order for the zero to exist.
+// offset + slope * x + sum_i weight_i * tanh((x-mu_i)/sig_i)
+// We must have slope != 0 or |offset| < sum_i weight_i in order for the zero to exist.
 // If offset == slope == 0, we get a robust weighted average of the mu_i's. Uses hybrid of
 // binary search (to converge in the worst-case) and Newton's method (for speed in the typical case).
 pub fn robust_average(
