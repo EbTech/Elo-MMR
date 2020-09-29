@@ -1,6 +1,6 @@
 //! Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 
-use super::compute_ratings::{
+use crate::compute_ratings::{
     robust_average, standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player,
     Rating, RatingSystem,
 };
@@ -111,6 +111,8 @@ impl RatingSystem for EloRSystem {
             .par_iter_mut()
             .map(|(player, _, _)| {
                 match self.variant {
+                    // if transfer_speed is infinite or the system is Gaussian, the logistic
+                    // weights become zero so our spacial-case optimization clears them out
                     EloRVariant::Logistic(transfer_speed) if transfer_speed < f64::INFINITY => {
                         player.add_noise_best(self.sig_drift, transfer_speed)
                     }
@@ -143,10 +145,13 @@ impl RatingSystem for EloRSystem {
                     _ => Self::compute_performance_logistic(better, tied, worse),
                 };
 
-                player.update_rating_with_new_performance(Rating {
-                    mu: perf,
-                    sig: self.sig_perf,
-                });
+                player.update_rating_with_new_performance(
+                    Rating {
+                        mu: perf,
+                        sig: self.sig_perf,
+                    },
+                    usize::MAX,
+                );
             });
     }
 }

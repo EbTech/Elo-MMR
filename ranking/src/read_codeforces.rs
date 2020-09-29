@@ -1,4 +1,4 @@
-use super::contest_config::Contest;
+use crate::contest_config::Contest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;

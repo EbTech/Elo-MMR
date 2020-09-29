@@ -1,12 +1,8 @@
 // Copy-paste a spreadsheet column of CF handles as input to this program, then
 // paste this program's output into the spreadsheet's ratings column.
-use super::contest_config::Contest;
+use crate::contest_config::Contest;
 use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
-
-pub const MU_NEWBIE: f64 = 1500.0; // rating for a new player
-pub const SIG_NEWBIE: f64 = 350.0; // uncertainty for a new player
-pub const MAX_HISTORY_LEN: usize = 500; // maximum number of recent performances to keep
 
 #[derive(Clone, Copy, Debug)]
 pub struct Rating {
@@ -31,15 +27,17 @@ impl From<Rating> for TanhTerm {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct PlayerEvent {
-    contest_id: usize,
-    contest_time: u64,
-    display_rating: i32,
+    pub contest_id: usize,
+    pub contest_time: u64,
+    pub display_rating: i32,
 }
 
 pub struct Player {
+    // TODO: mark all fields private, with API based on appropriately-named read-only methods
     normal_factor: Rating,
-    logistic_factors: VecDeque<TanhTerm>,
+    pub logistic_factors: VecDeque<TanhTerm>,
     pub event_history: Vec<PlayerEvent>,
     pub approx_posterior: Rating,
 }
@@ -56,15 +54,18 @@ impl Player {
 
     pub fn update_rating(&mut self, rating: Rating) {
         // Assumes that a placeholder history item has been pushed containing contest id and time
-        // TODO: get rid of the magic number 100, which is EloR's default sig_lim
         self.approx_posterior = rating;
         let last_event = self.event_history.last_mut().unwrap();
         assert_eq!(last_event.display_rating, 0);
+
+        // TODO: get rid of the magic numbers 2 and 100!
+        //       2 gives a conservative estimate: use 0 to get mean estimates
+        //       100 is EloR's default sig_lim
         last_event.display_rating = (rating.mu - 2. * (rating.sig - 100.)).round() as i32;
     }
 
-    pub fn update_rating_with_new_performance(&mut self, performance: Rating) {
-        if self.logistic_factors.len() == MAX_HISTORY_LEN {
+    pub fn update_rating_with_new_performance(&mut self, performance: Rating, max_history: usize) {
+        if self.logistic_factors.len() >= max_history {
             // wl can be chosen so as to preserve total weight or rating; we choose the former.
             // Either way, the deleted element should be small enough not to matter.
             let logistic = self.logistic_factors.pop_front().unwrap();
@@ -106,7 +107,6 @@ impl Player {
         for rating in &mut self.logistic_factors {
             rating.weight /= decay * decay;
         }
-        
     }
 
     // Method #3: gradually grow the sigmas so that logistic terms approach normal
@@ -264,7 +264,7 @@ pub fn robust_average(
     slope: f64,
 ) -> f64 {
     let (mut lo, mut hi) = (-1000.0, 4500.0);
-    let mut guess = MU_NEWBIE;
+    let mut guess = 0.5 * (lo + hi);
     loop {
         let mut sum = offset + slope * guess;
         let mut sum_prime = slope;
@@ -305,12 +305,14 @@ pub fn simulate_contest(
     players: &mut HashMap<String, RefCell<Player>>,
     contest: &Contest,
     system: &mut dyn RatingSystem,
+    mu_newbie: f64,
+    sig_newbie: f64,
 ) {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
         players
             .entry(handle.clone())
-            .or_insert_with(|| RefCell::new(Player::with_rating(MU_NEWBIE, SIG_NEWBIE)));
+            .or_insert_with(|| RefCell::new(Player::with_rating(mu_newbie, sig_newbie)));
     });
 
     // Low-level magic: verify that handles are distinct and store guards so that the cells
@@ -337,111 +339,4 @@ pub fn simulate_contest(
         .collect();
 
     system.round_update(standings);
-}
-
-// TODO: does everything below here belong in a separate file?
-// Consider refactoring out the write target and the selection of recent contests.
-
-struct RatingData {
-    cur_rating: i32,
-    max_rating: i32,
-    handle: String,
-    last_contest: usize,
-    last_contest_time: u64,
-    last_perf: i32,
-    last_delta: i32,
-}
-
-pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u64) {
-    const NUM_TITLES: usize = 11;
-    const TITLE_BOUND: [i32; NUM_TITLES] = [
-        -999, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2700, 3000,
-    ];
-    const TITLE: [&str; NUM_TITLES] = [
-        "Ne", "Pu", "Ap", "Sp", "Ex", "CM", "Ma", "IM", "GM", "IG", "LG",
-    ];
-
-    use std::io::Write;
-    let filename = "../data/CFratings_temp.txt";
-    let file = std::fs::File::create(filename).expect("Output file not found");
-    let mut out = std::io::BufWriter::new(file);
-
-    let mut rating_data = Vec::with_capacity(players.len());
-    let mut title_count = vec![0; NUM_TITLES];
-    let sum_ratings = {
-        let mut ratings: Vec<f64> = players
-            .iter()
-            .map(|(_, player)| player.borrow().approx_posterior.mu)
-            .collect();
-        ratings.sort_by(|a, b| a.partial_cmp(b).expect("NaN is unordered"));
-        ratings.into_iter().sum::<f64>()
-    };
-    for (handle, player) in players {
-        let player = player.borrow_mut();
-        let last_event = player.event_history.last().unwrap();
-        let max_rating = player
-            .event_history
-            .iter()
-            .map(|event| event.display_rating)
-            .max()
-            .unwrap();
-        let last_perf = player
-            .logistic_factors
-            .back()
-            .map(|r| r.mu.round() as i32)
-            .unwrap_or(0);
-        let previous_rating = if player.event_history.len() == 1 {
-            1000
-        } else {
-            player.event_history[player.event_history.len() - 2].display_rating
-        };
-        rating_data.push(RatingData {
-            cur_rating: last_event.display_rating,
-            max_rating,
-            handle: handle.clone(),
-            last_contest: last_event.contest_id,
-            last_contest_time: last_event.contest_time,
-            last_perf,
-            last_delta: last_event.display_rating - previous_rating,
-        });
-
-        if last_event.contest_time > rated_since {
-            if let Some(title_id) = (0..NUM_TITLES)
-                .rev()
-                .find(|&i| last_event.display_rating >= TITLE_BOUND[i])
-            {
-                title_count[title_id] += 1;
-            }
-        }
-    }
-    rating_data.sort_unstable_by_key(|data| (-data.cur_rating, data.handle.clone()));
-
-    writeln!(
-        out,
-        "Mean rating.mu = {}",
-        sum_ratings / players.len() as f64
-    )
-    .ok();
-
-    for i in (0..NUM_TITLES).rev() {
-        writeln!(out, "{} {} x{:6}", TITLE_BOUND[i], TITLE[i], title_count[i]).ok();
-    }
-
-    let mut rank = 0;
-    for data in rating_data {
-        if data.last_contest_time > rated_since {
-            rank += 1;
-            write!(out, "{:6}", rank).ok();
-        } else {
-            write!(out, "{:>6}", "-").ok();
-        }
-        write!(out, " {:4}({:4})", data.cur_rating, data.max_rating).ok();
-        write!(out, " {:<26}contest/{:4}: ", data.handle, data.last_contest).ok();
-        writeln!(
-            out,
-            "perf ={:5}, delta ={:4}",
-            data.last_perf, data.last_delta
-        )
-        .ok();
-    }
 }

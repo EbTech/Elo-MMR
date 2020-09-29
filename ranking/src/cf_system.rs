@@ -1,6 +1,6 @@
 //! Codeforces system details: https://codeforces.com/blog/entry/20762
 
-use super::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rating, RatingSystem};
+use crate::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rating, RatingSystem};
 use rayon::prelude::*;
 
 pub struct CodeforcesSystem {

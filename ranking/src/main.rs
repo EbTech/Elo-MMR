@@ -1,15 +1,17 @@
 mod compute_ratings;
 mod contest_config;
 mod read_codeforces;
+mod summary;
 
 mod cf_system;
 mod elor_system;
 mod tc_system;
 mod ts_system;
 
-use compute_ratings::{print_ratings, simulate_contest};
+use compute_ratings::simulate_contest;
 use contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
+use summary::print_ratings;
 
 /// simulates the entire history of Codeforces; runs on my laptop in an hour,
 /// somewhat longer if the Codeforces API data isn't cached
@@ -26,7 +28,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &mut system);
+        simulate_contest(&mut players, &contest, &mut system, 1500., 350.);
         last_contest_time = contest.time_seconds;
     }
     print_ratings(&players, last_contest_time - 183 * 86_400);
