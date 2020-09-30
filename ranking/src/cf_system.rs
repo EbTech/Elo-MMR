@@ -41,7 +41,7 @@ impl CodeforcesSystem {
 
         let geo_rank = (ac_rank * ex_rank).sqrt();
         let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
-        let geo_rating = robust_average(all.iter().cloned(), geo_offset, 0.);
+        let geo_rating = robust_average(all.iter().cloned().map(Into::into), geo_offset, 0.);
         geo_rating
     }
 }
@@ -71,8 +71,9 @@ impl RatingSystem for CodeforcesSystem {
                     &all_ratings,
                     my_rating,
                 );
-                let player_mu = &mut player.approx_posterior.mu;
-                *player_mu = (*player_mu + self.weight * geo_perf) / (1. + self.weight);
+                let mu = (my_rating.mu + self.weight * geo_perf) / (1. + self.weight);
+                let sig = player.approx_posterior.sig;
+                player.update_rating(Rating { mu, sig });
             });
     }
 }

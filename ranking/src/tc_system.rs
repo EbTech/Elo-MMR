@@ -71,7 +71,8 @@ impl RatingSystem for TopCoderSystem {
                 let ac_perf = -standard_normal_cdf_inv(ac_rank / num_coders);
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
-                let mut weight = 1. / (0.82 - 0.42 / player.num_contests as f64) - 1.;
+                let num_contests = player.event_history.len() as f64;
+                let mut weight = 1. / (0.82 - 0.42 / num_contests) - 1.;
                 weight *= self.weight_multiplier;
                 if old_rating >= 2500. {
                     weight *= 0.8;
@@ -79,7 +80,7 @@ impl RatingSystem for TopCoderSystem {
                     weight *= 0.9;
                 }
 
-                let mut cap = 150. + 1500. / (player.num_contests + 1) as f64;
+                let mut cap = 150. + 1500. / (num_contests + 1.);
                 cap *= cap_multiplier;
 
                 let try_rating = (old_rating + weight * perf_as) / (1. + weight);
@@ -98,7 +99,7 @@ impl RatingSystem for TopCoderSystem {
             .into_par_iter()
             .zip(new_ratings)
             .for_each(|((player, _, _), new_rating)| {
-                player.approx_posterior = new_rating;
+                player.update_rating(new_rating);
             });
     }
 }

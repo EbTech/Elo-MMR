@@ -213,8 +213,10 @@ impl TrueSkillSPBSystem {
             let (player, gaussian) = &mut contest[i][j][k];
 
             *gaussian = prior * performance;
-            player.approx_posterior.mu = gaussian.mu;
-            player.approx_posterior.sig = gaussian.sigma;
+            player.update_rating(Rating {
+                mu: gaussian.mu,
+                sig: gaussian.sigma,
+            });
         }
     }
 }
