@@ -4,8 +4,8 @@ use crate::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rati
 use rayon::prelude::*;
 
 pub struct CodeforcesSystem {
-    sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
-    weight: f64,   // must be positive
+    pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
+    pub weight: f64,   // must be positive
 }
 
 impl Default for CodeforcesSystem {

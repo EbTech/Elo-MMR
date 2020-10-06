@@ -12,9 +12,9 @@ pub enum EloRVariant {
 }
 
 pub struct EloRSystem {
-    sig_perf: f64,        // variation in individual performances
-    sig_drift: f64,       // skill drift between successive performances
-    variant: EloRVariant, // whether to use logistic or Gaussian distributions
+    pub sig_perf: f64,        // variation in individual performances
+    pub sig_drift: f64,       // skill drift between successive performances
+    pub variant: EloRVariant, // whether to use logistic or Gaussian distributions
 }
 
 impl Default for EloRSystem {

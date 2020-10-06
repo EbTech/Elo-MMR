@@ -18,13 +18,13 @@ type TSContest<'a> = Vec<TSContestPlace<'a>>;
 // TrueSkillStPB rating system
 pub struct TrueSkillSPBSystem {
     // epsilon used for ties
-    eps: f64,
+    pub eps: f64,
     // performance sigma
-    beta: f64,
+    pub beta: f64,
     // epsilon used for convergence loop
-    convergence_eps: f64,
+    pub convergence_eps: f64,
     // defines sigma growth per second
-    sigma_growth: f64,
+    pub sigma_growth: f64,
 }
 
 impl Default for TrueSkillSPBSystem {
@@ -222,7 +222,7 @@ impl TrueSkillSPBSystem {
 }
 
 impl RatingSystem for TrueSkillSPBSystem {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+    fn win_probability(&self, _player: &Rating, _foe: &Rating) -> f64 {
         0.5 // TODO
     }
 
