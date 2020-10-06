@@ -15,18 +15,24 @@ pub struct EloRSystem {
     pub sig_perf: f64,        // variation in individual performances
     pub sig_drift: f64,       // skill drift between successive performances
     pub variant: EloRVariant, // whether to use logistic or Gaussian distributions
+    pub split_ties: bool,     // whether to split ties into half win and half loss
 }
 
 impl Default for EloRSystem {
     fn default() -> Self {
-        Self::from_limit(250., 100., EloRVariant::Logistic(1.))
+        Self::from_limit(250., 100., EloRVariant::Logistic(1.), false)
     }
 }
 
 impl EloRSystem {
     // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
     // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
-    pub fn from_limit(sig_perf: f64, sig_limit: f64, variant: EloRVariant) -> Self {
+    pub fn from_limit(
+        sig_perf: f64,
+        sig_limit: f64,
+        variant: EloRVariant,
+        split_ties: bool,
+    ) -> Self {
         assert!(sig_limit > 0.);
         assert!(sig_perf > sig_limit);
         let sig_drift =
@@ -35,6 +41,7 @@ impl EloRSystem {
             sig_perf,
             sig_drift,
             variant,
+            split_ties,
         }
     }
 
@@ -44,6 +51,7 @@ impl EloRSystem {
         better: impl Iterator<Item = Rating> + Clone,
         tied: impl Iterator<Item = Rating> + Clone,
         worse: impl Iterator<Item = Rating> + Clone,
+        split_ties: bool,
     ) -> f64 {
         // This is a slow binary search, without Newton steps
         let (mut lo, mut hi) = (-1000.0, 4500.0);
@@ -56,17 +64,26 @@ impl EloRSystem {
                 let cdf = standard_normal_cdf(z);
                 sum += pdf / (cdf - 1.);
             }
-            for rating in tied.clone() {
-                let z = (guess - rating.mu) / rating.sig;
-                let pdf = standard_normal_pdf(z) / rating.sig;
-                let pdf_prime = -z * pdf / rating.sig;
-                sum += pdf_prime / pdf;
-            }
             for rating in worse.clone() {
                 let z = (guess - rating.mu) / rating.sig;
                 let pdf = standard_normal_pdf(z) / rating.sig;
                 let cdf = standard_normal_cdf(z);
                 sum += pdf / cdf;
+            }
+            if split_ties {
+                for rating in tied.clone() {
+                    let z = (guess - rating.mu) / rating.sig;
+                    let pdf = standard_normal_pdf(z) / rating.sig;
+                    let cdf = standard_normal_cdf(z);
+                    sum += pdf * (0.5 / (cdf - 1.) + 0.5 / cdf);
+                }
+            } else {
+                for rating in tied.clone() {
+                    let z = (guess - rating.mu) / rating.sig;
+                    let pdf = standard_normal_pdf(z) / rating.sig;
+                    let pdf_prime = -z * pdf / rating.sig;
+                    sum += pdf_prime / pdf;
+                }
             }
             if sum < 0.0 {
                 hi = guess;
@@ -83,15 +100,22 @@ impl EloRSystem {
         better: impl Iterator<Item = Rating> + Clone,
         tied: impl Iterator<Item = Rating> + Clone,
         worse: impl Iterator<Item = Rating> + Clone,
+        split_ties: bool,
     ) -> f64 {
-        let all = better
-            .clone()
-            .chain(tied)
-            .chain(worse.clone())
-            .map(Into::into);
-        let pos_offset: f64 = better.map(|rating| rating.sig.recip()).sum();
-        let neg_offset: f64 = worse.map(|rating| rating.sig.recip()).sum();
-        robust_average(all, pos_offset - neg_offset, 0.)
+        let pos_offset: f64 = better.clone().map(|rating| rating.sig.recip()).sum();
+        let neg_offset: f64 = worse.clone().map(|rating| rating.sig.recip()).sum();
+        let not_tied = better.chain(worse).map(Into::into);
+        let tied = tied.map(Into::into);
+
+        if split_ties {
+            robust_average(not_tied.chain(tied), pos_offset - neg_offset, 0.)
+        } else {
+            let double_tied = tied.map(|mut term| {
+                term.weight *= 2.;
+                term
+            });
+            robust_average(not_tied.chain(double_tied), pos_offset - neg_offset, 0.)
+        }
     }
 }
 
@@ -101,7 +125,7 @@ impl RatingSystem for EloRSystem {
         let z = (player.mu - foe.mu) / sigma;
         match self.variant {
             EloRVariant::Gaussian => standard_normal_cdf(z),
-            _ => standard_logistic_cdf(z),
+            EloRVariant::Logistic(_) => standard_logistic_cdf(z),
         }
     }
 
@@ -127,31 +151,27 @@ impl RatingSystem for EloRSystem {
             .collect();
 
         // The computational bottleneck: update ratings based on contest performance
-        standings
-            .into_par_iter()
-            .enumerate()
-            .for_each(|(i, (player, lo, hi))| {
-                let better = all_ratings[..lo].iter().cloned();
-                let tied = all_ratings[lo..=hi]
-                    .iter()
-                    .cloned()
-                    .chain(std::iter::once(all_ratings[i]));
-                let worse = all_ratings[hi + 1..].iter().cloned();
+        standings.into_par_iter().for_each(|(player, lo, hi)| {
+            let better = all_ratings[..lo].iter().cloned();
+            let tied = all_ratings[lo..=hi].iter().cloned();
+            let worse = all_ratings[hi + 1..].iter().cloned();
 
-                let perf = match self.variant {
-                    EloRVariant::Gaussian => {
-                        Self::compute_performance_gaussian(better, tied, worse)
-                    }
-                    _ => Self::compute_performance_logistic(better, tied, worse),
-                };
+            let perf = match self.variant {
+                EloRVariant::Gaussian => {
+                    Self::compute_performance_gaussian(better, tied, worse, self.split_ties)
+                }
+                EloRVariant::Logistic(_) => {
+                    Self::compute_performance_logistic(better, tied, worse, self.split_ties)
+                }
+            };
 
-                player.update_rating_with_new_performance(
-                    Rating {
-                        mu: perf,
-                        sig: self.sig_perf,
-                    },
-                    usize::MAX,
-                );
-            });
+            player.update_rating_with_new_performance(
+                Rating {
+                    mu: perf,
+                    sig: self.sig_perf,
+                },
+                usize::MAX,
+            );
+        });
     }
 }

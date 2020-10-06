@@ -14,7 +14,7 @@ serde_json = "1.0"
 statrs = "0.13"
 overload = "0.1"
 rand = "0.7"
-float-cmp = "0.8.0"
+float-cmp = "0.8"
 
 [[bin]]
 name = "run"
