@@ -1,10 +1,14 @@
-// Copy-paste a spreadsheet column of CF handles as input to this program, then
-// paste this program's output into the spreadsheet's ratings column.
+extern crate overload;
+
+use overload::overload;
+use std::ops;
+use std::fmt;
 
 use crate::contest_config::Contest;
 use std::cell::{Ref, RefCell, RefMut};
-use std::cmp::min;
 use std::collections::{HashMap, VecDeque};
+use std::cmp::min;
+
 pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
 
 #[derive(Clone, Copy, Debug)]
@@ -12,6 +16,44 @@ pub struct Rating {
     pub mu: f64,
     pub sig: f64,
 }
+
+// A data structure for storing the various performance metrics we want to
+// analyze
+pub struct PerformanceMetric {
+    pub topk: f64,
+    pub percentile: f64,
+    pub nrounds: f64,
+}
+
+impl Default for PerformanceMetric {
+    fn default() -> Self {
+        Self {
+            topk: 0.,
+            percentile: 0.,
+            nrounds: 0.,
+        }
+    }
+}
+
+impl fmt::Display for PerformanceMetric {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.topk, self.percentile)
+    }
+}
+
+overload!((a: ?PerformanceMetric) + (b: ?PerformanceMetric) -> PerformanceMetric {
+    PerformanceMetric {
+        topk: (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds),
+        percentile: (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds),
+        nrounds: a.nrounds + b.nrounds,
+    }
+});
+
+overload!((a: &mut PerformanceMetric) += (b: ?PerformanceMetric) {
+    a.topk = (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds);
+    a.percentile = (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds);
+    a.nrounds += b.nrounds;
+});
 
 #[derive(Clone, Copy, Debug)]
 pub struct TanhTerm {
@@ -225,19 +267,15 @@ pub fn robust_average(
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
-    fn topk_accuracy(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> f64 {
+    fn compute_metrics(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> PerformanceMetric {
         let mut ranks: Vec<(f64, usize)> = Vec::<(f64, usize)>::new();
         for i in 0..standings.len() {
-            let mut pred_rank = 0.;
-            for j in 0..standings.len() {
-                let pa = standings[i].0.approx_posterior;
-                let pb = standings[j].0.approx_posterior;
-                pred_rank += self.win_probability(&pb, &pa);
-            }
-            ranks.push((pred_rank, i));
+            let pa = standings[i].0.approx_posterior;
+            ranks.push((-pa.mu, i));
         }
         ranks.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
+        // Compute topk (frac. of inverted pairs) metric
         let kreal = min(k as usize, standings.len());
         let mut pairs_correct = 0.;
         let tot_pairs = (kreal * (kreal - 1)) as f64 / 2.;
@@ -256,7 +294,18 @@ pub trait RatingSystem {
             }
         }
 
-        pairs_correct / tot_pairs
+        // Compute avg percentile distance metric
+        let mut avg_percent = 0.;
+        for i in 0..ranks.len() {
+            avg_percent += (i as f64 - ranks[i].1 as f64).abs() / ranks.len() as f64;
+        }
+        avg_percent /= ranks.len() as f64;
+
+        PerformanceMetric {
+            topk: pairs_correct / tot_pairs,
+            percentile: avg_percent,
+            nrounds: 1.,
+        }
     }
 }
 
@@ -307,7 +356,7 @@ pub fn predict_performance(
     mu_newbie: f64,
     sig_newbie: f64,
     topk: i32,
-) -> f64 {
+) -> PerformanceMetric {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
         players
@@ -329,5 +378,5 @@ pub fn predict_performance(
         .map(|(player, (_, lo, hi))| (player, lo, hi))
         .collect();
 
-    system.topk_accuracy(standings, topk)
+    system.compute_metrics(standings, topk)
 }

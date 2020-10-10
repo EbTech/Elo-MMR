@@ -1,6 +1,6 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{predict_performance, simulate_contest};
+use ranking::compute_ratings::{predict_performance, simulate_contest, PerformanceMetric};
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
 use std::time::Instant;
@@ -35,11 +35,11 @@ fn main() {
     // }
     // print_ratings(&players, last_contest_time - 183 * 86_400);
 
-    let max_contests = 100;
     let config = get_contest_config(ContestSource::Synthetic);
     let mut players = HashMap::new();
     let contest_ids = get_contest_ids(&config.contest_id_file);
-    let topk = 50;
+    let max_contests = 10;
+    let topk = 5000;
     let mu_noob = 1500.;
     let sig_noob = 350.;
 
@@ -58,7 +58,7 @@ fn main() {
                 sig_perf: sig_perf,
                 weight: weight,
             };
-            let mut avg_perf = 0.;
+            let mut avg_perf = PerformanceMetric::default();
 
             for (i, contest_id) in contest_ids.iter().enumerate() {
                 if i >= max_contests {
@@ -72,7 +72,6 @@ fn main() {
                     predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
-            avg_perf /= max_contests as f64;
             println!(
                 "{}, {}: {}, {}s",
                 sig_perf,
@@ -88,9 +87,9 @@ fn main() {
         max_contests
     );
     for pi in -8..8 {
-        for li in -8..8 {
-            let sig_perf = (pi as f64) * 10. + 170.;
-            let sig_drift = (li as f64) * 3. + 60.;
+        for li in -6..6 {
+            let sig_perf = (pi as f64) * 10. + 200.;
+            let sig_drift = (li as f64) * 10. + 60.;
 
             players.clear();
             let now = Instant::now();
@@ -100,7 +99,7 @@ fn main() {
                 variant: ranking::elor_system::EloRVariant::Logistic(1.),
                 split_ties: false,
             };
-            let mut avg_perf = 0.;
+            let mut avg_perf = PerformanceMetric::default();
 
             for (i, contest_id) in contest_ids.iter().enumerate() {
                 if i >= max_contests {
@@ -114,7 +113,6 @@ fn main() {
                     predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
-            avg_perf /= max_contests as f64;
             println!(
                 "{}, {}: {}, {}s",
                 sig_perf,
@@ -137,7 +135,7 @@ fn main() {
         let mut system = TCSys {
             weight_multiplier: weight,
         };
-        let mut avg_perf = 0.;
+        let mut avg_perf = PerformanceMetric::default();
 
         for (i, contest_id) in contest_ids.iter().enumerate() {
             if i >= max_contests {
@@ -151,7 +149,6 @@ fn main() {
                 predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
             simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
         }
-        avg_perf /= max_contests as f64;
         println!(
             "{}: {}, {}s",
             weight,
@@ -166,10 +163,10 @@ fn main() {
     );
     for ei in 1..6 {
         for bi in -3..3 {
-            for si in -1..5 {
+            for si in -2..4 {
                 let eps = (ei as f64) * 0.1;
                 let beta = (bi as f64) * 30. + 250.;
-                let sigma_growth = (si as f64) * 2.5 + 10.;
+                let sigma_growth = (si as f64) * 2.5 + 5.;
 
                 players.clear();
                 let now = Instant::now();
@@ -179,7 +176,7 @@ fn main() {
                     convergence_eps: 2e-4,
                     sigma_growth: sigma_growth,
                 };
-                let mut avg_perf = 0.;
+                let mut avg_perf = PerformanceMetric::default();
 
                 for (i, contest_id) in contest_ids.iter().enumerate() {
                     if i >= max_contests {
@@ -199,7 +196,6 @@ fn main() {
                     );
                     simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
                 }
-                avg_perf /= max_contests as f64;
                 println!(
                     "{}, {}, {}: {}, {}s",
                     eps,
