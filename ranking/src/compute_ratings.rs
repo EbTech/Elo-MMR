@@ -19,13 +19,13 @@ pub struct Rating {
 
 // A data structure for storing the various performance metrics we want to
 // analyze
-pub struct PerformanceMetric {
+pub struct PerformanceReport {
     pub topk: f64,
     pub percentile: f64,
     pub nrounds: f64,
 }
 
-impl Default for PerformanceMetric {
+impl Default for PerformanceReport {
     fn default() -> Self {
         Self {
             topk: 0.,
@@ -35,21 +35,21 @@ impl Default for PerformanceMetric {
     }
 }
 
-impl fmt::Display for PerformanceMetric {
+impl fmt::Display for PerformanceReport {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {})", self.topk, self.percentile)
     }
 }
 
-overload!((a: ?PerformanceMetric) + (b: ?PerformanceMetric) -> PerformanceMetric {
-    PerformanceMetric {
+overload!((a: ?PerformanceReport) + (b: ?PerformanceReport) -> PerformanceReport {
+    PerformanceReport {
         topk: (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds),
         percentile: (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds),
         nrounds: a.nrounds + b.nrounds,
     }
 });
 
-overload!((a: &mut PerformanceMetric) += (b: ?PerformanceMetric) {
+overload!((a: &mut PerformanceReport) += (b: ?PerformanceReport) {
     a.topk = (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds);
     a.percentile = (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds);
     a.nrounds += b.nrounds;
@@ -267,7 +267,7 @@ pub fn robust_average(
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
-    fn compute_metrics(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> PerformanceMetric {
+    fn compute_metrics(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> PerformanceReport {
         let mut ranks: Vec<(f64, usize)> = Vec::<(f64, usize)>::new();
         for i in 0..standings.len() {
             let pa = standings[i].0.approx_posterior;
@@ -301,7 +301,7 @@ pub trait RatingSystem {
         }
         avg_percent /= ranks.len() as f64;
 
-        PerformanceMetric {
+        PerformanceReport {
             topk: pairs_correct / tot_pairs,
             percentile: avg_percent,
             nrounds: 1.,
@@ -356,7 +356,7 @@ pub fn predict_performance(
     mu_newbie: f64,
     sig_newbie: f64,
     topk: i32,
-) -> PerformanceMetric {
+) -> PerformanceReport {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
         players
