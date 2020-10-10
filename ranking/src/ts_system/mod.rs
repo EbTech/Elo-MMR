@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use crate::compute_ratings::{Player, Rating, RatingSystem, standard_normal_cdf};
+use crate::compute_ratings::{standard_normal_cdf, Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;

@@ -2,7 +2,7 @@
 // paste this program's output into the spreadsheet's ratings column.
 
 use crate::contest_config::Contest;
-use std::cell::{RefCell, RefMut, Ref};
+use std::cell::{Ref, RefCell, RefMut};
 use std::cmp::min;
 use std::collections::{HashMap, VecDeque};
 pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
@@ -240,7 +240,7 @@ pub trait RatingSystem {
 
         let kreal = min(k as usize, standings.len());
         let mut pairs_correct = 0.;
-        let tot_pairs = (kreal * (kreal - 1)) as f64 / 2.; 
+        let tot_pairs = (kreal * (kreal - 1)) as f64 / 2.;
         for i in 0..standings.len() {
             if ranks[i].1 >= k as usize {
                 continue;
@@ -306,7 +306,7 @@ pub fn predict_performance(
     system: &dyn RatingSystem,
     mu_newbie: f64,
     sig_newbie: f64,
-    topk: i32
+    topk: i32,
 ) -> f64 {
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {

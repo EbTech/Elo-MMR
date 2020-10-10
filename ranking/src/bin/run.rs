@@ -3,7 +3,7 @@ extern crate ranking;
 use ranking::compute_ratings::{predict_performance, simulate_contest};
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
 use std::collections::HashMap;
-use std::time::{Instant};
+use std::time::Instant;
 
 #[allow(unused_imports)]
 use ranking::CodeforcesSystem as CFSys;
@@ -43,7 +43,10 @@ fn main() {
     let mu_noob = 1500.;
     let sig_noob = 350.;
 
-    println!("CodeForces average performance ({} contests, top-{}):", max_contests, topk);
+    println!(
+        "CodeForces average performance ({} contests, top-{}):",
+        max_contests, topk
+    );
     for si in -5..5 {
         for wi in 1..10 {
             let sig_perf = (si as f64) * 30. + 800. / std::f64::consts::LN_10;
@@ -51,7 +54,10 @@ fn main() {
 
             players.clear();
             let now = Instant::now();
-            let mut system = CFSys {sig_perf: sig_perf, weight: weight};
+            let mut system = CFSys {
+                sig_perf: sig_perf,
+                weight: weight,
+            };
             let mut avg_perf = 0.;
 
             for (i, contest_id) in contest_ids.iter().enumerate() {
@@ -62,18 +68,25 @@ fn main() {
 
                 // Predict performance must be run before simulate contest
                 // since we don't want to make predictions after we've seen the contest
-                avg_perf += predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+                avg_perf +=
+                    predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
             avg_perf /= max_contests as f64;
             println!(
                 "{}, {}: {}, {}s",
-                sig_perf, weight, avg_perf, now.elapsed().as_millis() as f64 / 1000.
+                sig_perf,
+                weight,
+                avg_perf,
+                now.elapsed().as_millis() as f64 / 1000.
             );
         }
     }
 
-    println!("EloR average performance ({} contests, top-50):", max_contests);
+    println!(
+        "EloR average performance ({} contests, top-50):",
+        max_contests
+    );
     for pi in -8..8 {
         for li in -8..8 {
             let sig_perf = (pi as f64) * 10. + 170.;
@@ -82,8 +95,8 @@ fn main() {
             players.clear();
             let now = Instant::now();
             let mut system = EloRSys {
-                sig_perf: sig_perf, 
-                sig_drift: sig_drift, 
+                sig_perf: sig_perf,
+                sig_drift: sig_drift,
                 variant: ranking::elor_system::EloRVariant::Logistic(1.),
                 split_ties: false,
             };
@@ -97,24 +110,33 @@ fn main() {
 
                 // Predict performance must be run before simulate contest
                 // since we don't want to make predictions after we've seen the contest
-                avg_perf += predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+                avg_perf +=
+                    predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
             avg_perf /= max_contests as f64;
             println!(
                 "{}, {}: {}, {}s",
-                sig_perf, sig_drift, avg_perf, now.elapsed().as_millis() as f64 / 1000.
+                sig_perf,
+                sig_drift,
+                avg_perf,
+                now.elapsed().as_millis() as f64 / 1000.
             );
         }
     }
 
-    println!("TopCoder average performance ({} contests, top-50):", max_contests);
+    println!(
+        "TopCoder average performance ({} contests, top-50):",
+        max_contests
+    );
     for wi in 1..20 {
         let weight = (wi as f64) * 0.05;
 
         players.clear();
         let now = Instant::now();
-        let mut system = TCSys {weight_multiplier: weight};
+        let mut system = TCSys {
+            weight_multiplier: weight,
+        };
         let mut avg_perf = 0.;
 
         for (i, contest_id) in contest_ids.iter().enumerate() {
@@ -125,17 +147,23 @@ fn main() {
 
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
-            avg_perf += predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+            avg_perf +=
+                predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
             simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
         }
         avg_perf /= max_contests as f64;
         println!(
             "{}: {}, {}s",
-            weight, avg_perf, now.elapsed().as_millis() as f64 / 1000.
+            weight,
+            avg_perf,
+            now.elapsed().as_millis() as f64 / 1000.
         );
     }
 
-    println!("TrueSkill average performance ({} contests, top-50):", max_contests);
+    println!(
+        "TrueSkill average performance ({} contests, top-50):",
+        max_contests
+    );
     for ei in 1..6 {
         for bi in -3..3 {
             for si in -1..5 {
@@ -145,7 +173,12 @@ fn main() {
 
                 players.clear();
                 let now = Instant::now();
-                let mut system = TSSys {eps: eps, beta: beta, convergence_eps: 2e-4, sigma_growth: sigma_growth};
+                let mut system = TSSys {
+                    eps: eps,
+                    beta: beta,
+                    convergence_eps: 2e-4,
+                    sigma_growth: sigma_growth,
+                };
                 let mut avg_perf = 0.;
 
                 for (i, contest_id) in contest_ids.iter().enumerate() {
@@ -156,13 +189,24 @@ fn main() {
 
                     // Predict performance must be run before simulate contest
                     // since we don't want to make predictions after we've seen the contest
-                    avg_perf += predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+                    avg_perf += predict_performance(
+                        &mut players,
+                        &contest,
+                        &system,
+                        mu_noob,
+                        sig_noob,
+                        topk,
+                    );
                     simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
                 }
                 avg_perf /= max_contests as f64;
                 println!(
                     "{}, {}, {}: {}, {}s",
-                    eps, beta, sigma_growth, avg_perf, now.elapsed().as_millis() as f64 / 1000.
+                    eps,
+                    beta,
+                    sigma_growth,
+                    avg_perf,
+                    now.elapsed().as_millis() as f64 / 1000.
                 );
             }
         }
