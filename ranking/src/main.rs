@@ -43,16 +43,16 @@ fn main() {
     // print_ratings(&players, last_contest_time - 183 * 86_400);
 
     let max_contests = 100;
-    let config = get_contest_config(ContestSource::Codeforces);
+    let config = get_contest_config(ContestSource::Synthetic);
     let mut players = HashMap::new();
     let contest_ids = get_contest_ids(&config.contest_id_file);
     let topk = 50;
 
     println!("CodeForces average performance ({} contests, top-{}):", max_contests, topk);
-    for si in -10..10 {
-        for wi in 1..20 {
-            let sig_perf = (si as f64) * 15. + 800. / std::f64::consts::LN_10;
-            let weight = (wi as f64) * 0.05;
+    for si in -5..5 {
+        for wi in 1..10 {
+            let sig_perf = (si as f64) * 30. + 800. / std::f64::consts::LN_10;
+            let weight = (wi as f64) * 0.1;
 
             players.clear();
             let now = Instant::now();
@@ -79,10 +79,10 @@ fn main() {
     }
 
     println!("EloR average performance ({} contests, top-50):", max_contests);
-    for pi in -15..15 {
-        for li in -15..15 {
-            let sig_perf = (pi as f64) * 5. + 170.;
-            let sig_limit = (li as f64) * 1.5 + 60.;
+    for pi in -8..8 {
+        for li in -8..8 {
+            let sig_perf = (pi as f64) * 10. + 170.;
+            let sig_limit = (li as f64) * 3. + 60.;
 
             players.clear();
             let now = Instant::now();

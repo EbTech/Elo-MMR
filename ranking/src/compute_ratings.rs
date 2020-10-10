@@ -308,7 +308,7 @@ pub trait RatingSystem {
             for j in 0..standings.len() {
                 let pa = standings[i].0.approx_posterior;
                 let pb = standings[j].0.approx_posterior;
-                pred_rank += 1. - self.win_probability(&pa, &pb);
+                pred_rank += self.win_probability(&pb, &pa);
             }
             ranks.push((pred_rank, i));
         }
@@ -316,7 +316,7 @@ pub trait RatingSystem {
 
         let kreal = min(k as usize, standings.len());
         let mut pairs_correct = 0.;
-        let tot_pairs =  (kreal * (kreal - 1)) as f64 / 2.; 
+        let tot_pairs = (kreal * (kreal - 1)) as f64 / 2.; 
         for i in 0..standings.len() {
             if ranks[i].1 >= k as usize {
                 continue;
@@ -325,7 +325,8 @@ pub trait RatingSystem {
                 if ranks[j].1 >= k as usize {
                     continue;
                 }
-                if i < j && ranks[i].1 < ranks[j].1 {
+                //println!("{} {} {} {} {}", i, j, ranks[i].1, ranks[j].1, ranks[i].1 < ranks[j].1);
+                if ranks[i].1 < ranks[j].1 {
                     pairs_correct += 1.;
                 }
             }
