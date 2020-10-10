@@ -16,6 +16,7 @@ pub enum ContestSource {
     Codeforces,
     Reddit,
     StackOverflow,
+    Synthetic,
 }
 
 pub struct ContestConfig {
@@ -28,6 +29,7 @@ pub fn get_contest_config(source: ContestSource) -> ContestConfig {
         ContestSource::Codeforces => "codeforces",
         ContestSource::Reddit => "reddit",
         ContestSource::StackOverflow => "stackoverflow",
+        ContestSource::Synthetic => "synthetic",
     };
 
     ContestConfig {

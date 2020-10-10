@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use crate::compute_ratings::{Player, Rating, RatingSystem};
+use crate::compute_ratings::{standard_normal_cdf, Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -30,7 +30,7 @@ pub struct TrueSkillSPBSystem {
 impl Default for TrueSkillSPBSystem {
     fn default() -> Self {
         Self {
-            eps: 0.10,
+            eps: 0.90,
             beta: 1500. / 6., // sigma/2
             convergence_eps: 2e-4,
             sigma_growth: 5.,
@@ -182,14 +182,14 @@ impl TrueSkillSPBSystem {
         infer2(&mut u);
         infer1(&mut tul);
 
-        let mut rounds = 0;
+        //let mut rounds = 0;
 
         while check_convergence(&conv, &old_conv) >= self.convergence_eps {
             old_conv.clear();
             for item in &conv {
                 old_conv.push(RefCell::borrow(item).clone());
             }
-            rounds += 1;
+            //rounds += 1;
 
             infer_ld(&mut ld, &mut l);
             infer1(&mut d);
@@ -199,7 +199,7 @@ impl TrueSkillSPBSystem {
             infer1(&mut tul);
         }
 
-        eprintln!("Rounds until convergence: {}", rounds);
+        // eprintln!("Rounds until convergence: {}", rounds);
 
         infer2(&mut t);
         infer1(&mut pt);
@@ -222,8 +222,10 @@ impl TrueSkillSPBSystem {
 }
 
 impl RatingSystem for TrueSkillSPBSystem {
-    fn win_probability(&self, _player: &Rating, _foe: &Rating) -> f64 {
-        0.5 // TODO
+    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
+        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.beta.powi(2)).sqrt();
+        let z = (player.mu - foe.mu) / sigma;
+        standard_normal_cdf(z)
     }
 
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
