@@ -110,10 +110,10 @@ impl Player {
         let last_event = self.event_history.last_mut().unwrap();
         assert_eq!(last_event.display_rating, 0);
 
-        // TODO: get rid of the magic numbers 2 and 100!
+        // TODO: get rid of the magic numbers 2 and 80!
         //       2 gives a conservative estimate: use 0 to get mean estimates
-        //       100 is EloR's default sig_lim
-        last_event.display_rating = (rating.mu - 2. * (rating.sig - 100.)).round() as i32;
+        //       80 is EloR's default sig_lim
+        last_event.display_rating = (rating.mu - 2. * (rating.sig - 80.)).round() as i32;
     }
 
     pub fn update_rating_with_new_performance(&mut self, performance: Rating, max_history: usize) {
