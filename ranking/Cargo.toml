@@ -18,3 +18,6 @@ float-cmp = "0.8"
 
 [[bin]]
 name = "run"
+
+[[bin]]
+name = "report"
