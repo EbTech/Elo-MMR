@@ -1,6 +1,8 @@
 //! Codeforces system details: https://codeforces.com/blog/entry/20762
 
-use crate::compute_ratings::{robust_average, standard_logistic_cdf, Player, Rating, RatingSystem};
+use crate::compute_ratings::{
+    robust_average, standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER,
+};
 use rayon::prelude::*;
 
 pub struct CodeforcesSystem {
@@ -11,7 +13,7 @@ pub struct CodeforcesSystem {
 impl Default for CodeforcesSystem {
     fn default() -> Self {
         Self {
-            sig_perf: 800. / std::f64::consts::LN_10,
+            sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
             weight: 1.,
         }
     }
@@ -42,7 +44,11 @@ impl CodeforcesSystem {
 
         let geo_rank = (ac_rank * ex_rank).sqrt();
         let geo_offset = 2. * geo_rank - my_rating.sig.recip() - all_offset;
-        let geo_rating = robust_average(all.iter().cloned().map(Into::into), geo_offset, 0.);
+        let geo_rating = robust_average(
+            all.iter().cloned().map(Into::into),
+            TANH_MULTIPLIER * geo_offset,
+            0.,
+        );
         geo_rating
     }
 }

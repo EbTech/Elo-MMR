@@ -2,7 +2,7 @@
 
 use crate::compute_ratings::{
     robust_average, standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player,
-    Rating, RatingSystem,
+    Rating, RatingSystem, TanhTerm,
 };
 use rayon::prelude::*;
 
@@ -97,24 +97,22 @@ impl EloRSystem {
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our logistic-weighted performance score for this round
     fn compute_performance_logistic(
-        better: impl Iterator<Item = Rating> + Clone,
-        tied: impl Iterator<Item = Rating> + Clone,
-        worse: impl Iterator<Item = Rating> + Clone,
+        better: impl Iterator<Item = TanhTerm> + Clone,
+        tied: impl Iterator<Item = TanhTerm> + Clone,
+        worse: impl Iterator<Item = TanhTerm> + Clone,
         split_ties: bool,
     ) -> f64 {
-        let pos_offset: f64 = better.clone().map(|rating| rating.sig.recip()).sum();
-        let neg_offset: f64 = worse.clone().map(|rating| rating.sig.recip()).sum();
-        let not_tied = better.chain(worse).map(Into::into);
-        let tied = tied.map(Into::into);
+        let pos_offset: f64 = better.clone().map(|term| term.w_out).sum();
+        let neg_offset: f64 = worse.clone().map(|term| term.w_out).sum();
 
         if split_ties {
-            robust_average(not_tied.chain(tied), pos_offset - neg_offset, 0.)
+            robust_average(better.chain(tied).chain(worse), pos_offset - neg_offset, 0.)
         } else {
-            let double_tied = tied.map(|mut term| {
-                term.weight *= 2.;
+            let tied = tied.map(|mut term| {
+                term.w_out *= 2.;
                 term
             });
-            robust_average(not_tied.chain(double_tied), pos_offset - neg_offset, 0.)
+            robust_average(better.chain(tied).chain(worse), pos_offset - neg_offset, 0.)
         }
     }
 }
@@ -149,18 +147,21 @@ impl RatingSystem for EloRSystem {
                 }
             })
             .collect();
+        let tanh_terms: Vec<TanhTerm> = all_ratings.iter().cloned().map(Into::into).collect();
 
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, lo, hi)| {
-            let better = all_ratings[..lo].iter().cloned();
-            let tied = all_ratings[lo..=hi].iter().cloned();
-            let worse = all_ratings[hi + 1..].iter().cloned();
-
             let perf = match self.variant {
                 EloRVariant::Gaussian => {
+                    let better = all_ratings[..lo].iter().cloned();
+                    let tied = all_ratings[lo..=hi].iter().cloned();
+                    let worse = all_ratings[hi + 1..].iter().cloned();
                     Self::compute_performance_gaussian(better, tied, worse, self.split_ties)
                 }
                 EloRVariant::Logistic(_) => {
+                    let better = tanh_terms[..lo].iter().cloned();
+                    let tied = tanh_terms[lo..=hi].iter().cloned();
+                    let worse = tanh_terms[hi + 1..].iter().cloned();
                     Self::compute_performance_logistic(better, tied, worse, self.split_ties)
                 }
             };

@@ -5,12 +5,12 @@ use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, 
 use ranking::summary::print_ratings;
 use std::collections::HashMap;
 
-/// simulates the entire history of Codeforces; runs on my laptop in an hour,
+/// simulates the entire history of Codeforces; runs on my laptop in 90 mins,
 /// somewhat longer if the Codeforces API data isn't cached
 fn main() {
     let mut players = HashMap::new();
     let config = get_contest_config(ContestSource::Codeforces);
-    let mut system = ranking::TrueSkillSPBSystem::default();
+    let mut system = ranking::EloRSystem::default();
     let mut last_contest_time = 0;
     for contest_id in get_contest_ids(&config.contest_id_file) {
         let contest = get_contest(&config.contest_cache_folder, contest_id);

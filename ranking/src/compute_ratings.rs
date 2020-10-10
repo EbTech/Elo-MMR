@@ -3,6 +3,7 @@
 use crate::contest_config::Contest;
 use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
+pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Rating {
@@ -13,17 +14,24 @@ pub struct Rating {
 #[derive(Clone, Copy, Debug)]
 pub struct TanhTerm {
     pub mu: f64,
-    pub sig: f64,
-    pub weight: f64,
+    pub w_arg: f64,
+    pub w_out: f64,
 }
 
 impl From<Rating> for TanhTerm {
     fn from(rating: Rating) -> Self {
+        let w = TANH_MULTIPLIER / rating.sig;
         Self {
             mu: rating.mu,
-            sig: rating.sig,
-            weight: rating.sig.recip(),
+            w_arg: w * 0.5,
+            w_out: w,
         }
+    }
+}
+
+impl TanhTerm {
+    pub fn get_weight(&self) -> f64 {
+        self.w_arg * self.w_out * 2. / TANH_MULTIPLIER.powi(2)
     }
 }
 
@@ -70,7 +78,7 @@ impl Player {
             // Either way, the deleted element should be small enough not to matter.
             let logistic = self.logistic_factors.pop_front().unwrap();
             let wn = self.normal_factor.sig.powi(-2);
-            let wl = logistic.weight / logistic.sig;
+            let wl = logistic.get_weight();
             self.normal_factor.mu = (wn * self.normal_factor.mu + wl * logistic.mu) / (wn + wl);
             self.normal_factor.sig = (wn + wl).recip().sqrt();
         }
@@ -105,92 +113,8 @@ impl Player {
 
         self.normal_factor.sig *= decay;
         for rating in &mut self.logistic_factors {
-            rating.weight /= decay * decay;
+            rating.w_out /= decay * decay;
         }
-    }
-
-    // Method #3: gradually grow the sigmas so that logistic terms approach normal
-    #[allow(dead_code)]
-    pub fn add_noise_uniform(&mut self, sig_noise: f64) {
-        // Note: here we don't update approx_posterior.mu, which we eventually should
-        //       because changing a logistic's sigma can change the posterior mode
-        let decay = 1.0f64.hypot(sig_noise / self.approx_posterior.sig);
-        self.approx_posterior.sig *= decay;
-
-        self.normal_factor.sig *= decay;
-        for rating in &mut self.logistic_factors {
-            rating.sig *= decay;
-            rating.weight /= decay;
-        }
-    }
-
-    // Method #4: a fancier and slower way to grow sigmas over time
-    // TODO: optimize using Newton's method
-    #[allow(dead_code)]
-    pub fn add_noise_fancy(&mut self, sig_noise: f64) {
-        fn decay_factor_sig(center: f64, factor: &TanhTerm, kappa: f64) -> f64 {
-            let deviation = (center - factor.mu).abs();
-            let target = (deviation / factor.sig).tanh() / (factor.sig * kappa * kappa);
-            let (mut lo, mut hi) = (factor.sig * kappa / 2., factor.sig * kappa * kappa * 2.);
-            let mut guess = (lo + hi) / 2.;
-            loop {
-                let tanh_factor = (deviation / guess).tanh();
-                let test = tanh_factor / guess;
-                let test_prime = ((tanh_factor * tanh_factor - 1.) * deviation / guess
-                    - tanh_factor)
-                    / (guess * guess);
-                let test_error = test - target;
-                let next = (guess - test_error / test_prime)
-                    .max(0.75 * lo + 0.25 * guess)
-                    .min(0.25 * guess + 0.75 * hi);
-                if test_error * factor.sig * factor.sig > 0. {
-                    lo = guess;
-                } else {
-                    hi = guess;
-                }
-
-                if test_error.abs() * factor.sig * factor.sig < 1e-11 {
-                    //println!("{} < {} < {}", factor.sig * kappa, guess, factor.sig * kappa * kappa);
-                    return next;
-                }
-                if hi - lo < 1e-15 * factor.sig {
-                    println!(
-                        "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} e={} e'={}",
-                        guess, next, test_error, test_prime
-                    );
-                    return next;
-                }
-                guess = next;
-            }
-        }
-
-        let decay = 1f64.hypot(sig_noise / self.approx_posterior.sig);
-        self.approx_posterior.sig *= decay;
-        let target = self.approx_posterior.sig.powi(-2);
-
-        let (mut lo, mut hi) = (decay.sqrt(), decay);
-        for _ in 0..30 {
-            let kappa = (lo + hi) / 2.;
-            let tau_0 = kappa * self.normal_factor.sig;
-            let mut test = tau_0.powi(-2);
-            for rating in &self.logistic_factors {
-                let tau = decay_factor_sig(self.approx_posterior.mu, rating, kappa);
-                test += tau.powi(-2);
-            }
-            if test > target {
-                lo = kappa;
-            } else {
-                hi = kappa;
-            }
-        }
-
-        let kappa = (lo + hi) / 2.;
-        self.normal_factor.sig *= kappa;
-        for rating in &mut self.logistic_factors {
-            let tau = decay_factor_sig(self.approx_posterior.mu, rating, kappa);
-            rating.sig = tau;
-        }
-        //println!("{} < {} < {}", decay.sqrt(), kappa, decay);
     }
 
     // #5: a general method with the nicest properties, parametrized by transfer_speed >= 0
@@ -210,7 +134,7 @@ impl Player {
                 + self
                     .logistic_factors
                     .iter()
-                    .map(|r| r.weight / r.sig)
+                    .map(TanhTerm::get_weight)
                     .sum::<f64>());
         let wt_total = wt_from_norm_old + wt_from_transfers;
 
@@ -219,23 +143,23 @@ impl Player {
             / wt_total;
         self.normal_factor.sig = (decay * wt_total).recip().sqrt();
         for r in &mut self.logistic_factors {
-            r.weight *= transfer * decay;
+            r.w_out *= transfer * decay;
         }
     }
 }
 
 #[allow(dead_code)]
 pub fn standard_logistic_pdf(z: f64) -> f64 {
-    0.5 - 0.5 * z.tanh().powi(2)
+    0.25 * TANH_MULTIPLIER * (0.5 * TANH_MULTIPLIER * z).cosh().powi(-2)
 }
 
 pub fn standard_logistic_cdf(z: f64) -> f64 {
-    0.5 + 0.5 * z.tanh()
+    0.5 + 0.5 * (0.5 * TANH_MULTIPLIER * z).tanh()
 }
 
 #[allow(dead_code)]
 pub fn standard_logistic_cdf_inv(prob: f64) -> f64 {
-    (2. * prob - 1.).atanh()
+    (2. * prob - 1.).atanh() * 2. / TANH_MULTIPLIER
 }
 
 pub fn standard_normal_pdf(z: f64) -> f64 {
@@ -269,9 +193,9 @@ pub fn robust_average(
         let mut sum = offset + slope * guess;
         let mut sum_prime = slope;
         for term in all_ratings.clone() {
-            let tanh_z = ((guess - term.mu) / term.sig).tanh();
-            sum += term.weight * tanh_z;
-            sum_prime += term.weight * (1. - tanh_z * tanh_z) / term.sig;
+            let tanh_z = ((guess - term.mu) * term.w_arg).tanh();
+            sum += tanh_z * term.w_out;
+            sum_prime += (1. - tanh_z * tanh_z) * term.w_arg * term.w_out;
         }
         let next = (guess - sum / sum_prime)
             .max(0.75 * lo + 0.25 * guess)
