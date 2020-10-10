@@ -20,7 +20,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &mut system, 1500., 350.);
+        simulate_contest(&mut players, &contest, &mut system, 1500., 300.);
         last_contest_time = contest.time_seconds;
     }
     print_ratings(&players, last_contest_time - 183 * 86_400);

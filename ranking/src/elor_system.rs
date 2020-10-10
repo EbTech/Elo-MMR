@@ -20,7 +20,7 @@ pub struct EloRSystem {
 
 impl Default for EloRSystem {
     fn default() -> Self {
-        Self::from_limit(250., 100., EloRVariant::Logistic(1.), false)
+        Self::from_limit(200., 80., EloRVariant::Logistic(1.), false)
     }
 }
 
