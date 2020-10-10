@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use super::compute_ratings::{standard_normal_cdf, Player, Rating, RatingSystem, MU_NEWBIE};
+use crate::compute_ratings::{Player, Rating, RatingSystem, standard_normal_cdf};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -31,7 +31,7 @@ impl Default for TrueSkillSPBSystem {
     fn default() -> Self {
         Self {
             eps: 0.90,
-            beta: MU_NEWBIE / 6., // sigma/2
+            beta: 1500. / 6., // sigma/2
             convergence_eps: 2e-4,
             sigma_growth: 5.,
         }

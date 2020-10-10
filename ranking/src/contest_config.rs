@@ -1,4 +1,4 @@
-use super::read_codeforces::fetch_cf_contest;
+use crate::read_codeforces::fetch_cf_contest;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 

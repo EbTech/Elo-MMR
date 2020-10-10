@@ -1,5 +1,4 @@
-use super::normal::Gaussian;
-use super::normal::{ONE, ZERO};
+use super::normal::{Gaussian, ONE, ZERO};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
