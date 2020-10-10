@@ -1,13 +1,13 @@
 extern crate overload;
 
 use overload::overload;
-use std::ops;
 use std::fmt;
+use std::ops;
 
 use crate::contest_config::Contest;
 use std::cell::{Ref, RefCell, RefMut};
-use std::collections::{HashMap, VecDeque};
 use std::cmp::min;
+use std::collections::{HashMap, VecDeque};
 
 pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
 
@@ -267,7 +267,11 @@ pub fn robust_average(
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
-    fn compute_metrics(&self, standings: Vec<(&Player, usize, usize)>, k: i32) -> PerformanceReport {
+    fn compute_metrics(
+        &self,
+        standings: Vec<(&Player, usize, usize)>,
+        k: i32,
+    ) -> PerformanceReport {
         let mut ranks: Vec<(f64, usize)> = Vec::<(f64, usize)>::new();
         for i in 0..standings.len() {
             let pa = standings[i].0.approx_posterior;
