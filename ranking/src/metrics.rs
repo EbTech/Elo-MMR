@@ -69,13 +69,13 @@ pub fn pairwise_metric(standings: &ParticipantRatings) -> f64 {
             if winner_lo >= loser_lo as usize {
                 break;
             }
-            total_pairs += 1.;
             if winner_rating.mu > loser_rating.mu {
                 correct_pairs += 1.;
             }
+            total_pairs += 1.;
         }
     }
-    correct_pairs / total_pairs
+    100. * correct_pairs / total_pairs
 }
 
 pub fn percentile_distance_metric(standings: &ParticipantRatings) -> f64 {
@@ -91,7 +91,25 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> f64 {
     for (i, &(_, place)) in standings_by_rating.iter().enumerate() {
         sum_error += (i as f64 - place).abs();
     }
-    sum_error / (standings_by_rating.len() as f64).powi(2)
+    100. * sum_error / (standings_by_rating.len() as f64).powi(2)
+}
+
+pub fn cross_entropy_metric(standings: &ParticipantRatings) -> f64 {
+    // Compute cross-entropy from the logistic Elo formula
+    let mut sum_ce = 0.;
+    let mut total_pairs = 0.;
+    for &(loser_rating, loser_lo, _) in standings {
+        for &(winner_rating, winner_lo, _) in standings {
+            if winner_lo >= loser_lo as usize {
+                break;
+            }
+            let rating_diff = loser_rating.mu - winner_rating.mu;
+            let inv_prob = 1. + 10f64.powf(rating_diff / 400.);
+            sum_ce += inv_prob.ln();
+            total_pairs += 1.;
+        }
+    }
+    sum_ce / total_pairs
 }
 
 // Example of how to create the metrics argument:
@@ -115,14 +133,15 @@ pub fn compute_metrics_by_fn(
 // Meant to be modified manually to contain the desired metrics
 pub fn compute_metrics_custom(standings: &ParticipantRatings, k: usize) -> PerformanceReport {
     if standings.len() < 2 {
-        PerformanceReport::new(2)
+        PerformanceReport::new(3)
     } else {
         let topk = pairwise_metric(top_k(standings, k));
         let percentile = percentile_distance_metric(standings);
+        let crossent = cross_entropy_metric(standings);
 
         PerformanceReport {
             num_rounds: 1,
-            summed_metrics: vec![topk, percentile],
+            summed_metrics: vec![topk, percentile, crossent],
         }
     }
 }

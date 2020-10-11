@@ -38,7 +38,7 @@ fn main() {
             players.clear();
             let now = Instant::now();
             let mut system = CFSys { sig_perf, weight };
-            let mut avg_perf = PerformanceReport::new(2);
+            let mut avg_perf = PerformanceReport::new(3);
 
             for &contest_id in contest_ids.iter().take(max_contests) {
                 let contest = get_contest(&config.contest_cache_folder, contest_id);
@@ -77,7 +77,7 @@ fn main() {
                 variant: ranking::elor_system::EloRVariant::Logistic(1.),
                 split_ties: false,
             };
-            let mut avg_perf = PerformanceReport::new(2);
+            let mut avg_perf = PerformanceReport::new(3);
 
             for &contest_id in contest_ids.iter().take(max_contests) {
                 let contest = get_contest(&config.contest_cache_folder, contest_id);
@@ -110,7 +110,7 @@ fn main() {
         let mut system = TCSys {
             weight_multiplier: weight,
         };
-        let mut avg_perf = PerformanceReport::new(2);
+        let mut avg_perf = PerformanceReport::new(3);
 
         for &contest_id in contest_ids.iter().take(max_contests) {
             let contest = get_contest(&config.contest_cache_folder, contest_id);
@@ -148,7 +148,7 @@ fn main() {
                     convergence_eps: 2e-4,
                     sigma_growth,
                 };
-                let mut avg_perf = PerformanceReport::new(2);
+                let mut avg_perf = PerformanceReport::new(3);
 
                 for &contest_id in contest_ids.iter().take(max_contests) {
                     let contest = get_contest(&config.contest_cache_folder, contest_id);
