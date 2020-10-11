@@ -16,6 +16,7 @@ type TSContestPlace<'a> = Vec<TSTeam<'a>>;
 type TSContest<'a> = Vec<TSContestPlace<'a>>;
 
 // TrueSkillStPB rating system
+#[derive(Debug)]
 pub struct TrueSkillSPBSystem {
     // epsilon used for ties
     pub eps: f64,

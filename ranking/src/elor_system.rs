@@ -6,11 +6,13 @@ use crate::compute_ratings::{
 };
 use rayon::prelude::*;
 
+#[derive(Debug)]
 pub enum EloRVariant {
     Gaussian,
     Logistic(f64),
 }
 
+#[derive(Debug)]
 pub struct EloRSystem {
     pub sig_perf: f64,        // variation in individual performances
     pub sig_drift: f64,       // skill drift between successive performances

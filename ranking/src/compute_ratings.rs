@@ -186,7 +186,7 @@ pub fn robust_average(
     offset: f64,
     slope: f64,
 ) -> f64 {
-    let (mut lo, mut hi) = (-1000.0, 4500.0);
+    let (mut lo, mut hi) = (-6000.0, 9000.0);
     let mut guess = 0.5 * (lo + hi);
     loop {
         let mut sum = offset + slope * guess;
@@ -219,7 +219,7 @@ pub fn robust_average(
     }
 }
 
-pub trait RatingSystem {
+pub trait RatingSystem: std::fmt::Debug {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
 }
@@ -227,7 +227,7 @@ pub trait RatingSystem {
 pub fn simulate_contest(
     players: &mut HashMap<String, RefCell<Player>>,
     contest: &Contest,
-    system: &mut dyn RatingSystem,
+    system: &dyn RatingSystem,
     mu_newbie: f64,
     sig_newbie: f64,
 ) {
