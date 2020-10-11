@@ -1,12 +1,5 @@
-extern crate overload;
-
-use overload::overload;
-use std::fmt;
-use std::ops;
-
 use crate::contest_config::Contest;
-use std::cell::{Ref, RefCell, RefMut};
-use std::cmp::min;
+use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
 
 pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
@@ -16,44 +9,6 @@ pub struct Rating {
     pub mu: f64,
     pub sig: f64,
 }
-
-// A data structure for storing the various performance metrics we want to
-// analyze
-pub struct PerformanceReport {
-    pub topk: f64,
-    pub percentile: f64,
-    pub nrounds: f64,
-}
-
-impl Default for PerformanceReport {
-    fn default() -> Self {
-        Self {
-            topk: 0.,
-            percentile: 0.,
-            nrounds: 0.,
-        }
-    }
-}
-
-impl fmt::Display for PerformanceReport {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.topk, self.percentile)
-    }
-}
-
-overload!((a: ?PerformanceReport) + (b: ?PerformanceReport) -> PerformanceReport {
-    PerformanceReport {
-        topk: (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds),
-        percentile: (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds),
-        nrounds: a.nrounds + b.nrounds,
-    }
-});
-
-overload!((a: &mut PerformanceReport) += (b: ?PerformanceReport) {
-    a.topk = (a.topk * a.nrounds + b.topk * b.nrounds) / (a.nrounds + b.nrounds);
-    a.percentile = (a.percentile * a.nrounds + b.percentile * b.nrounds) / (a.nrounds + b.nrounds);
-    a.nrounds += b.nrounds;
-});
 
 #[derive(Clone, Copy, Debug)]
 pub struct TanhTerm {
@@ -267,50 +222,6 @@ pub fn robust_average(
 pub trait RatingSystem {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
-    fn compute_metrics(
-        &self,
-        standings: Vec<(&Player, usize, usize)>,
-        k: i32,
-    ) -> PerformanceReport {
-        let mut ranks: Vec<(f64, usize)> = Vec::<(f64, usize)>::new();
-        for i in 0..standings.len() {
-            let pa = standings[i].0.approx_posterior;
-            ranks.push((-pa.mu, i));
-        }
-        ranks.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-        // Compute topk (frac. of inverted pairs) metric
-        let kreal = min(k as usize, standings.len());
-        let mut pairs_correct = 0.;
-        let tot_pairs = (kreal * (kreal - 1)) as f64 / 2.;
-        for i in 0..standings.len() {
-            if ranks[i].1 >= k as usize {
-                continue;
-            }
-            for j in i + 1..standings.len() {
-                if ranks[j].1 >= k as usize {
-                    continue;
-                }
-                //println!("{} {} {} {} {}", i, j, ranks[i].1, ranks[j].1, ranks[i].1 < ranks[j].1);
-                if ranks[i].1 < ranks[j].1 {
-                    pairs_correct += 1.;
-                }
-            }
-        }
-
-        // Compute avg percentile distance metric
-        let mut avg_percent = 0.;
-        for i in 0..ranks.len() {
-            avg_percent += (i as f64 - ranks[i].1 as f64).abs() / ranks.len() as f64;
-        }
-        avg_percent /= ranks.len() as f64;
-
-        PerformanceReport {
-            topk: pairs_correct / tot_pairs,
-            percentile: avg_percent,
-            nrounds: 1.,
-        }
-    }
 }
 
 pub fn simulate_contest(
@@ -353,34 +264,22 @@ pub fn simulate_contest(
     system.round_update(standings);
 }
 
-pub fn predict_performance(
+pub fn get_participant_ratings(
     players: &mut HashMap<String, RefCell<Player>>,
     contest: &Contest,
-    system: &dyn RatingSystem,
-    mu_newbie: f64,
-    sig_newbie: f64,
-    topk: i32,
-) -> PerformanceReport {
-    // If a player is competing for the first time, initialize with a default rating
-    contest.standings.iter().for_each(|&(ref handle, _, _)| {
-        players
-            .entry(handle.clone())
-            .or_insert_with(|| RefCell::new(Player::with_rating(mu_newbie, sig_newbie)));
-    });
+    min_history: usize,
+) -> Vec<(Rating, usize, usize)> {
+    let mut standings: Vec<(Rating, usize, usize)> = vec![];
+    let mut removed = 0;
 
-    let guards: Vec<Ref<Player>> = contest
-        .standings
-        .iter()
-        .map(|&(ref handle, _, _)| players.get(handle).expect("Duplicate handles").borrow())
-        .collect();
-
-    // Update player metadata and get &mut references to all requested players
-    let standings: Vec<(&Player, usize, usize)> = guards
-        .iter()
-        .map(|player| std::ops::Deref::deref(player))
-        .zip(contest.standings.clone())
-        .map(|(player, (_, lo, hi))| (player, lo, hi))
-        .collect();
-
-    system.compute_metrics(standings, topk)
+    for &(ref handle, lo, hi) in &contest.standings {
+        removed += 1;
+        if let Some(player) = players.get(handle).map(RefCell::borrow) {
+            if player.event_history.len() >= min_history {
+                removed -= 1;
+                standings.push((player.approx_posterior, lo + removed, hi + removed));
+            }
+        }
+    }
+    standings
 }

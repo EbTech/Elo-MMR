@@ -1,7 +1,7 @@
 Instructions to compute ratings after installing Rust:
 ```
 cd ranking/
-cargo run
+cargo run --release --bin run
 ```
 
 `data/contest_ids.txt` tells the program which contests to look for in cache/

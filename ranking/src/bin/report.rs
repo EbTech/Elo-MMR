@@ -1,7 +1,8 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{predict_performance, simulate_contest, PerformanceReport};
+use ranking::compute_ratings::{get_participant_ratings, simulate_contest};
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
+use ranking::metrics::{compute_metrics_custom, PerformanceReport};
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -23,7 +24,7 @@ fn main() {
     let max_contests = 100;
     let topk = 5000;
     let mu_noob = 1500.;
-    let sig_noob = 350.;
+    let sig_noob = 300.;
 
     println!(
         "CodeForces average performance ({} contests, top-{}):",
@@ -36,22 +37,17 @@ fn main() {
 
             players.clear();
             let now = Instant::now();
-            let mut system = CFSys {
-                sig_perf: sig_perf,
-                weight: weight,
-            };
-            let mut avg_perf = PerformanceReport::default();
+            let mut system = CFSys { sig_perf, weight };
+            let mut avg_perf = PerformanceReport::new(2);
 
-            for (i, contest_id) in contest_ids.iter().enumerate() {
-                if i >= max_contests {
-                    break;
-                }
-                let contest = get_contest(&config.contest_cache_folder, *contest_id);
+            for &contest_id in contest_ids.iter().take(max_contests) {
+                let contest = get_contest(&config.contest_cache_folder, contest_id);
 
                 // Predict performance must be run before simulate contest
                 // since we don't want to make predictions after we've seen the contest
-                avg_perf +=
-                    predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+
+                let standings = get_participant_ratings(&mut players, &contest, 0);
+                avg_perf += compute_metrics_custom(&standings, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
             println!(
@@ -76,23 +72,20 @@ fn main() {
             players.clear();
             let now = Instant::now();
             let mut system = EloRSys {
-                sig_perf: sig_perf,
-                sig_drift: sig_drift,
+                sig_perf,
+                sig_drift,
                 variant: ranking::elor_system::EloRVariant::Logistic(1.),
                 split_ties: false,
             };
-            let mut avg_perf = PerformanceReport::default();
+            let mut avg_perf = PerformanceReport::new(2);
 
-            for (i, contest_id) in contest_ids.iter().enumerate() {
-                if i >= max_contests {
-                    break;
-                }
-                let contest = get_contest(&config.contest_cache_folder, *contest_id);
+            for &contest_id in contest_ids.iter().take(max_contests) {
+                let contest = get_contest(&config.contest_cache_folder, contest_id);
 
                 // Predict performance must be run before simulate contest
                 // since we don't want to make predictions after we've seen the contest
-                avg_perf +=
-                    predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+                let standings = get_participant_ratings(&mut players, &contest, 0);
+                avg_perf += compute_metrics_custom(&standings, topk);
                 simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
             }
             println!(
@@ -117,18 +110,15 @@ fn main() {
         let mut system = TCSys {
             weight_multiplier: weight,
         };
-        let mut avg_perf = PerformanceReport::default();
+        let mut avg_perf = PerformanceReport::new(2);
 
-        for (i, contest_id) in contest_ids.iter().enumerate() {
-            if i >= max_contests {
-                break;
-            }
-            let contest = get_contest(&config.contest_cache_folder, *contest_id);
+        for &contest_id in contest_ids.iter().take(max_contests) {
+            let contest = get_contest(&config.contest_cache_folder, contest_id);
 
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
-            avg_perf +=
-                predict_performance(&mut players, &contest, &system, mu_noob, sig_noob, topk);
+            let standings = get_participant_ratings(&mut players, &contest, 0);
+            avg_perf += compute_metrics_custom(&standings, topk);
             simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
         }
         println!(
@@ -153,29 +143,20 @@ fn main() {
                 players.clear();
                 let now = Instant::now();
                 let mut system = TSSys {
-                    eps: eps,
-                    beta: beta,
+                    eps,
+                    beta,
                     convergence_eps: 2e-4,
-                    sigma_growth: sigma_growth,
+                    sigma_growth,
                 };
-                let mut avg_perf = PerformanceReport::default();
+                let mut avg_perf = PerformanceReport::new(2);
 
-                for (i, contest_id) in contest_ids.iter().enumerate() {
-                    if i >= max_contests {
-                        break;
-                    }
-                    let contest = get_contest(&config.contest_cache_folder, *contest_id);
+                for &contest_id in contest_ids.iter().take(max_contests) {
+                    let contest = get_contest(&config.contest_cache_folder, contest_id);
 
                     // Predict performance must be run before simulate contest
                     // since we don't want to make predictions after we've seen the contest
-                    avg_perf += predict_performance(
-                        &mut players,
-                        &contest,
-                        &system,
-                        mu_noob,
-                        sig_noob,
-                        topk,
-                    );
+                    let standings = get_participant_ratings(&mut players, &contest, 0);
+                    avg_perf += compute_metrics_custom(&standings, topk);
                     simulate_contest(&mut players, &contest, &mut system, mu_noob, sig_noob);
                 }
                 println!(
