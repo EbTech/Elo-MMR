@@ -199,7 +199,7 @@ impl TrueSkillSPBSystem {
             infer1(&mut tul);
         }
 
-        // eprintln!("Rounds until convergence: {}", rounds);
+        //eprintln!("Rounds until convergence: {}", rounds);
 
         infer2(&mut t);
         infer1(&mut pt);
@@ -244,7 +244,7 @@ impl RatingSystem for TrueSkillSPBSystem {
             }
             let gaussian = Gaussian {
                 mu: user.approx_posterior.mu,
-                sigma: (user.approx_posterior.sig.powi(2) + noise).sqrt(),
+                sigma: f64::min(self.beta, (user.approx_posterior.sig.powi(2) + noise).sqrt()),
             };
             contest.last_mut().unwrap().push(vec![(user, gaussian)]);
             prev = lo;
