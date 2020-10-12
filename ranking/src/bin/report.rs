@@ -58,10 +58,10 @@ fn main() {
     // Run the contest histories and measure
     let config = get_contest_config(ContestSource::Codeforces);
     let contest_ids = get_contest_ids(&config.contest_id_file);
-    let max_contests = 100;
+    let max_contests = 2000;
     let mu_noob = 1500.;
     let sig_noob = 300.;
-    let topk = 5000;
+    let topk = 10000;
     for system in systems {
         let mut players = HashMap::new();
         let mut avg_perf = PerformanceReport::new(3);
