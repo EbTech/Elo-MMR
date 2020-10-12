@@ -35,9 +35,7 @@ fn main() {
     }
     for wi in -15..=15 {
         let weight_multiplier = 10f64.powf((wi as f64) * 0.1);
-        let system = TopCoderSystem {
-            weight_multiplier,
-        };
+        let system = TopCoderSystem { weight_multiplier };
         systems.push(Box::new(system));
     }
     for ei in 1..=5 {
@@ -58,7 +56,7 @@ fn main() {
     }
 
     // Run the contest histories and measure
-    let config = get_contest_config(ContestSource::Synthetic);
+    let config = get_contest_config(ContestSource::Codeforces);
     let contest_ids = get_contest_ids(&config.contest_id_file);
     let max_contests = 100;
     let mu_noob = 1500.;
