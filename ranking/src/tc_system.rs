@@ -6,6 +6,7 @@ use crate::compute_ratings::{
 };
 use rayon::prelude::*;
 
+#[derive(Debug)]
 pub struct TopCoderSystem {
     pub weight_multiplier: f64, // must be positive
 }

@@ -140,12 +140,12 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
 
-        if alpha < PREC {
-            return Gaussian {
-                mu: 0.,
-                sigma: (1. / 3. as f64).sqrt(),
-            } / self;
-        }
+        // if alpha < PREC {
+        //     return Gaussian {
+        //         mu: 0.,
+        //         sigma: (1. / 3. as f64).sqrt(),
+        //     } / self;
+        // }
 
         let mu =
             1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
@@ -172,12 +172,12 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, eps);
 
-        if alpha < PREC {
-            return Gaussian {
-                mu: eps,
-                sigma: self.sigma / (2. as f64).sqrt(),
-            } / self;
-        }
+        // if alpha < PREC {
+        //     return Gaussian {
+        //         mu: eps,
+        //         sigma: self.sigma / (2. as f64).sqrt(),
+        //     } / self;
+        // }
 
         let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
         let mut sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);

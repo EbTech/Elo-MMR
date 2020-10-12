@@ -5,6 +5,7 @@ use crate::compute_ratings::{
 };
 use rayon::prelude::*;
 
+#[derive(Debug)]
 pub struct CodeforcesSystem {
     pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
     pub weight: f64,   // must be positive
