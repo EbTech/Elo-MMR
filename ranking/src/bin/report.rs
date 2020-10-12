@@ -18,7 +18,7 @@ use ranking::TrueSkillSPBSystem as TSSys;
 /// simulates the entire history of Codeforces; runs on my laptop in an hour,
 /// somewhat longer if the Codeforces API data isn't cached
 fn main() {
-    let config = get_contest_config(ContestSource::Synthetic);
+    let config = get_contest_config(ContestSource::Codeforces);
     let mut players = HashMap::new();
     let contest_ids = get_contest_ids(&config.contest_id_file);
     let max_contests = 100;
@@ -145,7 +145,7 @@ fn main() {
                 let mut system = TSSys {
                     eps,
                     beta,
-                    convergence_eps: 2e-4,
+                    convergence_eps: 2e-5,
                     sigma_growth,
                 };
                 let mut avg_perf = PerformanceReport::new(3);

@@ -244,7 +244,7 @@ impl RatingSystem for TrueSkillSPBSystem {
             }
             let gaussian = Gaussian {
                 mu: user.approx_posterior.mu,
-                sigma: f64::min(self.beta, (user.approx_posterior.sig.powi(2) + noise).sqrt()),
+                sigma: (user.approx_posterior.sig.powi(2) + noise).sqrt(),
             };
             contest.last_mut().unwrap().push(vec![(user, gaussian)]);
             prev = lo;
