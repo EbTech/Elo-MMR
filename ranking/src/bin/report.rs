@@ -12,34 +12,34 @@ use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 fn main() {
     // Prepare the contest system parameters
     let mut systems: Vec<Box<dyn RatingSystem>> = vec![];
-    // for si in (100..=500).step_by(40) {
-    //     for wi in -8..=4 {
-    //         let sig_perf = si as f64;
-    //         let weight = 10f64.powf((wi as f64) * 0.25);
-    //         let system = CodeforcesSystem { sig_perf, weight };
-    //         systems.push(Box::new(system));
-    //     }
-    // }
-    // for pi in (100..=500).step_by(40) {
-    //     for li in (0..=120).step_by(10) {
-    //         let sig_perf = pi as f64;
-    //         let sig_drift = li as f64;
-    //         let system = EloRSystem {
-    //             sig_perf,
-    //             sig_drift,
-    //             variant: ranking::elor_system::EloRVariant::Logistic(1.),
-    //             split_ties: false,
-    //         };
-    //         systems.push(Box::new(system));
-    //     }
-    // }
-    // for wi in -15..=15 {
-    //     let weight_multiplier = 10f64.powf((wi as f64) * 0.1);
-    //     let system = TopCoderSystem {
-    //         weight_multiplier,
-    //     };
-    //     systems.push(Box::new(system));
-    // }
+    for si in (100..=500).step_by(40) {
+        for wi in -8..=4 {
+            let sig_perf = si as f64;
+            let weight = 10f64.powf((wi as f64) * 0.25);
+            let system = CodeforcesSystem { sig_perf, weight };
+            systems.push(Box::new(system));
+        }
+    }
+    for pi in (100..=500).step_by(40) {
+        for li in (0..=120).step_by(10) {
+            let sig_perf = pi as f64;
+            let sig_drift = li as f64;
+            let system = EloRSystem {
+                sig_perf,
+                sig_drift,
+                variant: ranking::elor_system::EloRVariant::Logistic(1.),
+                split_ties: false,
+            };
+            systems.push(Box::new(system));
+        }
+    }
+    for wi in -15..=15 {
+        let weight_multiplier = 10f64.powf((wi as f64) * 0.1);
+        let system = TopCoderSystem {
+            weight_multiplier,
+        };
+        systems.push(Box::new(system));
+    }
     for ei in 1..=5 {
         for bi in (140..=360).step_by(40) {
             for si in (0..=20).step_by(4) {
