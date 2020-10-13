@@ -200,7 +200,7 @@ impl TrueSkillSPBSystem {
             infer1(&mut tul);
         }
 
-        // eprintln!("Rounds until convergence: {}", rounds);
+        //eprintln!("Rounds until convergence: {}", rounds);
 
         infer2(&mut t);
         infer1(&mut pt);
