@@ -80,16 +80,13 @@ pub fn pairwise_metric(standings: &ParticipantRatings) -> f64 {
 
 pub fn percentile_distance_metric(standings: &ParticipantRatings) -> f64 {
     // Compute avg percentile distance metric
-    let mut standings_by_rating: Vec<(Rating, f64)> = vec![];
-    for &(rating, lo, hi) in standings {
-        let place = 0.5 * (lo + hi) as f64;
-        standings_by_rating.push((rating, place));
-    }
+    let mut standings_by_rating = Vec::from(standings);
     standings_by_rating.sort_by(|a, b| b.0.mu.partial_cmp(&a.0.mu).unwrap());
 
     let mut sum_error = 0.;
-    for (i, &(_, place)) in standings_by_rating.iter().enumerate() {
-        sum_error += (i as f64 - place).abs();
+    for (i, &(_, lo, hi)) in standings_by_rating.iter().enumerate() {
+        let closest_to_i = i.max(lo).min(hi);
+        sum_error += (i as f64 - closest_to_i as f64).abs();
     }
     100. * sum_error / (standings_by_rating.len() as f64).powi(2)
 }
@@ -112,6 +109,15 @@ pub fn cross_entropy_metric(standings: &ParticipantRatings) -> f64 {
     sum_ce / total_pairs
 }
 
+fn exist_distinct_places(standings: &ParticipantRatings) -> bool {
+    if let Some(&(_, last_lo, _)) = standings.last() {
+        let (_, first_lo, _) = standings[0];
+        first_lo != last_lo
+    } else {
+        false
+    }
+}
+
 // Example of how to create the metrics argument:
 // let topk_metric: Metric = Box::new(move |s| pairwise_metric(top_k(s, topk)));
 // let percent_metric: Metric = Box::new(percentile_distance_metric);
@@ -120,7 +126,7 @@ pub fn compute_metrics_by_fn(
     standings: &ParticipantRatings,
     metrics: &[Metric],
 ) -> PerformanceReport {
-    if standings.len() < 2 {
+    if !exist_distinct_places(standings) {
         PerformanceReport::new(metrics.len())
     } else {
         PerformanceReport {
@@ -132,7 +138,7 @@ pub fn compute_metrics_by_fn(
 
 // Meant to be modified manually to contain the desired metrics
 pub fn compute_metrics_custom(standings: &ParticipantRatings, k: usize) -> PerformanceReport {
-    if standings.len() < 2 {
+    if !exist_distinct_places(standings) {
         PerformanceReport::new(3)
     } else {
         let topk = pairwise_metric(top_k(standings, k));
