@@ -21,3 +21,6 @@ name = "run"
 
 [[bin]]
 name = "report"
+
+[[bin]]
+name = "results"

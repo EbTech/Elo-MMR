@@ -17,6 +17,7 @@ pub enum ContestSource {
     Reddit,
     StackOverflow,
     Synthetic,
+    NotFound,
 }
 
 pub struct ContestConfig {
@@ -30,6 +31,7 @@ pub fn get_contest_config(source: ContestSource) -> ContestConfig {
         ContestSource::Reddit => "reddit",
         ContestSource::StackOverflow => "stackoverflow",
         ContestSource::Synthetic => "synthetic",
+        ContestSource::NotFound => "not-found",
     };
 
     ContestConfig {
