@@ -1,0 +1,11 @@
+{
+    "max_contests": 2000,
+    "mu_noob": 1500,
+    "sig_noob": 300,
+    "topk": 50,
+    "system": { 
+        "method": "codeforces", 
+        "params": [100.0, 1.7782794100389228] 
+    },
+    "contest_source": "codeforces"
+}
