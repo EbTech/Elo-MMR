@@ -270,16 +270,32 @@ pub fn get_participant_ratings(
     min_history: usize,
 ) -> Vec<(Rating, usize, usize)> {
     let mut standings: Vec<(Rating, usize, usize)> = vec![];
-    let mut removed = 0;
 
     for &(ref handle, lo, hi) in &contest.standings {
-        removed += 1;
         if let Some(player) = players.get(handle).map(RefCell::borrow) {
             if player.event_history.len() >= min_history {
-                removed -= 1;
-                standings.push((player.approx_posterior, lo + removed, hi + removed));
+                standings.push((player.approx_posterior, lo, hi));
             }
         }
+    }
+
+    // Normalizing the ranks is very annoying, I probably should've just represented
+    // standings as an Vec of Vec of players
+    let (mut last_k, mut last_v) = (usize::MAX, usize::MAX);
+    for (i, (_, lo, _)) in standings.iter_mut().enumerate() {
+        if *lo != last_k {
+            last_k = *lo;
+            last_v = i;
+        }
+        *lo = last_v;
+    }
+    let (mut last_k, mut last_v) = (usize::MAX, usize::MAX);
+    for (i, (_, _, hi)) in standings.iter_mut().enumerate().rev() {
+        if *hi != last_k {
+            last_k = *hi;
+            last_v = i;
+        }
+        *hi = last_v;
     }
     standings
 }
