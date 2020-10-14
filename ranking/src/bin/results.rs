@@ -13,14 +13,14 @@ use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 fn main() {
     // Load system configs from parameter files
     let experiment_files = vec![
-        "../experiments/cf-experiment.json".to_string(),
-        "../experiments/tc-experiment.json".into(),
-        "../experiments/elor-experiment.json".into(),
-        "../experiments/ts-experiment.json".into(),
+        "../experiments/cf-experiment.json",
+        "../experiments/tc-experiment.json",
+        "../experiments/elor-experiment.json",
+        "../experiments/ts-experiment.json",
     ];
 
-    for filename in experiment_files.iter() {
-        let experiment = load_experiment(&filename);
+    for filename in &experiment_files {
+        let experiment = load_experiment(filename);
 
         let config = get_contest_config(experiment.contest_source);
         let contest_ids = get_contest_ids(&config.contest_id_file);

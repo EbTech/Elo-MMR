@@ -41,13 +41,13 @@ pub fn get_contest_config(source: ContestSource) -> ContestConfig {
 }
 
 /// Get a list of all the contest IDs in chronological order
-pub fn get_contest_ids<P: AsRef<Path>>(contest_id_file: &P) -> Vec<usize> {
+pub fn get_contest_ids(contest_id_file: impl AsRef<Path>) -> Vec<usize> {
     let contests_json =
         std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
     serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON")
 }
 
-pub fn get_contest<P: AsRef<Path>>(cache_dir: P, contest_id: usize) -> Contest {
+pub fn get_contest(cache_dir: impl AsRef<Path>, contest_id: usize) -> Contest {
     let cache_file = cache_dir.as_ref().join(format!("{}.json", contest_id));
     // Try to read the contest from the cache
     match std::fs::read_to_string(&cache_file) {

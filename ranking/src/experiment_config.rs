@@ -32,13 +32,13 @@ pub struct Experiment {
     pub contest_source: ContestSource,
 }
 
-pub fn load_experiment<P: AsRef<Path>>(source: &P) -> Experiment {
+pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
     let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
     let params: ExperimentConfig =
         serde_json::from_str(&params_json).expect("Failed to parse parameters as JSON");
 
     println!("Loading rating system:\n{:#?}", params);
-    let source = match &params.contest_source[..] {
+    let source = match params.contest_source.as_str() {
         "codeforces" => ContestSource::Codeforces,
         "reddit" => ContestSource::Reddit,
         "stackoverflow" => ContestSource::StackOverflow,
@@ -46,7 +46,7 @@ pub fn load_experiment<P: AsRef<Path>>(source: &P) -> Experiment {
         _ => ContestSource::NotFound,
     };
 
-    let rating_system: Box<dyn RatingSystem> = match &params.system.method[..] {
+    let rating_system: Box<dyn RatingSystem> = match params.system.method.as_str() {
         "codeforces" => Box::new(CodeforcesSystem {
             sig_perf: params.system.params[0],
             weight: params.system.params[1],

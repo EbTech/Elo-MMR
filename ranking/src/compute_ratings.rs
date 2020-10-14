@@ -205,11 +205,11 @@ pub fn robust_average(
             lo = guess;
         }
 
-        if sum.abs() < 1e-11 {
+        if sum.abs() < 1e-10 {
             return next;
         }
-        if hi - lo < 1e-15 {
-            println!(
+        if hi - lo < 1e-14 {
+            eprintln!(
                 "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} s={} s'={}",
                 guess, next, sum, sum_prime
             );

@@ -56,7 +56,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
             if time_seconds != change.ratingUpdateTimeSeconds {
                 // I don't know why but contests 61,318,347,373,381,400,404,405
                 // each contain one discrepancy, usually 4 hours late
-                println!(
+                eprintln!(
                     "WARNING @ {}: Inconsistent contest times {} and {}",
                     id, time_seconds, change.ratingUpdateTimeSeconds
                 );
@@ -69,7 +69,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
                         change.handle, i, j
                     ));
                 }
-                println!(
+                eprintln!(
                     "WARNING @ {}: duplicate user {} at positions {} and {}",
                     id, change.handle, i, j
                 );
