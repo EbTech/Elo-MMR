@@ -2,7 +2,7 @@ extern crate ranking;
 
 use ranking::compute_ratings::{get_participant_ratings, simulate_contest};
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids};
-use ranking::experiment_config::{load_experiment};
+use ranking::experiment_config::load_experiment;
 use ranking::metrics::{compute_metrics_custom, PerformanceReport};
 use std::collections::HashMap;
 use std::time::Instant;
@@ -16,17 +16,17 @@ fn main() {
         "../experiments/cf-experiment.json".to_string(),
         "../experiments/tc-experiment.json".into(),
         "../experiments/elor-experiment.json".into(),
-        "../experiments/ts-experiment.json".into()
+        "../experiments/ts-experiment.json".into(),
     ];
 
     for filename in experiment_files.iter() {
         let experiment = load_experiment(&filename);
-        
+
         let config = get_contest_config(experiment.contest_source);
         let contest_ids = get_contest_ids(&config.contest_id_file);
-        
+
         let system = experiment.system;
-        
+
         let max_contests = experiment.max_contests;
         let mu_noob = experiment.mu_noob;
         let sig_noob = experiment.sig_noob;
