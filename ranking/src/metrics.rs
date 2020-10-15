@@ -100,12 +100,12 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSu
     (n, 100. * sum_error / (n - 1.))
 }
 
-pub fn cross_entropy_metric(standings: &ParticipantRatings, sigma: f64) -> WeightAndSum {
+pub fn cross_entropy_metric(standings: &ParticipantRatings, scale: f64) -> WeightAndSum {
     if standings.len() < 2 {
         return (0., 0.);
     }
     // Compute base 2 cross-entropy from the logistic Elo formula
-    // The default value of sigma reported in the paper is 400,
+    // The default value of scale reported in the paper is 400,
     // all others can be seen as applying to a scaled version of the ratings
     let mut sum_ce = 0.;
     for &(loser_rating, loser_lo, _) in standings {
@@ -114,7 +114,7 @@ pub fn cross_entropy_metric(standings: &ParticipantRatings, sigma: f64) -> Weigh
                 break;
             }
             let rating_diff = loser_rating.mu - winner_rating.mu;
-            let inv_prob = 1. + 10f64.powf(rating_diff / sigma);
+            let inv_prob = 1. + 10f64.powf(rating_diff / scale);
             sum_ce += inv_prob.log2();
         }
     }
@@ -140,9 +140,9 @@ pub fn compute_metrics_custom(
         percentile_distance_metric(&experienced),
         percentile_distance_metric(top100),
     ];
-    for sigma in (200..=600).step_by(50) {
-        // In post-processing, only the best of these values should be kept, along with its sigma
-        metrics_wt_sum.push(cross_entropy_metric(&experienced, sigma as f64));
+    for scale in (200..=600).step_by(50) {
+        // In post-processing, only the best of these values should be kept, along with its scale
+        metrics_wt_sum.push(cross_entropy_metric(&experienced, scale as f64));
     }
 
     PerformanceReport { metrics_wt_sum }
