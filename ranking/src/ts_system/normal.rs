@@ -7,6 +7,8 @@ use statrs::function::erf::erfc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
+const PREC: f64 = 1e-4;
+
 #[derive(Clone, Debug)]
 pub struct Gaussian {
     pub mu: f64,
@@ -99,11 +101,18 @@ overload!((a: ?Gaussian) / (b: ?Gaussian) -> Gaussian {
     if b.sigma.is_infinite() {
         return a.clone();
     }
+    if a.sigma.is_infinite() {
+        return Gaussian {
+            mu: -b.mu,
+            sigma: b.sigma,
+        }
+    }
 
     let ssigma1 = a.sigma.powi(2);
     let ssigma2 = b.sigma.powi(2);
+
     Gaussian {
-        mu: (a.mu * ssigma2 - b.mu * ssigma1) / (ssigma2 - ssigma1),
+        mu: (a.mu * ssigma2 - b.mu * ssigma1) / (ssigma2 - ssigma1).abs(),
         sigma: a.sigma * b.sigma / (ssigma2 - ssigma1).abs().sqrt(),
     }
 });
@@ -138,6 +147,13 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
 
+        if alpha < PREC {
+            return Gaussian {
+                mu: 0.,
+                sigma: (1. / 3. as f64).sqrt(),
+            } / self;
+        }
+
         let mu =
             1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
         let mut sigma2 = 1. / alpha
@@ -145,7 +161,7 @@ impl Gaussian {
             - mu.powi(2);
         if sigma2 < 0. {
             // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
+            sigma2 = PREC;
         }
         let sigma = sigma2.sqrt();
 
@@ -170,11 +186,18 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, eps);
 
+        if alpha < PREC {
+            return Gaussian {
+                mu: eps,
+                sigma: self.sigma / (2. as f64).sqrt(),
+            } / self;
+        }
+
         let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
         let mut sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);
         if sigma2 < 0. {
             // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
+            sigma2 = PREC;
         }
         let sigma = sigma2.sqrt();
 
