@@ -1,9 +1,9 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{get_participant_ratings, simulate_contest};
+use ranking::compute_ratings::simulate_contest;
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids};
 use ranking::experiment_config::load_experiment;
-use ranking::metrics::{compute_metrics_custom, PerformanceReport};
+use ranking::metrics::compute_metrics_custom;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -30,10 +30,9 @@ fn main() {
         let max_contests = experiment.max_contests;
         let mu_noob = experiment.mu_noob;
         let sig_noob = experiment.sig_noob;
-        let topk = experiment.topk;
 
         let mut players = HashMap::new();
-        let mut avg_perf = PerformanceReport::new(3);
+        let mut avg_perf = compute_metrics_custom(&mut players, &[]);
         let now = Instant::now();
 
         // Run the contest histories and measure
@@ -42,8 +41,7 @@ fn main() {
 
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
-            let standings = get_participant_ratings(&mut players, &contest, 0);
-            avg_perf += compute_metrics_custom(&standings, topk);
+            avg_perf += compute_metrics_custom(&mut players, &contest.standings);
 
             // Now run the actual rating update
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);

@@ -3,6 +3,7 @@ use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
 
 pub const TANH_MULTIPLIER: f64 = std::f64::consts::PI / 1.7320508075688772;
+pub type PlayersByName = HashMap<String, RefCell<Player>>;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Rating {
@@ -225,7 +226,7 @@ pub trait RatingSystem: std::fmt::Debug {
 }
 
 pub fn simulate_contest(
-    players: &mut HashMap<String, RefCell<Player>>,
+    players: &mut PlayersByName,
     contest: &Contest,
     system: &dyn RatingSystem,
     mu_newbie: f64,
@@ -265,13 +266,13 @@ pub fn simulate_contest(
 }
 
 pub fn get_participant_ratings(
-    players: &mut HashMap<String, RefCell<Player>>,
-    contest: &Contest,
+    players: &mut PlayersByName,
+    contest_standings: &[(String, usize, usize)],
     min_history: usize,
 ) -> Vec<(Rating, usize, usize)> {
     let mut standings: Vec<(Rating, usize, usize)> = vec![];
 
-    for &(ref handle, lo, hi) in &contest.standings {
+    for &(ref handle, lo, hi) in contest_standings {
         if let Some(player) = players.get(handle).map(RefCell::borrow) {
             if player.event_history.len() >= min_history {
                 standings.push((player.approx_posterior, lo, hi));

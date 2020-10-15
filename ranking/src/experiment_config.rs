@@ -18,7 +18,6 @@ pub struct ExperimentConfig {
     pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
-    pub topk: usize,
     pub system: SystemParams,
     pub contest_source: String,
 }
@@ -27,7 +26,6 @@ pub struct Experiment {
     pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
-    pub topk: usize,
     pub system: Box<dyn RatingSystem>,
     pub contest_source: ContestSource,
 }
@@ -55,11 +53,17 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         "topcoder" => Box::new(TopCoderSystem {
             weight_multiplier: params.system.params[0],
         }),
+        "elor-x" => Box::new(EloRSystem {
+            sig_perf: params.system.params[0],
+            sig_drift: params.system.params[1],
+            split_ties: if params.system.params[2] > 0. { true } else { false },
+            variant: crate::EloRVariant::Gaussian,
+        }),
         "elor" => Box::new(EloRSystem {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
-            variant: crate::elor_system::EloRVariant::Logistic(params.system.params[2]),
-            split_ties: false,
+            split_ties: if params.system.params[2] > 0. { true } else { false },
+            variant: crate::EloRVariant::Logistic(params.system.params[3]),
         }),
         "trueskill" => Box::new(TrueSkillSPBSystem {
             eps: params.system.params[0],
@@ -67,14 +71,13 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
             convergence_eps: params.system.params[2],
             sigma_growth: params.system.params[3],
         }),
-        _ => Box::new(EloRSystem::default()),
+        x => panic!("'{}' is not a valid system name!", x),
     };
 
     Experiment {
         max_contests: params.max_contests,
         mu_noob: params.mu_noob,
         sig_noob: params.sig_noob,
-        topk: params.topk,
         system: rating_system,
         contest_source: source,
     }

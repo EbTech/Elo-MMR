@@ -16,13 +16,13 @@ pub enum EloRVariant {
 pub struct EloRSystem {
     pub sig_perf: f64,        // variation in individual performances
     pub sig_drift: f64,       // skill drift between successive performances
-    pub variant: EloRVariant, // whether to use logistic or Gaussian distributions
     pub split_ties: bool,     // whether to split ties into half win and half loss
+    pub variant: EloRVariant, // whether to use logistic or Gaussian distributions
 }
 
 impl Default for EloRSystem {
     fn default() -> Self {
-        Self::from_limit(200., 80., EloRVariant::Logistic(1.), false)
+        Self::from_limit(200., 80., false, EloRVariant::Logistic(1.))
     }
 }
 
@@ -32,8 +32,8 @@ impl EloRSystem {
     pub fn from_limit(
         sig_perf: f64,
         sig_limit: f64,
-        variant: EloRVariant,
         split_ties: bool,
+        variant: EloRVariant,
     ) -> Self {
         assert!(sig_limit > 0.);
         assert!(sig_perf > sig_limit);
@@ -42,8 +42,8 @@ impl EloRSystem {
         Self {
             sig_perf,
             sig_drift,
-            variant,
             split_ties,
+            variant,
         }
     }
 

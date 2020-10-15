@@ -11,6 +11,6 @@ pub mod tc_system;
 pub mod ts_system;
 
 pub use cf_system::CodeforcesSystem;
-pub use elor_system::EloRSystem;
+pub use elor_system::{EloRSystem, EloRVariant};
 pub use tc_system::TopCoderSystem;
 pub use ts_system::TrueSkillSPBSystem;

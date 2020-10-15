@@ -1,8 +1,8 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{get_participant_ratings, simulate_contest, RatingSystem};
+use ranking::compute_ratings::{simulate_contest, RatingSystem};
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
-use ranking::metrics::{compute_metrics_custom, PerformanceReport};
+use ranking::metrics::compute_metrics_custom;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -20,17 +20,32 @@ fn main() {
             systems.push(Box::new(system));
         }
     }
-    for pi in (100..=500).step_by(40) {
-        for li in (0..=120).step_by(10) {
+    for pi in (100..=500).step_by(50) {
+        for li in (0..=120).step_by(20) {
             let sig_perf = pi as f64;
             let sig_drift = li as f64;
             let system = EloRSystem {
                 sig_perf,
                 sig_drift,
-                variant: ranking::elor_system::EloRVariant::Logistic(1.),
                 split_ties: false,
+                variant: ranking::EloRVariant::Gaussian,
             };
             systems.push(Box::new(system));
+        }
+    }
+    for ri in -1..=1 {
+        for pi in (100..=500).step_by(50) {
+            for li in (0..=120).step_by(20) {
+                let sig_perf = pi as f64;
+                let sig_drift = li as f64;
+                let system = EloRSystem {
+                    sig_perf,
+                    sig_drift,
+                    split_ties: false,
+                    variant: ranking::EloRVariant::Logistic(2f64.powi(ri)),
+                };
+                systems.push(Box::new(system));
+            }
         }
     }
     for wi in -15..=15 {
@@ -58,13 +73,12 @@ fn main() {
     // Run the contest histories and measure
     let config = get_contest_config(ContestSource::Codeforces);
     let contest_ids = get_contest_ids(&config.contest_id_file);
-    let max_contests = 2000;
+    let max_contests = usize::MAX;
     let mu_noob = 1500.;
     let sig_noob = 300.;
-    let topk = 10000;
     for system in systems {
         let mut players = HashMap::new();
-        let mut avg_perf = PerformanceReport::new(3);
+        let mut avg_perf = compute_metrics_custom(&mut players, &[]);
         let now = Instant::now();
 
         for &contest_id in contest_ids.iter().take(max_contests) {
@@ -72,8 +86,7 @@ fn main() {
 
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
-            let standings = get_participant_ratings(&mut players, &contest, 0);
-            avg_perf += compute_metrics_custom(&standings, topk);
+            avg_perf += compute_metrics_custom(&mut players, &contest.standings);
 
             // Now run the actual rating update
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
