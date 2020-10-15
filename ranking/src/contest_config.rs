@@ -16,6 +16,7 @@ pub enum ContestSource {
     Codeforces,
     Reddit,
     StackOverflow,
+    TopCoder,
     Synthetic,
     NotFound,
 }
@@ -30,6 +31,7 @@ pub fn get_contest_config(source: ContestSource) -> ContestConfig {
         ContestSource::Codeforces => "codeforces",
         ContestSource::Reddit => "reddit",
         ContestSource::StackOverflow => "stackoverflow",
+        ContestSource::TopCoder => "topcoder",
         ContestSource::Synthetic => "synthetic",
         ContestSource::NotFound => "not-found",
     };

@@ -42,6 +42,7 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         "codeforces" => ContestSource::Codeforces,
         "reddit" => ContestSource::Reddit,
         "stackoverflow" => ContestSource::StackOverflow,
+        "topcoder" => ContestSource::TopCoder,
         "synthetic" => ContestSource::Synthetic,
         _ => ContestSource::NotFound,
     };
