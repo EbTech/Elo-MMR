@@ -7,8 +7,6 @@ use statrs::function::erf::erfc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
 
-const PREC: f64 = 1e-4;
-
 #[derive(Clone, Debug)]
 pub struct Gaussian {
     pub mu: f64,
@@ -144,15 +142,9 @@ fn moment2(mu: f64, sigma: f64, t: f64) -> f64 {
 impl Gaussian {
     pub fn leq_eps(&self, eps: f64) -> Gaussian {
         assert!(eps >= 0.);
+        assert!(!self.sigma.is_infinite());
 
         let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
-
-        if alpha < PREC {
-            return Gaussian {
-                mu: 0.,
-                sigma: (1. / 3. as f64).sqrt(),
-            } / self;
-        }
 
         let mu =
             1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
@@ -161,7 +153,7 @@ impl Gaussian {
             - mu.powi(2);
         if sigma2 < 0. {
             // sigma2 can only be < 0 due to numerical errors
-            sigma2 = PREC;
+            sigma2 = 0.;
         }
         let sigma = sigma2.sqrt();
 
@@ -183,21 +175,15 @@ impl Gaussian {
 
     pub fn greater_eps(&self, eps: f64) -> Gaussian {
         assert!(eps >= 0.);
+        assert!(!self.sigma.is_infinite());
 
         let alpha = moment0(self.mu, self.sigma, eps);
-
-        if alpha < PREC {
-            return Gaussian {
-                mu: eps,
-                sigma: self.sigma / (2. as f64).sqrt(),
-            } / self;
-        }
 
         let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
         let mut sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);
         if sigma2 < 0. {
             // sigma2 can only be < 0 due to numerical errors
-            sigma2 = PREC;
+            sigma2 = 0.;
         }
         let sigma = sigma2.sqrt();
 
