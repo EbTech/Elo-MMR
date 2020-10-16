@@ -87,6 +87,38 @@ impl EloRSystem {
         0.5 * (lo + hi)
     }
 
+    fn newton_step(
+        all: impl Iterator<Item = (TanhTerm, usize)>,
+        my_rank: usize,
+        split_ties: bool,
+        guess: f64,
+    ) -> (f64, bool) {
+        let mut sum = 0.;
+        let mut sum_prime = 0.;
+        for (term, rank) in all {
+            let tanh_z = ((guess - term.mu) * term.w_arg).tanh();
+            let sum_incr = tanh_z * term.w_out;
+            let sum_prime_incr = (1. - tanh_z * tanh_z) * term.w_arg * term.w_out;
+
+            if rank < my_rank {
+                sum += sum_incr + term.w_out;
+                sum_prime += sum_prime_incr;
+            } else if rank > my_rank {
+                sum += sum_incr - term.w_out;
+                sum_prime += sum_prime_incr;
+            } else if split_ties {
+                sum += sum_incr;
+                sum_prime += sum_prime_incr;
+            } else {
+                sum += 2. * sum_incr;
+                sum_prime += 2. * sum_prime_incr;
+            }
+        }
+        let next = guess - sum / sum_prime;
+        let done = sum.abs() < 1e-10;
+        (next, done)
+    }
+
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our logistic-weighted performance score for this round
     fn compute_performance_logistic(
@@ -97,47 +129,23 @@ impl EloRSystem {
         let (mut lo, mut hi) = (-6000.0, 9000.0);
         let mut guess = 0.5 * (lo + hi);
         loop {
-            let mut sum = 0.;
-            let mut sum_prime = 0.;
-            for (term, rank) in all.clone() {
-                let tanh_z = ((guess - term.mu) * term.w_arg).tanh();
-                let sum_incr = tanh_z * term.w_out;
-                let sum_prime_incr = (1. - tanh_z * tanh_z) * term.w_arg * term.w_out;
-
-                if rank < my_rank {
-                    sum += sum_incr + term.w_out;
-                    sum_prime += sum_prime_incr;
-                } else if rank > my_rank {
-                    sum += sum_incr - term.w_out;
-                    sum_prime += sum_prime_incr;
-                } else if split_ties {
-                    sum += sum_incr;
-                    sum_prime += sum_prime_incr;
-                } else {
-                    sum += 2. * sum_incr;
-                    sum_prime += 2. * sum_prime_incr;
-                }
-            }
-            let next = (guess - sum / sum_prime)
-                .max(0.75 * lo + 0.25 * guess)
-                .min(0.25 * guess + 0.75 * hi);
-            if sum > 0.0 {
+            let (next, done) = Self::newton_step(all.clone(), my_rank, split_ties, guess);
+            if next < guess {
                 hi = guess;
             } else {
                 lo = guess;
             }
 
-            if sum.abs() < 1e-10 {
+            if done {
                 return next;
             }
             if hi - lo < 1e-14 {
-                eprintln!(
-                    "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} s={} s'={}",
-                    guess, next, sum, sum_prime
-                );
+                eprintln!("WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{}", guess, next);
                 return next;
             }
-            guess = next;
+            guess = next
+                .max(0.75 * lo + 0.25 * guess)
+                .min(0.25 * guess + 0.75 * hi);
         }
     }
 }
@@ -175,7 +183,7 @@ impl RatingSystem for EloRSystem {
             .collect();
 
         let mut idx_by_rating: Vec<usize> = (0..all_ratings.len()).collect();
-        idx_by_rating.sort_by(|&i, &j| {
+        idx_by_rating.sort_unstable_by(|&i, &j| {
             all_ratings[i]
                 .0
                 .mu
@@ -187,37 +195,131 @@ impl RatingSystem for EloRSystem {
         standings
             .into_par_iter()
             .enumerate()
-            .for_each(|(player_i, (player, lo, _))| {
-                let mu = player.approx_posterior.mu;
-                let center = idx_by_rating
-                    .binary_search_by(|&i| {
-                        all_ratings[i]
-                            .0
-                            .mu
-                            .partial_cmp(&mu)
-                            .unwrap()
-                            .then(std::cmp::Ordering::Greater)
-                    })
-                    .unwrap_err();
-                let begin = center.saturating_sub(1_000_000);
-                let end = all_ratings.len().min(center + 1_000_000);
-                let all = idx_by_rating[begin..end]
-                    .iter()
-                    .cloned()
-                    .filter(|&i| i != player_i)
-                    .chain(Some(player_i));
+            .for_each(|(player_i, (player, rank, _))| {
+                const NUM_RECENTER: usize = 1;
+                const RADIUS_SUBSAMPLE: usize = 1_000_000;
+                let mut guess = player.approx_posterior.mu;
 
                 let perf = match self.variant {
-                    EloRVariant::Gaussian => Self::compute_performance_gaussian(
-                        all.map(|i| all_ratings[i]),
-                        lo,
-                        self.split_ties,
-                    ),
-                    EloRVariant::Logistic(_) => Self::compute_performance_logistic(
-                        all.map(|i| tanh_terms[i]),
-                        lo,
-                        self.split_ties,
-                    ),
+                    EloRVariant::Gaussian => {
+                        let center = idx_by_rating
+                            .binary_search_by(|&i| {
+                                all_ratings[i]
+                                    .0
+                                    .mu
+                                    .partial_cmp(&guess)
+                                    .unwrap()
+                                    .then(std::cmp::Ordering::Greater)
+                            })
+                            .unwrap_err();
+                        let mut beg = center.saturating_sub(RADIUS_SUBSAMPLE);
+                        let mut end = (all_ratings.len() - 1).min(center + RADIUS_SUBSAMPLE);
+                        beg = idx_by_rating
+                            .binary_search_by(|&i| {
+                                all_ratings[i]
+                                    .0
+                                    .mu
+                                    .partial_cmp(&all_ratings[idx_by_rating[beg]].0.mu)
+                                    .unwrap()
+                                    .then(std::cmp::Ordering::Greater)
+                            })
+                            .unwrap_err();
+                        end = idx_by_rating
+                            .binary_search_by(|&i| {
+                                all_ratings[i]
+                                    .0
+                                    .mu
+                                    .partial_cmp(&all_ratings[idx_by_rating[end]].0.mu)
+                                    .unwrap()
+                                    .then(std::cmp::Ordering::Less)
+                            })
+                            .unwrap_err();
+                        let all = idx_by_rating[beg..end]
+                            .iter()
+                            .cloned()
+                            .filter(|&i| i != player_i)
+                            .chain(Some(player_i));
+
+                        Self::compute_performance_gaussian(
+                            all.map(|i| all_ratings[i]),
+                            rank,
+                            self.split_ties,
+                        )
+                    }
+                    EloRVariant::Logistic(_) => {
+                        let (mut lo, mut hi) = (-6000., 9000.);
+                        let (mut iter, mut beg, mut end) = (0, 0, 0);
+                        loop {
+                            if iter < NUM_RECENTER {
+                                iter += 1;
+                                let center = idx_by_rating
+                                    .binary_search_by(|&i| {
+                                        all_ratings[i]
+                                            .0
+                                            .mu
+                                            .partial_cmp(&guess)
+                                            .unwrap()
+                                            .then(std::cmp::Ordering::Greater)
+                                    })
+                                    .unwrap_err();
+                                beg = center.saturating_sub(RADIUS_SUBSAMPLE);
+                                end = (all_ratings.len() - 1).min(center + RADIUS_SUBSAMPLE);
+                                beg = idx_by_rating
+                                    .binary_search_by(|&i| {
+                                        all_ratings[i]
+                                            .0
+                                            .mu
+                                            .partial_cmp(&all_ratings[idx_by_rating[beg]].0.mu)
+                                            .unwrap()
+                                            .then(std::cmp::Ordering::Greater)
+                                    })
+                                    .unwrap_err();
+                                end = idx_by_rating
+                                    .binary_search_by(|&i| {
+                                        all_ratings[i]
+                                            .0
+                                            .mu
+                                            .partial_cmp(&all_ratings[idx_by_rating[end]].0.mu)
+                                            .unwrap()
+                                            .then(std::cmp::Ordering::Less)
+                                    })
+                                    .unwrap_err();
+                            }
+                            let all = idx_by_rating[beg..end]
+                                .iter()
+                                .cloned()
+                                .filter(|&i| i != player_i)
+                                .chain(Some(player_i));
+
+                            let (next, done) = Self::newton_step(
+                                all.clone().map(|i| tanh_terms[i]),
+                                rank,
+                                self.split_ties,
+                                guess,
+                            );
+                            if iter >= NUM_RECENTER {
+                                if next < guess {
+                                    hi = guess;
+                                } else {
+                                    lo = guess;
+                                }
+                            }
+
+                            if done {
+                                break next;
+                            }
+                            if hi - lo < 1e-14 {
+                                eprintln!(
+                                    "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{}",
+                                    guess, next
+                                );
+                                break next;
+                            }
+                            guess = next
+                                .max(0.75 * lo + 0.25 * guess)
+                                .min(0.25 * guess + 0.75 * hi);
+                        }
+                    }
                 };
 
                 player.update_rating_with_new_performance(

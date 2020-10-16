@@ -196,7 +196,7 @@ pub fn robust_average(
     offset: f64,
     slope: f64,
 ) -> f64 {
-    let (mut lo, mut hi) = (-6000.0, 9000.0);
+    let (mut lo, mut hi) = (-6000., 9000.);
     let mut guess = 0.5 * (lo + hi);
     loop {
         let mut sum = offset + slope * guess;
