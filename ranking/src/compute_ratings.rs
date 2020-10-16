@@ -11,6 +11,15 @@ pub struct Rating {
     pub sig: f64,
 }
 
+impl Rating {
+    pub fn with_noise(self, sig_noise: f64) -> Self {
+        Self {
+            mu: self.mu,
+            sig: self.sig.hypot(sig_noise),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct TanhTerm {
     pub mu: f64,
@@ -99,7 +108,7 @@ impl Player {
     // Method #1: the Gaussian/Brownian approximation, in which rating is a Markov state
     // Equivalent to method #5 with transfer_speed == f64::INFINITY
     pub fn add_noise_and_collapse(&mut self, sig_noise: f64) {
-        self.approx_posterior.sig = self.approx_posterior.sig.hypot(sig_noise);
+        self.approx_posterior = self.approx_posterior.with_noise(sig_noise);
         self.normal_factor = self.approx_posterior;
         self.logistic_factors.clear();
     }
@@ -121,11 +130,11 @@ impl Player {
     // Reduces to method #1 when transfer_speed == f64::INFINITY
     // Reduces to method #2 when transfer_speed == 0
     pub fn add_noise_best(&mut self, sig_noise: f64, transfer_speed: f64) {
-        let new_sig = self.approx_posterior.sig.hypot(sig_noise);
+        let new_posterior = self.approx_posterior.with_noise(sig_noise);
 
-        let decay = (self.approx_posterior.sig / new_sig).powi(2);
+        let decay = (self.approx_posterior.sig / new_posterior.sig).powi(2);
         let transfer = decay.powf(transfer_speed);
-        self.approx_posterior.sig = new_sig;
+        self.approx_posterior = new_posterior;
 
         let wt_norm_old = self.normal_factor.sig.powi(-2);
         let wt_from_norm_old = transfer * wt_norm_old;

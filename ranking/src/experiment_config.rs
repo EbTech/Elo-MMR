@@ -56,13 +56,13 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         "elor-x" => Box::new(EloRSystem {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
-            split_ties: if params.system.params[2] > 0. { true } else { false },
+            split_ties: params.system.params[2] > 0.,
             variant: crate::EloRVariant::Gaussian,
         }),
         "elor" => Box::new(EloRSystem {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
-            split_ties: if params.system.params[2] > 0. { true } else { false },
+            split_ties: params.system.params[2] > 0.,
             variant: crate::EloRVariant::Logistic(params.system.params[3]),
         }),
         "trueskill" => Box::new(TrueSkillSPBSystem {

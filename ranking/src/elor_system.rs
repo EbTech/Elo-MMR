@@ -1,8 +1,8 @@
 //! Elo-R system details: https://github.com/EbTech/EloR/blob/master/paper/EloR.pdf
 
 use crate::compute_ratings::{
-    robust_average, standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player,
-    Rating, RatingSystem, TanhTerm,
+    standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player, Rating, RatingSystem,
+    TanhTerm,
 };
 use rayon::prelude::*;
 
@@ -50,9 +50,8 @@ impl EloRSystem {
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our Gaussian-weighted performance score for this round
     fn compute_performance_gaussian(
-        better: impl Iterator<Item = Rating> + Clone,
-        tied: impl Iterator<Item = Rating> + Clone,
-        worse: impl Iterator<Item = Rating> + Clone,
+        all: impl Iterator<Item = (Rating, usize)> + Clone,
+        my_rank: usize,
         split_ties: bool,
     ) -> f64 {
         // This is a slow binary search, without Newton steps
@@ -60,33 +59,25 @@ impl EloRSystem {
         while hi - lo > 1e-9 {
             let guess = 0.5 * (lo + hi);
             let mut sum = 0.;
-            for rating in better.clone() {
+            for (rating, rank) in all.clone() {
                 let z = (guess - rating.mu) / rating.sig;
                 let pdf = standard_normal_pdf(z) / rating.sig;
-                let cdf = standard_normal_cdf(z);
-                sum += pdf / (cdf - 1.);
-            }
-            for rating in worse.clone() {
-                let z = (guess - rating.mu) / rating.sig;
-                let pdf = standard_normal_pdf(z) / rating.sig;
-                let cdf = standard_normal_cdf(z);
-                sum += pdf / cdf;
-            }
-            if split_ties {
-                for rating in tied.clone() {
-                    let z = (guess - rating.mu) / rating.sig;
-                    let pdf = standard_normal_pdf(z) / rating.sig;
+
+                if rank < my_rank {
+                    let cdf = standard_normal_cdf(z);
+                    sum += pdf / (cdf - 1.);
+                } else if rank > my_rank {
+                    let cdf = standard_normal_cdf(z);
+                    sum += pdf / cdf;
+                } else if split_ties {
                     let cdf = standard_normal_cdf(z);
                     sum += pdf * (0.5 / (cdf - 1.) + 0.5 / cdf);
-                }
-            } else {
-                for rating in tied.clone() {
-                    let z = (guess - rating.mu) / rating.sig;
-                    let pdf = standard_normal_pdf(z) / rating.sig;
+                } else {
                     let pdf_prime = -z * pdf / rating.sig;
                     sum += pdf_prime / pdf;
                 }
             }
+
             if sum < 0.0 {
                 hi = guess;
             } else {
@@ -99,22 +90,54 @@ impl EloRSystem {
     // Given the participants which beat us, tied with us, and lost against us,
     // returns our logistic-weighted performance score for this round
     fn compute_performance_logistic(
-        better: impl Iterator<Item = TanhTerm> + Clone,
-        tied: impl Iterator<Item = TanhTerm> + Clone,
-        worse: impl Iterator<Item = TanhTerm> + Clone,
+        all: impl Iterator<Item = (TanhTerm, usize)> + Clone,
+        my_rank: usize,
         split_ties: bool,
     ) -> f64 {
-        let pos_offset: f64 = better.clone().map(|term| term.w_out).sum();
-        let neg_offset: f64 = worse.clone().map(|term| term.w_out).sum();
+        let (mut lo, mut hi) = (-6000.0, 9000.0);
+        let mut guess = 0.5 * (lo + hi);
+        loop {
+            let mut sum = 0.;
+            let mut sum_prime = 0.;
+            for (term, rank) in all.clone() {
+                let tanh_z = ((guess - term.mu) * term.w_arg).tanh();
+                let sum_incr = tanh_z * term.w_out;
+                let sum_prime_incr = (1. - tanh_z * tanh_z) * term.w_arg * term.w_out;
 
-        if split_ties {
-            robust_average(better.chain(tied).chain(worse), pos_offset - neg_offset, 0.)
-        } else {
-            let tied = tied.map(|mut term| {
-                term.w_out *= 2.;
-                term
-            });
-            robust_average(better.chain(tied).chain(worse), pos_offset - neg_offset, 0.)
+                if rank < my_rank {
+                    sum += sum_incr + term.w_out;
+                    sum_prime += sum_prime_incr;
+                } else if rank > my_rank {
+                    sum += sum_incr - term.w_out;
+                    sum_prime += sum_prime_incr;
+                } else if split_ties {
+                    sum += sum_incr;
+                    sum_prime += sum_prime_incr;
+                } else {
+                    sum += 2. * sum_incr;
+                    sum_prime += 2. * sum_prime_incr;
+                }
+            }
+            let next = (guess - sum / sum_prime)
+                .max(0.75 * lo + 0.25 * guess)
+                .min(0.25 * guess + 0.75 * hi);
+            if sum > 0.0 {
+                hi = guess;
+            } else {
+                lo = guess;
+            }
+
+            if sum.abs() < 1e-10 {
+                return next;
+            }
+            if hi - lo < 1e-14 {
+                eprintln!(
+                    "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} s={} s'={}",
+                    guess, next, sum, sum_prime
+                );
+                return next;
+            }
+            guess = next;
         }
     }
 }
@@ -131,50 +154,79 @@ impl RatingSystem for EloRSystem {
 
     fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
         // Update ratings due to waiting period between contests
-        let all_ratings: Vec<Rating> = standings
+        let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
-            .map(|(player, _, _)| {
+            .map(|(player, lo, _)| {
                 match self.variant {
                     // if transfer_speed is infinite or the system is Gaussian, the logistic
-                    // weights become zero so our spacial-case optimization clears them out
+                    // weights become zero so this special-case optimization clears them out
                     EloRVariant::Logistic(transfer_speed) if transfer_speed < f64::INFINITY => {
                         player.add_noise_best(self.sig_drift, transfer_speed)
                     }
                     _ => player.add_noise_and_collapse(self.sig_drift),
                 }
-                let rating = player.approx_posterior;
-                Rating {
-                    mu: rating.mu,
-                    sig: rating.sig.hypot(self.sig_perf),
-                }
+                (player.approx_posterior.with_noise(self.sig_perf), *lo)
             })
             .collect();
-        let tanh_terms: Vec<TanhTerm> = all_ratings.iter().cloned().map(Into::into).collect();
+
+        let tanh_terms: Vec<(TanhTerm, usize)> = all_ratings
+            .iter()
+            .map(|&(rating, lo)| (rating.into(), lo))
+            .collect();
+
+        let mut idx_by_rating: Vec<usize> = (0..all_ratings.len()).collect();
+        idx_by_rating.sort_by(|&i, &j| {
+            all_ratings[i]
+                .0
+                .mu
+                .partial_cmp(&all_ratings[j].0.mu)
+                .unwrap()
+        });
 
         // The computational bottleneck: update ratings based on contest performance
-        standings.into_par_iter().for_each(|(player, lo, hi)| {
-            let perf = match self.variant {
-                EloRVariant::Gaussian => {
-                    let better = all_ratings[..lo].iter().cloned();
-                    let tied = all_ratings[lo..=hi].iter().cloned();
-                    let worse = all_ratings[hi + 1..].iter().cloned();
-                    Self::compute_performance_gaussian(better, tied, worse, self.split_ties)
-                }
-                EloRVariant::Logistic(_) => {
-                    let better = tanh_terms[..lo].iter().cloned();
-                    let tied = tanh_terms[lo..=hi].iter().cloned();
-                    let worse = tanh_terms[hi + 1..].iter().cloned();
-                    Self::compute_performance_logistic(better, tied, worse, self.split_ties)
-                }
-            };
+        standings
+            .into_par_iter()
+            .enumerate()
+            .for_each(|(player_i, (player, lo, _))| {
+                let mu = player.approx_posterior.mu;
+                let center = idx_by_rating
+                    .binary_search_by(|&i| {
+                        all_ratings[i]
+                            .0
+                            .mu
+                            .partial_cmp(&mu)
+                            .unwrap()
+                            .then(std::cmp::Ordering::Greater)
+                    })
+                    .unwrap_err();
+                let begin = center.saturating_sub(1_000_000);
+                let end = all_ratings.len().min(center + 1_000_000);
+                let all = idx_by_rating[begin..end]
+                    .iter()
+                    .cloned()
+                    .filter(|&i| i != player_i)
+                    .chain(Some(player_i));
 
-            player.update_rating_with_new_performance(
-                Rating {
-                    mu: perf,
-                    sig: self.sig_perf,
-                },
-                usize::MAX,
-            );
-        });
+                let perf = match self.variant {
+                    EloRVariant::Gaussian => Self::compute_performance_gaussian(
+                        all.map(|i| all_ratings[i]),
+                        lo,
+                        self.split_ties,
+                    ),
+                    EloRVariant::Logistic(_) => Self::compute_performance_logistic(
+                        all.map(|i| tanh_terms[i]),
+                        lo,
+                        self.split_ties,
+                    ),
+                };
+
+                player.update_rating_with_new_performance(
+                    Rating {
+                        mu: perf,
+                        sig: self.sig_perf,
+                    },
+                    usize::MAX,
+                );
+            });
     }
 }
