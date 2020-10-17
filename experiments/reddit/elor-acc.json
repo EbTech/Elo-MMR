@@ -1,0 +1,10 @@
+{
+    "max_contests": 2000,
+    "mu_noob": 1500,
+    "sig_noob": 300,
+    "system": { 
+        "method": "elor", 
+        "params": [500.0, 0.0, 0.0, 0.00390625] 
+    },
+    "contest_source": "reddit"
+}

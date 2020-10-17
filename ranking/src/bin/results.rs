@@ -12,12 +12,19 @@ use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 
 fn main() {
     // Load system configs from parameter files
-    let experiment_files = vec![
-        "../experiments/cf-experiment.json",
-        "../experiments/tc-experiment.json",
-        "../experiments/elor-experiment.json",
-        "../experiments/ts-experiment.json",
-    ];
+    let mut experiment_files : Vec<String> = Vec::new();
+    let datasets = vec!["codeforces", "reddit", "topcoder", "synthetic"];
+    let methods = vec!["cf", "tc", "ts", "elor"];
+    let metrics = vec!["acc", "rnk", "ent"];
+
+    for dataset in &datasets {
+        for method in &methods {
+            for metric in &metrics {
+                let filename = format!("../experiments/{}/{}-{}.json", dataset, method, metric);
+                experiment_files.push(filename);
+            }
+        }
+    }
 
     for filename in &experiment_files {
         let experiment = load_experiment(filename);

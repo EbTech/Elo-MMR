@@ -1,0 +1,10 @@
+{
+    "max_contests": 2000,
+    "mu_noob": 1500,
+    "sig_noob": 300,
+    "system": { 
+        "method": "topcoder", 
+        "params": [0.25118864315095796] 
+    },
+    "contest_source": "reddit"
+}
