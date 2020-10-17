@@ -14,7 +14,7 @@ fn main() {
     // Load system configs from parameter files
     let mut experiment_files : Vec<String> = Vec::new();
     let datasets = vec!["codeforces", "reddit", "topcoder", "synthetic"];
-    let methods = vec!["cf", "tc", "ts", "elor"];
+    let methods = vec!["cf", "tc", "ts", "elor", "elorX"];
     let metrics = vec!["acc", "rnk", "ent"];
 
     for dataset in &datasets {
