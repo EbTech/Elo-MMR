@@ -4,7 +4,7 @@
     "sig_noob": 300,
     "system": { 
         "method": "trueskill", 
-        "params": [0.1, 60.0, 0.0002, 100.0] 
+        "params": [0.5, 260.0, 0.0002, 100.0] 
     },
     "contest_source": "synthetic"
 }
