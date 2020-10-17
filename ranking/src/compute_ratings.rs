@@ -177,13 +177,13 @@ pub fn standard_normal_pdf(z: f64) -> f64 {
 }
 
 pub fn standard_normal_cdf(z: f64) -> f64 {
-    // Equivalently, 0.5 * erfc(-z / SQRT_2)
-    0.5 + 0.5 * statrs::function::erf::erf(z / std::f64::consts::SQRT_2)
+    0.5 * statrs::function::erf::erfc(-z / std::f64::consts::SQRT_2)
+    // Less numerically stable: 0.5 + 0.5 * statrs::function::erf::erf(z / std::f64::consts::SQRT_2)
 }
 
 pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
-    // Equivalently, -SQRT_2 * erfc_inv(2. * prob)
-    std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
+    -std::f64::consts::SQRT_2 * statrs::function::erf::erfc_inv(2. * prob)
+    // Equivalently: std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
 }
 
 // Returns the unique zero of the following strictly increasing function of x:
@@ -218,7 +218,7 @@ pub fn robust_average(
         if sum.abs() < 1e-10 {
             return next;
         }
-        if hi - lo < 1e-14 {
+        if hi - lo < 1e-12 {
             eprintln!(
                 "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} s={} s'={}",
                 guess, next, sum, sum_prime
