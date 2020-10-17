@@ -4,7 +4,7 @@
     "sig_noob": 300,
     "system": { 
         "method": "topcoder", 
-        "params": [1.0] 
+        "params": [31.622776601683793] 
     },
     "contest_source": "synthetic"
 }
