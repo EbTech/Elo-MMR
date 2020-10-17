@@ -1,4 +1,6 @@
 extern crate ranking;
+extern crate rayon;
+use rayon::prelude::*;
 
 use ranking::compute_ratings::simulate_contest;
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids};
@@ -26,7 +28,7 @@ fn main() {
         }
     }
 
-    for filename in &experiment_files {
+    experiment_files.par_iter().for_each(|filename| {
         let experiment = load_experiment(filename);
 
         let config = get_contest_config(experiment.contest_source);
@@ -60,5 +62,5 @@ fn main() {
             now.elapsed().as_millis() as f64 / 1000.
         );
         println!("=============================================================");
-    }
+    });
 }
