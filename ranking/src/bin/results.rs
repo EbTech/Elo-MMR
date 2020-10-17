@@ -56,7 +56,8 @@ fn main() {
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
         }
         println!(
-            "{:?}: {}, {}s",
+            "{} {:?}: {}, {}s",
+            filename,
             system,
             avg_perf,
             now.elapsed().as_millis() as f64 / 1000.
