@@ -4,7 +4,7 @@
     "sig_noob": 300,
     "system": { 
         "method": "codeforces", 
-        "params": [100.0, 5623.413251903491] 
+        "params": [100.0, 0.31622776601683794] 
     },
     "contest_source": "synthetic"
 }

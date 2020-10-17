@@ -4,7 +4,7 @@
     "sig_noob": 300,
     "system": { 
         "method": "elor-x", 
-        "params": [100.0, 120.0, 0.0] 
+        "params": [300.0, 40.0, 0.0] 
     },
     "contest_source": "synthetic"
 }
