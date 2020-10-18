@@ -5,7 +5,7 @@ use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, 
 use ranking::summary::print_ratings;
 use std::collections::HashMap;
 
-/// simulates the entire history of Codeforces; runs on my laptop in 90 mins,
+/// simulates the entire history of Codeforces; runs on my laptop in 23 mins,
 /// somewhat longer if the Codeforces API data isn't cached
 fn main() {
     let mut players = HashMap::new();

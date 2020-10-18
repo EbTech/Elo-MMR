@@ -230,7 +230,7 @@ impl RatingSystem for EloRSystem {
             .enumerate()
             .for_each(|(player_i, (player, rank, _))| {
                 const NUM_RECENTER: usize = 1;
-                const RADIUS_SUBSAMPLE: usize = 1_000_000;
+                const WIDTH_SUBSAMPLE: usize = 1_000_000;
 
                 let mut guess = player.approx_posterior.mu;
                 let (mut lo, mut hi) = (-6000., 9000.);
@@ -238,7 +238,7 @@ impl RatingSystem for EloRSystem {
                 let perf = loop {
                     if iter < NUM_RECENTER {
                         iter += 1;
-                        let center = idx_by_rating
+                        beg = idx_by_rating
                             .binary_search_by(|&i| {
                                 all_ratings[i]
                                     .0
@@ -248,8 +248,25 @@ impl RatingSystem for EloRSystem {
                                     .then(std::cmp::Ordering::Greater)
                             })
                             .unwrap_err();
-                        beg = center.saturating_sub(RADIUS_SUBSAMPLE);
-                        end = (all_ratings.len() - 1).min(center + RADIUS_SUBSAMPLE);
+                        end = idx_by_rating
+                            .binary_search_by(|&i| {
+                                all_ratings[i]
+                                    .0
+                                    .mu
+                                    .partial_cmp(&guess)
+                                    .unwrap()
+                                    .then(std::cmp::Ordering::Less)
+                            })
+                            .unwrap_err();
+
+                        let expand = (WIDTH_SUBSAMPLE.saturating_sub(end - beg) + 1) / 2;
+                        beg = beg.saturating_sub(expand);
+                        end = all_ratings.len().min(end + expand);
+
+                        let expand = WIDTH_SUBSAMPLE.saturating_sub(end - beg);
+                        beg = beg.saturating_sub(expand);
+                        end = all_ratings.len().min(end + expand);
+
                         beg = idx_by_rating
                             .binary_search_by(|&i| {
                                 all_ratings[i]
@@ -265,7 +282,7 @@ impl RatingSystem for EloRSystem {
                                 all_ratings[i]
                                     .0
                                     .mu
-                                    .partial_cmp(&all_ratings[idx_by_rating[end]].0.mu)
+                                    .partial_cmp(&all_ratings[idx_by_rating[end - 1]].0.mu)
                                     .unwrap()
                                     .then(std::cmp::Ordering::Less)
                             })
