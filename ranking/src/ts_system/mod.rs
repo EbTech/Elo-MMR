@@ -165,12 +165,12 @@ impl TrueSkillSPBSystem {
             }
 
             if i != 0 {
-                let mut tmp: Vec<&mut dyn ValueNode> = Vec::with_capacity(3);
-                let (pref, suf) = l.split_at_mut(i);
-                tmp.push(pref.last_mut().unwrap());
-                tmp.push(suf.first_mut().unwrap());
-                tmp.push(&mut d[i - 1]);
-                ld.push(SumNode::new(&mut tmp));
+                match &mut l[i - 1..=i] {
+                    [a, b] => {
+                        ld.push(SumNode::new(&mut [a, b, &mut d[i - 1]]));
+                    }
+                    _ => panic!("Must have 0 < i < l.len()"),
+                };
             }
         }
 
