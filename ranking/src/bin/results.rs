@@ -1,4 +1,6 @@
 extern crate ranking;
+extern crate rayon;
+use rayon::prelude::*;
 
 use ranking::compute_ratings::simulate_contest;
 use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids};
@@ -12,7 +14,7 @@ use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 
 fn main() {
     // Load system configs from parameter files
-    let mut experiment_files : Vec<String> = Vec::new();
+    let mut experiment_files = vec![];
     let datasets = vec!["codeforces", "reddit", "topcoder", "synthetic"];
     let methods = vec!["cf", "tc", "ts", "elor", "elorX"];
     let metrics = vec!["acc", "rnk", "ent"];
@@ -26,7 +28,7 @@ fn main() {
         }
     }
 
-    for filename in &experiment_files {
+    experiment_files.par_iter().for_each(|filename| {
         let experiment = load_experiment(filename);
 
         let config = get_contest_config(experiment.contest_source);
@@ -54,11 +56,12 @@ fn main() {
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
         }
         println!(
-            "{:?}: {}, {}s",
+            "{} {:?}: {}, {}s",
+            filename,
             system,
             avg_perf,
             now.elapsed().as_millis() as f64 / 1000.
         );
         println!("=============================================================");
-    }
+    });
 }
