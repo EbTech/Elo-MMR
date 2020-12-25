@@ -50,7 +50,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
             .map(|r| r.mu.round() as i32)
             .unwrap_or(0);
         let previous_rating = if player.event_history.len() == 1 {
-            1060 // TODO: get rid of this magic number
+            950 // TODO: get rid of this magic number
         } else {
             player.event_history[player.event_history.len() - 2].display_rating
         };

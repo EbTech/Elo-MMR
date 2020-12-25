@@ -18,6 +18,15 @@ impl Rating {
             sig: self.sig.hypot(sig_noise),
         }
     }
+
+    pub fn towards_noise(self, decay: f64, limit: Self) -> Self {
+        let mu_diff = self.mu - limit.mu;
+        let sig_sq_diff = self.sig * self.sig - limit.sig * limit.sig;
+        Self {
+            mu: limit.mu + mu_diff * decay,
+            sig: (self.sig * self.sig + sig_sq_diff * decay * decay).sqrt(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -76,9 +85,9 @@ impl Player {
         assert_eq!(last_event.display_rating, 0);
 
         // TODO: get rid of the magic numbers 2 and 80!
-        //       2 gives a conservative estimate: use 0 to get mean estimates
+        //       2.5 gives a conservative estimate: use 0 to get mean estimates
         //       80 is EloR's default sig_lim
-        last_event.display_rating = (rating.mu - 2. * (rating.sig - 80.)).round() as i32;
+        last_event.display_rating = (rating.mu - 2.5 * (rating.sig - 80.)).round() as i32;
     }
 
     pub fn update_rating_with_new_performance(&mut self, performance: Rating, max_history: usize) {
@@ -186,47 +195,98 @@ pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
     // Equivalently: std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
 }
 
+pub fn solve_bisection((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> f64) -> f64 {
+    loop {
+        let flo = f(lo);
+        let guess = 0.5 * (lo + hi);
+        if lo >= guess || guess >= hi {
+            return guess;
+        }
+        if f(guess) * flo > 0. {
+            lo = guess;
+        } else {
+            hi = guess;
+        }
+    }
+}
+
+pub fn solve_illinois((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> f64) -> f64 {
+    let (mut flo, mut fhi, mut side) = (f(lo), f(hi), 0i8);
+    loop {
+        let guess = (flo * hi - fhi * lo) / (flo - fhi);
+        if lo >= guess || guess >= hi {
+            return 0.5 * (lo + hi);
+        }
+        let fguess = f(guess);
+        if fguess * flo > 0. {
+            lo = guess;
+            flo = fguess;
+            if side == -1 {
+                fhi *= 0.5;
+            }
+            side = -1;
+        } else if fguess * fhi > 0. {
+            hi = guess;
+            fhi = fguess;
+            if side == 1 {
+                flo *= 0.5;
+            }
+            side = 1;
+        } else {
+            return guess;
+        }
+    }
+}
+
+pub fn solve_newton((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> (f64, f64)) -> f64 {
+    let mut guess = 0.5 * (lo + hi);
+    loop {
+        let (sum, sum_prime) = f(guess);
+        let extrapolate = guess - sum / sum_prime;
+        if extrapolate < guess {
+            hi = guess;
+            guess = extrapolate.max(0.75 * lo + 0.25 * hi).min(hi);
+        } else {
+            lo = guess;
+            guess = extrapolate.max(lo).min(0.25 * lo + 0.75 * hi);
+        }
+        if lo >= guess || guess >= hi {
+            if sum.abs() > 1e-10 {
+                eprintln!(
+                    "WARNING: POSSIBLE FAILURE TO CONVERGE @ {}: s={}, s'={}",
+                    guess, sum, sum_prime
+                );
+            }
+            return guess;
+        }
+    }
+}
+
 // Returns the unique zero of the following strictly increasing function of x:
 // offset + slope * x + sum_i weight_i * tanh((x-mu_i)/sig_i)
 // We must have slope != 0 or |offset| < sum_i weight_i in order for the zero to exist.
-// If offset == slope == 0, we get a robust weighted average of the mu_i's. Uses hybrid of
-// binary search (to converge in the worst-case) and Newton's method (for speed in the typical case).
+// If offset == slope == 0, we get a robust weighted average of the mu_i's.
 pub fn robust_average(
     all_ratings: impl Iterator<Item = TanhTerm> + Clone,
     offset: f64,
     slope: f64,
 ) -> f64 {
-    let (mut lo, mut hi) = (-6000., 9000.);
-    let mut guess = 0.5 * (lo + hi);
-    loop {
-        let mut sum = offset + slope * guess;
-        let mut sum_prime = slope;
-        for term in all_ratings.clone() {
-            let tanh_z = ((guess - term.mu) * term.w_arg).tanh();
-            sum += tanh_z * term.w_out;
-            sum_prime += (1. - tanh_z * tanh_z) * term.w_arg * term.w_out;
-        }
-        let next = (guess - sum / sum_prime)
-            .max(0.75 * lo + 0.25 * guess)
-            .min(0.25 * guess + 0.75 * hi);
-        if sum > 0.0 {
-            hi = guess;
-        } else {
-            lo = guess;
-        }
-
-        if sum.abs() < 1e-10 {
-            return next;
-        }
-        if hi - lo < 1e-12 {
-            eprintln!(
-                "WARNING: POSSIBLE FAILURE TO CONVERGE: {}->{} s={} s'={}",
-                guess, next, sum, sum_prime
-            );
-            return next;
-        }
-        guess = next;
-    }
+    let bounds = (-6000.0, 9000.0);
+    let f = |x: f64| -> (f64, f64) {
+        all_ratings
+            .clone()
+            .map(|term| {
+                let tanh_z = ((x - term.mu) * term.w_arg).tanh();
+                (
+                    tanh_z * term.w_out,
+                    (1. - tanh_z * tanh_z) * term.w_arg * term.w_out,
+                )
+            })
+            .fold((offset + slope * x, slope), |(s, sp), (v, vp)| {
+                (s + v, sp + vp)
+            })
+    };
+    solve_newton(bounds, f)
 }
 
 pub trait RatingSystem: std::fmt::Debug {
