@@ -60,10 +60,16 @@ impl RatingSystem for GlickoSystem {
                 info += g * g * probability * (1. - probability);
                 update += g * (outcome - probability);
             }
-            info *= gli_q * gli_q / all_ratings.len() as f64;
+            // Treat the round as one highly informative match
+            info = 0.25;
+            update /= all_ratings.len() as f64;
+
+            // Compute new rating deviation
+            info *= gli_q * gli_q;
             let sig = (my_rating.sig.powi(-2) + info).recip().sqrt();
 
-            update *= gli_q * sig * sig / all_ratings.len() as f64;
+            // Compute new rating
+            update *= gli_q * sig * sig;
             let mu = my_rating.mu + update;
 
             player.update_rating(Rating { mu, sig });
