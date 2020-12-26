@@ -1,3 +1,5 @@
+# Elo-MMR: A Rating System for Massive Multiplayer Competitions
+
 Instructions to compute ratings after installing Rust:
 ```
 cd ranking/

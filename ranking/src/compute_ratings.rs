@@ -78,6 +78,10 @@ impl Player {
         }
     }
 
+    pub fn is_newcomer(&self) -> bool {
+        self.event_history.len() <= 1
+    }
+
     pub fn update_rating(&mut self, rating: Rating) {
         // Assumes that a placeholder history item has been pushed containing contest id and time
         self.approx_posterior = rating;
