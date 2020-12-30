@@ -121,7 +121,9 @@ pub fn get_cached_dataset(
     cache_dir: impl AsRef<Path>,
     num_rounds: usize,
 ) -> impl Dataset<Item = Contest> {
-    let panic_dataset = ClosureDataset::new(num_rounds, |_| panic!("Forbidden cache miss"));
+    let panic_dataset = ClosureDataset::new(num_rounds, |i| {
+        panic!(format!("Expected to find contest {} in the cache, but didn't", i))
+    });
     CachedDataset::new(panic_dataset, cache_dir)
 }
 
