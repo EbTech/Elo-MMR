@@ -21,7 +21,7 @@ struct RatingData {
 }
 
 pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u64) {
-    let filename = "../data/CFratings_temp.txt";
+    let filename = "../data/ratings_output.txt";
     let file = std::fs::File::create(filename).expect("Output file not found");
     let mut out = std::io::BufWriter::new(file);
 

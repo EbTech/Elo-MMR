@@ -1,8 +1,8 @@
 use crate::compute_ratings::RatingSystem;
-use crate::contest_config::ContestSource;
+use crate::contest_config::{get_dataset_by_name, Contest, Dataset};
 
 #[allow(unused_imports)]
-use crate::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
+use crate::{CodeforcesSystem, EloRSystem, GlickoSystem, TopCoderSystem, TrueSkillSPBSystem};
 
 use serde::Deserialize;
 use std::path::Path;
@@ -27,7 +27,7 @@ pub struct Experiment {
     pub mu_noob: f64,
     pub sig_noob: f64,
     pub system: Box<dyn RatingSystem>,
-    pub contest_source: ContestSource,
+    pub dataset: Box<dyn Dataset<Item = Contest>>,
 }
 
 pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
@@ -36,22 +36,25 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         serde_json::from_str(&params_json).expect("Failed to parse parameters as JSON");
 
     println!("Loading rating system:\n{:#?}", params);
-    let source = match params.contest_source.as_str() {
-        "codeforces" => ContestSource::Codeforces,
-        "reddit" => ContestSource::Reddit,
-        "stackoverflow" => ContestSource::StackOverflow,
-        "topcoder" => ContestSource::TopCoder,
-        "synthetic" => ContestSource::Synthetic,
-        _ => ContestSource::NotFound,
-    };
+    let dataset = get_dataset_by_name(&params.contest_source).unwrap();
 
-    let rating_system: Box<dyn RatingSystem> = match params.system.method.as_str() {
+    let system: Box<dyn RatingSystem> = match params.system.method.as_str() {
+        "glicko" => Box::new(GlickoSystem {
+            sig_perf: params.system.params[0],
+            sig_drift: params.system.params[1],
+        }),
         "codeforces" => Box::new(CodeforcesSystem {
             sig_perf: params.system.params[0],
             weight: params.system.params[1],
         }),
         "topcoder" => Box::new(TopCoderSystem {
             weight_multiplier: params.system.params[0],
+        }),
+        "trueskill" => Box::new(TrueSkillSPBSystem {
+            eps: params.system.params[0],
+            beta: params.system.params[1],
+            convergence_eps: params.system.params[2],
+            sigma_growth: params.system.params[3],
         }),
         "elor-x" => Box::new(EloRSystem {
             sig_perf: params.system.params[0],
@@ -65,12 +68,6 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
             split_ties: params.system.params[2] > 0.,
             variant: crate::EloRVariant::Logistic(params.system.params[3]),
         }),
-        "trueskill" => Box::new(TrueSkillSPBSystem {
-            eps: params.system.params[0],
-            beta: params.system.params[1],
-            convergence_eps: params.system.params[2],
-            sigma_growth: params.system.params[3],
-        }),
         x => panic!("'{}' is not a valid system name!", x),
     };
 
@@ -78,7 +75,7 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         max_contests: params.max_contests,
         mu_noob: params.mu_noob,
         sig_noob: params.sig_noob,
-        system: rating_system,
-        contest_source: source,
+        system,
+        dataset,
     }
 }

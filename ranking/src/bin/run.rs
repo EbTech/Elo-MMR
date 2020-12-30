@@ -1,46 +1,44 @@
 extern crate ranking;
 
 use ranking::compute_ratings::{simulate_contest, RatingSystem};
-use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids, ContestSource};
+use ranking::contest_config::{get_dataset_by_name, iterate_data};
 use ranking::summary::print_ratings;
 use std::collections::HashMap;
 
-/// simulates the entire history of Codeforces; runs on my laptop in 23 mins,
-/// somewhat longer if the Codeforces API data isn't cached
+fn get_rating_system_by_name(system_name: &str) -> Result<Box<dyn RatingSystem>, String> {
+    match system_name {
+        "glicko" => Ok(Box::new(ranking::GlickoSystem::default())),
+        "cf" => Ok(Box::new(ranking::CodeforcesSystem::default())),
+        "tc" => Ok(Box::new(ranking::TopCoderSystem::default())),
+        "ts" => Ok(Box::new(ranking::TrueSkillSPBSystem::default())),
+        "mmx" => Ok(Box::new(ranking::EloRSystem::default())), // TODO: change this
+        "mmr" => Ok(Box::new(ranking::EloRSystem::default())),
+        name => Err(format!(
+            "{} is not a valid rating system. Must be one of: glicko, cf, tc, ts, mmx, mmr",
+            name
+        )),
+    }
+}
+
+/// Simulates the entire history of Codeforces
 fn main() {
+    // Parse arguments, prepare rating system and datasets
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 && args.len() != 3 {
-        eprintln!("Usage: supply one of the following arguments: glicko,cf,tc,ts,elor");
+    if args.len() != 3 && args.len() != 4 {
+        eprintln!("Usage: {} system_name dataset_name [num_contests]", args[0]);
         return;
     }
-
-    let system: Box<dyn RatingSystem> = match args[1].as_str() {
-        "glicko" => Box::new(ranking::GlickoSystem::default()),
-        "cf" => Box::new(ranking::CodeforcesSystem::default()),
-        "tc" => Box::new(ranking::TopCoderSystem::default()),
-        "ts" => Box::new(ranking::TrueSkillSPBSystem::default()),
-        "elor" => Box::new(ranking::EloRSystem::default()),
-        s => {
-            eprintln!(
-                "{} is not a valid rating system. Must be one of: glicko,cf,tc,ts,elor",
-                s
-            );
-            return;
-        }
-    };
-    let max_contests: usize = args
-        .get(2)
+    let system = get_rating_system_by_name(&args[1]).unwrap();
+    let dataset = get_dataset_by_name(&args[2]).unwrap();
+    let max_contests = args
+        .get(3)
         .and_then(|s| s.parse().ok())
-        .unwrap_or(usize::MAX);
+        .unwrap_or(dataset.len());
 
+    // Simulate the contests and rating updates
     let mut players = HashMap::new();
-    let config = get_contest_config(ContestSource::Codeforces);
     let mut last_contest_time = 0;
-    for contest_id in get_contest_ids(&config.contest_id_file)
-        .into_iter()
-        .take(max_contests)
-    {
-        let contest = get_contest(&config.contest_cache_folder, contest_id);
+    for contest in iterate_data(&*dataset).take(max_contests) {
         println!(
             "Processing {:5} contestants in contest/{:4}: {}",
             contest.standings.len(),
@@ -50,5 +48,5 @@ fn main() {
         simulate_contest(&mut players, &contest, &*system, 1500., 300.);
         last_contest_time = contest.time_seconds;
     }
-    print_ratings(&players, last_contest_time - 183 * 86_400);
+    print_ratings(&players, last_contest_time.saturating_sub(183 * 86_400));
 }

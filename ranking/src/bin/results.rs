@@ -3,7 +3,7 @@ extern crate rayon;
 use rayon::prelude::*;
 
 use ranking::compute_ratings::simulate_contest;
-use ranking::contest_config::{get_contest, get_contest_config, get_contest_ids};
+use ranking::contest_config::{get_codeforces_dataset, iterate_data};
 use ranking::experiment_config::load_experiment;
 use ranking::metrics::compute_metrics_custom;
 use std::collections::HashMap;
@@ -31,8 +31,7 @@ fn main() {
     experiment_files.par_iter().for_each(|filename| {
         let experiment = load_experiment(filename);
 
-        let config = get_contest_config(experiment.contest_source);
-        let contest_ids = get_contest_ids(&config.contest_id_file);
+        let dataset = Box::new(get_codeforces_dataset());
 
         let system = experiment.system;
 
@@ -45,9 +44,7 @@ fn main() {
         let now = Instant::now();
 
         // Run the contest histories and measure
-        for &contest_id in contest_ids.iter().take(max_contests) {
-            let contest = get_contest(&config.contest_cache_folder, contest_id);
-
+        for contest in iterate_data(&*dataset).take(max_contests) {
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
             avg_perf += compute_metrics_custom(&mut players, &contest.standings);
