@@ -33,7 +33,7 @@ fn main() {
     let max_contests = args
         .get(3)
         .and_then(|s| s.parse().ok())
-        .unwrap_or(dataset.len());
+        .unwrap_or(usize::MAX);
 
     // Simulate the contests and rating updates
     let mut players = HashMap::new();

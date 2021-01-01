@@ -122,7 +122,7 @@ pub fn get_cached_dataset(
     num_rounds: usize,
 ) -> impl Dataset<Item = Contest> {
     let panic_dataset = ClosureDataset::new(num_rounds, |i| {
-        panic!(format!("Expected to find contest {} in the cache, but didn't", i))
+        panic!("Expected to find contest {} in the cache, but didn't", i)
     });
     CachedDataset::new(panic_dataset, cache_dir)
 }
@@ -143,7 +143,7 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = 
     let ext = Some(std::ffi::OsStr::new("json"));
     let cache_dir = format!("../cache/{}", dataset_name);
     let num_contests = std::fs::read_dir(&cache_dir)
-        .expect(&format!("There's no dataset at {}", cache_dir))
+        .unwrap_or_else(|_| panic!("There's no dataset at {}", cache_dir))
         .filter(|file| file.as_ref().unwrap().path().extension() == ext)
         .count();
 
@@ -152,8 +152,6 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = 
 }
 
 // IDK how to implement IntoIterator on Dataset, so this is the next best thing
-pub fn iterate_data<'a, T>(
-    dataset: &'a dyn Dataset<Item = T>,
-) -> impl Iterator<Item = T> + Clone + 'a {
+pub fn iterate_data<T>(dataset: &dyn Dataset<Item = T>) -> impl Iterator<Item = T> + '_ {
     (0..dataset.len()).map(move |i| dataset.get(i))
 }

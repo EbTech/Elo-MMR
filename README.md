@@ -10,7 +10,7 @@ Rating systems estimate the skills of players who participate in a common activi
 
 - The contestants interact heavily with others at the same event, as in most board games.
 
-In these settings, it's often useful to quantify how good a player is. Ratings could be used to track a player's progress over a training programme, set motivational objectives, predict likely champions, or create invitational beginner-only or expert-only events. Two properties of Elo-MMR make it particularly well-suited to these aims:
+In these settings, it's often useful to quantify how good a player is. Ratings could be used to track a player's progress over a training programme, set motivational objectives, predict likely champions, or create invitational beginner-only or expert-only events. Three properties of Elo-MMR make it particularly well-suited to these aims:
 
 - Massively Multiplayer: the algorithm is fast and numerically stable, even with thousands or millions of individually ranked contestants.
 
@@ -28,7 +28,7 @@ cd ranking/
 cargo run --release --bin run mmr codeforces
 ```
 
-## What does this command mean?
+### What does this command mean?
 
 `cargo run` compiles and runs a Rust project.
 
@@ -42,13 +42,13 @@ cargo run --release --bin run mmr codeforces
 
 An optional integer argument may follow, to specify how many contests to process.
 
-## What does this command do?
+### What does this command do?
 
 It pulls data from the Codeforces contests specified in `data/contest_ids.txt`. If a contest is not already stored in `cache/codeforces/`, then it is downloaded there via the Codeforces online API. Finally, the resulting skill ratings of all the contestants are saved in `data/ratings_output.txt`.
 
 Please note that your first Codeforces run will be slower, as the data is pulled from the Codeforces API, or may even fail if the Codeforces site experiences downtime. However, subsequent runs should be much faster.
 
-## How can I rate contestants of my own games?
+### How can I rate contestants of my own games?
 
 - Run the basic Codeforces command for at least a few seconds to download some contest standings files.
 
