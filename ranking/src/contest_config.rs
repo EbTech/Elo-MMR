@@ -16,10 +16,45 @@ pub trait Dataset {
     type Item;
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> Self::Item;
+
+    // Due to the Sized bound, in order to call this on trait objects containing `dyn Dataset`,
+    // we would have to impl Dataset for each of these trait objects
+    fn cached(self, cache_dir: impl AsRef<Path>) -> CachedDataset<Self>
+    where
+        Self: Sized,
+    {
+        std::fs::create_dir_all(&cache_dir).expect("Could not create cache directory");
+        CachedDataset {
+            base_dataset: self,
+            cache_dir: cache_dir.as_ref().to_path_buf(),
+        }
+    }
+
+    // IDK how to implement IntoIterator on Dataset, so this is the next best thing.
+    // The return type must be a concrete type (either Box or custom DatasetIterator, not impl),
+    // in case some impl Dataset overrides iter()
+    fn iter(&self) -> Box<dyn Iterator<Item = Self::Item> + '_> {
+        Box::new((0..self.len()).map(move |i| self.get(i)))
+    }
+}
+
+// This function is just an example and will probably be erased.
+// Non-trait functions can't be overridden, so they can statically dispatch an existential type
+fn dataset_iter<T>(dataset: &dyn Dataset<Item = T>) -> impl Iterator<Item = T> + '_ {
+    (0..dataset.len()).map(move |i| dataset.get(i))
+}
+
+// This function is just an example and will probably be erased.
+// If this adaptor were a trait function, it would return a custom MapDataset type
+fn dataset_map<'a, T, U: 'a, F: Fn(T) -> U + 'a>(
+    dataset: &'a dyn Dataset<Item = T>,
+    f: F,
+) -> impl Dataset<Item = U> + 'a {
+    ClosureDataset::new(dataset.len(), move |i| f(dataset.get(i)))
 }
 
 /// A dataset built from a closure
-struct ClosureDataset<T, F: Fn(usize) -> T> {
+pub struct ClosureDataset<T, F: Fn(usize) -> T> {
     length: usize,
     closure: F,
 }
@@ -43,19 +78,9 @@ impl<T, F: Fn(usize) -> T> Dataset for ClosureDataset<T, F> {
 }
 
 /// A cached version of the base dataset
-struct CachedDataset<D: Dataset> {
+pub struct CachedDataset<D: Dataset> {
     base_dataset: D,
     cache_dir: std::path::PathBuf,
-}
-
-impl<D: Dataset> CachedDataset<D> {
-    pub fn new(base_dataset: D, cache_dir: impl AsRef<Path>) -> Self {
-        let cache_dir = cache_dir.as_ref().to_path_buf();
-        Self {
-            base_dataset,
-            cache_dir,
-        }
-    }
 }
 
 impl<D: Dataset> Dataset for CachedDataset<D>
@@ -90,12 +115,12 @@ where
 }
 
 /// Codeforces dataset
-struct CodeforcesDataset {
+pub struct CodeforcesDataset {
     contest_ids: Vec<usize>,
 }
 
 impl CodeforcesDataset {
-    pub fn new(contest_id_file: impl AsRef<Path>) -> Self {
+    pub fn from_id_file(contest_id_file: impl AsRef<Path>) -> Self {
         let contests_json =
             std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
         let contest_ids =
@@ -116,42 +141,37 @@ impl Dataset for CodeforcesDataset {
     }
 }
 
-// Helper function to get data that was manually added to the cache
-pub fn get_cached_dataset(
-    cache_dir: impl AsRef<Path>,
-    num_rounds: usize,
-) -> impl Dataset<Item = Contest> {
-    let panic_dataset = ClosureDataset::new(num_rounds, |i| {
-        panic!("Expected to find contest {} in the cache, but didn't", i)
-    });
-    CachedDataset::new(panic_dataset, cache_dir)
+// Helper function to get data from the Codeforces API
+pub fn get_dataset_from_codeforces_api() -> impl Dataset<Item = Contest> {
+    CodeforcesDataset::from_id_file("../data/codeforces/contest_ids.json")
+        .cached("../cache/codeforces")
 }
 
-// Helper function to get data from the Codeforces API
-pub fn get_codeforces_dataset() -> impl Dataset<Item = Contest> {
-    let cf_dataset = CodeforcesDataset::new("../data/codeforces/contest_ids.json");
-    CachedDataset::new(cf_dataset, "../cache/codeforces")
+// Helper function to get data that was manually added to the cache
+pub fn get_dataset_from_disk<T: Serialize + DeserializeOwned>(
+    dataset_dir: impl AsRef<Path>,
+) -> impl Dataset<Item = T> {
+    let ext = Some(std::ffi::OsStr::new("json"));
+    let dataset_dir = dataset_dir.as_ref();
+    let length = std::fs::read_dir(dataset_dir)
+        .unwrap_or_else(|_| panic!("There's no dataset at {:?}", dataset_dir))
+        .filter(|file| file.as_ref().unwrap().path().extension() == ext)
+        .count();
+    println!("Found {} json files at {:?}", length, dataset_dir);
+
+    ClosureDataset::new(length, |i| {
+        panic!("Expected to find contest {} in the cache, but didn't", i)
+    })
+    .cached(dataset_dir)
 }
 
 // Helper function to get any named dataset
+// TODO: actually throw errors when the directory is not found
 pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = Contest>>, String> {
     if dataset_name == "codeforces" {
-        return Ok(Box::new(get_codeforces_dataset()));
+        Ok(Box::new(get_dataset_from_codeforces_api()))
+    } else {
+        let dataset_dir = format!("../cache/{}", dataset_name);
+        Ok(Box::new(get_dataset_from_disk(dataset_dir)))
     }
-
-    // The non-Codeforces datasets are assumed to be stored in their entirety
-    let ext = Some(std::ffi::OsStr::new("json"));
-    let cache_dir = format!("../cache/{}", dataset_name);
-    let num_contests = std::fs::read_dir(&cache_dir)
-        .unwrap_or_else(|_| panic!("There's no dataset at {}", cache_dir))
-        .filter(|file| file.as_ref().unwrap().path().extension() == ext)
-        .count();
-
-    println!("Found {} {}/*.json files", num_contests, cache_dir);
-    Ok(Box::new(get_cached_dataset(cache_dir, num_contests)))
-}
-
-// IDK how to implement IntoIterator on Dataset, so this is the next best thing
-pub fn iterate_data<T>(dataset: &dyn Dataset<Item = T>) -> impl Iterator<Item = T> + '_ {
-    (0..dataset.len()).map(move |i| dataset.get(i))
 }

@@ -1,7 +1,7 @@
 extern crate ranking;
 
 use ranking::compute_ratings::{simulate_contest, RatingSystem};
-use ranking::contest_config::{get_dataset_by_name, iterate_data};
+use ranking::contest_config::get_dataset_by_name;
 use ranking::summary::print_ratings;
 use std::collections::HashMap;
 
@@ -11,7 +11,7 @@ fn get_rating_system_by_name(system_name: &str) -> Result<Box<dyn RatingSystem>,
         "cf" => Ok(Box::new(ranking::CodeforcesSystem::default())),
         "tc" => Ok(Box::new(ranking::TopCoderSystem::default())),
         "ts" => Ok(Box::new(ranking::TrueSkillSPBSystem::default())),
-        "mmx" => Ok(Box::new(ranking::EloRSystem::default())), // TODO: change this
+        "mmx" => Ok(Box::new(ranking::EloRSystem::default_gaussian())),
         "mmr" => Ok(Box::new(ranking::EloRSystem::default())),
         name => Err(format!(
             "{} is not a valid rating system. Must be one of: glicko, cf, tc, ts, mmx, mmr",
@@ -38,7 +38,7 @@ fn main() {
     // Simulate the contests and rating updates
     let mut players = HashMap::new();
     let mut last_contest_time = 0;
-    for contest in iterate_data(&*dataset).take(max_contests) {
+    for contest in dataset.iter().take(max_contests) {
         println!(
             "Processing {:5} contestants in contest/{:4}: {}",
             contest.standings.len(),

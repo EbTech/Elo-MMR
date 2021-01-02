@@ -90,6 +90,10 @@ impl Default for EloRSystem {
 }
 
 impl EloRSystem {
+    pub fn default_gaussian() -> Self {
+        Self::from_limit(200., 80., false, EloRVariant::Gaussian)
+    }
+
     // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
     // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
     pub fn from_limit(
