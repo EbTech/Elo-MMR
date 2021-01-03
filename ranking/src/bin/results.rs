@@ -3,7 +3,7 @@ extern crate rayon;
 use rayon::prelude::*;
 
 use ranking::compute_ratings::simulate_contest;
-use ranking::contest_config::get_dataset_by_name;
+use ranking::data_processing::get_dataset_by_name;
 use ranking::experiment_config::load_experiment;
 use ranking::metrics::compute_metrics_custom;
 use std::collections::HashMap;

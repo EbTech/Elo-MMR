@@ -1,4 +1,4 @@
-use crate::contest_config::Contest;
+use crate::data_processing::Contest;
 use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
 

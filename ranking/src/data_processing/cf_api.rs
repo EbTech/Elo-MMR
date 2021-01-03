@@ -1,4 +1,4 @@
-use crate::contest_config::Contest;
+use super::Contest;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -114,13 +114,17 @@ pub fn fetch_cf_contest(contest_id: usize) -> Contest {
         "https://codeforces.com/api/contest.ratingChanges?contestId={}",
         contest_id
     );
-    let response = reqwest::blocking::get(&url).expect("HTTP error");
+    let response = reqwest::blocking::get(&url).expect("HTTP error: is Codeforces.com down?");
+    let status = response.status();
+    if !status.is_success() {
+        eprintln!("HTTP response {}: is Codeforces.com down?", status);
+    }
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
-        .expect("Failed to parse Codeforces API response as JSON");
+        .expect("Codeforces API response doesn't match the expected JSON schema");
     match packet {
         CFResponse::OK { result } => {
-            TryFrom::try_from(result).expect("Failed conversion to Contest")
+            TryFrom::try_from(result).expect("Failed to parse JSON response as a Contest")
         }
         CFResponse::FAILED { comment } => panic!(comment),
     }

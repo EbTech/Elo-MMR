@@ -1,5 +1,5 @@
 use crate::compute_ratings::RatingSystem;
-use crate::contest_config::{get_dataset_by_name, Contest, Dataset};
+use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
 
 #[allow(unused_imports)]
 use crate::{CodeforcesSystem, EloRSystem, GlickoSystem, TopCoderSystem, TrueSkillSPBSystem};

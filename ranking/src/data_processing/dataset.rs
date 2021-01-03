@@ -1,15 +1,5 @@
-use crate::read_codeforces::fetch_cf_contest;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use std::path::Path;
-
-/// Represents the outcome of a contest
-#[derive(Serialize, Deserialize)]
-pub struct Contest {
-    pub id: usize,
-    pub name: String,
-    pub time_seconds: u64,
-    pub standings: Vec<(String, usize, usize)>,
-}
 
 /// Generic dataset trait, modeled after PyTorch's utils.data.Dataset
 pub trait Dataset {
@@ -36,21 +26,6 @@ pub trait Dataset {
     fn iter(&self) -> Box<dyn Iterator<Item = Self::Item> + '_> {
         Box::new((0..self.len()).map(move |i| self.get(i)))
     }
-}
-
-// This function is just an example and will probably be erased.
-// Non-trait functions can't be overridden, so they can statically dispatch an existential type
-fn dataset_iter<T>(dataset: &dyn Dataset<Item = T>) -> impl Iterator<Item = T> + '_ {
-    (0..dataset.len()).map(move |i| dataset.get(i))
-}
-
-// This function is just an example and will probably be erased.
-// If this adaptor were a trait function, it would return a custom MapDataset type
-fn dataset_map<'a, T, U: 'a, F: Fn(T) -> U + 'a>(
-    dataset: &'a dyn Dataset<Item = T>,
-    f: F,
-) -> impl Dataset<Item = U> + 'a {
-    ClosureDataset::new(dataset.len(), move |i| f(dataset.get(i)))
 }
 
 /// A dataset built from a closure
@@ -114,18 +89,6 @@ where
     }
 }
 
-// Helper function to get data from the Codeforces API
-pub fn get_dataset_from_codeforces_api(
-    contest_id_file: impl AsRef<Path>,
-) -> impl Dataset<Item = Contest> {
-    let contests_json =
-        std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
-    let contest_ids: Vec<usize> =
-        serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON");
-
-    ClosureDataset::new(contest_ids.len(), move |i| fetch_cf_contest(contest_ids[i]))
-}
-
 // Helper function to get data that was manually added to the cache
 pub fn get_dataset_from_disk<T: Serialize + DeserializeOwned>(
     dataset_dir: impl AsRef<Path>,
@@ -142,17 +105,4 @@ pub fn get_dataset_from_disk<T: Serialize + DeserializeOwned>(
         panic!("Expected to find contest {} in the cache, but didn't", i)
     })
     .cached(dataset_dir)
-}
-
-// Helper function to get any named dataset
-// TODO: actually throw errors when the directory is not found
-pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = Contest>>, String> {
-    const CF_IDS: &str = "../data/codeforces/contest_ids.json";
-
-    let dataset_dir = format!("../cache/{}", dataset_name);
-    Ok(if dataset_name == "codeforces" {
-        Box::new(get_dataset_from_codeforces_api(CF_IDS).cached(dataset_dir))
-    } else {
-        Box::new(get_dataset_from_disk(dataset_dir))
-    })
 }

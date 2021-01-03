@@ -1,7 +1,7 @@
 extern crate ranking;
 
 use ranking::compute_ratings::{simulate_contest, RatingSystem};
-use ranking::contest_config::get_dataset_by_name;
+use ranking::data_processing::get_dataset_by_name;
 use ranking::metrics::compute_metrics_custom;
 use std::collections::HashMap;
 use std::time::Instant;

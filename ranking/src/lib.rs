@@ -1,8 +1,7 @@
 pub mod compute_ratings;
-pub mod contest_config;
+pub mod data_processing;
 pub mod experiment_config;
 pub mod metrics;
-pub mod read_codeforces;
 pub mod summary;
 
 pub mod cf_system;
