@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
-/// General response from the Codeforces API
+/// General response from the Codeforces API.
+/// Codeforces documentation: https://codeforces.com/apiHelp
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "status")]
@@ -12,7 +13,8 @@ enum CFResponse<T> {
     FAILED { comment: String },
 }
 
-/// API documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
+/// A RatingChange object from the Codeforces API.
+/// Codeforces documentation: https://codeforces.com/apiHelp/objects#RatingChange
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
 struct CFRatingChange {
@@ -25,10 +27,10 @@ struct CFRatingChange {
     newRating: i32,
 }
 
-/// Check the integrity of our API response and convert it into a more convenient format
 impl TryFrom<Vec<CFRatingChange>> for Contest {
     type Error = String;
 
+    /// Checks the integrity of our API response and convert it into a more convenient format.
     fn try_from(json_contest: Vec<CFRatingChange>) -> Result<Self, Self::Error> {
         let first_change = json_contest.get(0).ok_or("Empty standings")?;
         let id = first_change.contestId;
@@ -109,22 +111,22 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 /// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
+/// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 pub fn fetch_cf_contest(contest_id: usize) -> Contest {
     let url = format!(
         "https://codeforces.com/api/contest.ratingChanges?contestId={}",
         contest_id
     );
     let response = reqwest::blocking::get(&url).expect("HTTP error: is Codeforces.com down?");
-    let status = response.status();
-    if !status.is_success() {
-        eprintln!("HTTP response {}: is Codeforces.com down?", status);
+    if !response.status().is_success() {
+        eprintln!("HTTP status {}: is Codeforces.com down?", response.status());
     }
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
     match packet {
         CFResponse::OK { result } => {
-            TryFrom::try_from(result).expect("Failed to parse JSON response as a Contest")
+            TryFrom::try_from(result).expect("Failed to parse JSON response as a valid Contest")
         }
         CFResponse::FAILED { comment } => panic!(comment),
     }
