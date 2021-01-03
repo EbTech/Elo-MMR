@@ -114,37 +114,16 @@ where
     }
 }
 
-/// Codeforces dataset
-pub struct CodeforcesDataset {
-    contest_ids: Vec<usize>,
-}
-
-impl CodeforcesDataset {
-    pub fn from_id_file(contest_id_file: impl AsRef<Path>) -> Self {
-        let contests_json =
-            std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
-        let contest_ids =
-            serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON");
-        Self { contest_ids }
-    }
-}
-
-impl Dataset for CodeforcesDataset {
-    type Item = Contest;
-
-    fn len(&self) -> usize {
-        self.contest_ids.len()
-    }
-
-    fn get(&self, index: usize) -> Contest {
-        fetch_cf_contest(self.contest_ids[index])
-    }
-}
-
 // Helper function to get data from the Codeforces API
-pub fn get_dataset_from_codeforces_api() -> impl Dataset<Item = Contest> {
-    CodeforcesDataset::from_id_file("../data/codeforces/contest_ids.json")
-        .cached("../cache/codeforces")
+pub fn get_dataset_from_codeforces_api(
+    contest_id_file: impl AsRef<Path>,
+) -> impl Dataset<Item = Contest> {
+    let contests_json =
+        std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs");
+    let contest_ids: Vec<usize> =
+        serde_json::from_str(&contests_json).expect("Failed to parse contest IDs as JSON");
+
+    ClosureDataset::new(contest_ids.len(), move |i| fetch_cf_contest(contest_ids[i]))
 }
 
 // Helper function to get data that was manually added to the cache
@@ -168,10 +147,12 @@ pub fn get_dataset_from_disk<T: Serialize + DeserializeOwned>(
 // Helper function to get any named dataset
 // TODO: actually throw errors when the directory is not found
 pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = Contest>>, String> {
-    if dataset_name == "codeforces" {
-        Ok(Box::new(get_dataset_from_codeforces_api()))
+    const CF_IDS: &str = "../data/codeforces/contest_ids.json";
+
+    let dataset_dir = format!("../cache/{}", dataset_name);
+    Ok(if dataset_name == "codeforces" {
+        Box::new(get_dataset_from_codeforces_api(CF_IDS).cached(dataset_dir))
     } else {
-        let dataset_dir = format!("../cache/{}", dataset_name);
-        Ok(Box::new(get_dataset_from_disk(dataset_dir)))
-    }
+        Box::new(get_dataset_from_disk(dataset_dir))
+    })
 }
