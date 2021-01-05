@@ -24,7 +24,7 @@ Due to this important modeling assumption, the method is best-suited for competi
 
 Strictly speaking, ties have probability zero of occurring in our model. Assuming that ties are relatively infrequent in programming contests, they can be handled with a special modification that we'll describe later, essentially treating them as half a win and half a loss.
 
-\begin{center} \includegraphics[scale=0.35]{../images/HMMlabeled.png} \end{center}
+\begin{center} \includegraphics[scale=0.35]{images/HMMlabeled.png} \end{center}
 
 In order to absorb $e$ into our posterior, a few approximations are in order. First, we assume the number of participants is so large that we are able to compute the performances exactly. Mathematically, this means $\Pr(e \mid p_i)$ is proportional to a delta ``function" concentrated at the correct value of $p_i$. Hence, using Bayes' rule again,
 

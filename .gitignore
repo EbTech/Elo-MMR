@@ -1,8 +1,11 @@
+cache/
+target/
+__pycache__/
+.ipynb_checkpoints/
+ratings_output.txt
 *.html
 *.aux
 *.blg
-EloR.exe
 *.log
 *.gz
-test.txt
 *.bbl
