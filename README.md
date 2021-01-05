@@ -20,7 +20,7 @@ In these settings, it's often useful to quantify how good a player is. Ratings c
 
 Note: in theory, Elo-MMR can be applied in team competitions as well, but additional research is needed to determine the best ways to do this.
 
-## Getting started
+## Getting Started
 
 First, [install Rust](https://www.rust-lang.org/tools/install). Then,
 ```
@@ -60,6 +60,6 @@ Please note that your first Codeforces run will be slower, as the data is pulled
 
 - Finally, run the same command, but with `codeforces` replaced by `{dataset_name}`.
 
-## Mathematical details
+## Mathematical Details
 
-Please see the [paper](paper/EloR_updated.pdf).
+Please see the [full paper](https://arxiv.org/abs/2101.00400).
