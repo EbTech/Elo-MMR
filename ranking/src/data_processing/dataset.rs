@@ -1,5 +1,5 @@
 use serde::{de::DeserializeOwned, Serialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Generic `Dataset` trait, modeled after PyTorch's `utils.data.Dataset`.
 /// It represents a collection of objects indexed by integers from 0 to `len()`.
@@ -14,16 +14,21 @@ pub trait Dataset {
     /// Modifies the dataset to check a cache directory before reading.
     /// If the cache entry is present, it's used instead of the underlying `get()`.
     /// If the cache entry is absent, it will be created after calling `get()`.
-    // Due to the `Sized` bound, in order to call this on trait objects containing `dyn Dataset`,
-    // we would have to `impl Dataset` for each of these trait objects.
-    fn cached(self, cache_dir: impl AsRef<Path>) -> CachedDataset<Self>
+    // Due to the `Sized` bound, calling `cached()` on `dyn Dataset` trait objects
+    // requires the `impl Dataset` implementations below, for `&T` and `Box T`.
+    // If we wanted to avoid this complication, `CachedDataset` could have simply stored
+    // a `Box<dyn Dataset>`, at the expense of a pointer indirection per method call.
+    // Basically, our optimization allows `CachedDataset` to store `Dataset`s by value
+    // (and statically dispatch its methods) or by pointer (with dynamic dispatch), as needed.
+    fn cached(self, cache_dir: impl Into<PathBuf>) -> CachedDataset<Self>
     where
         Self: Sized,
     {
+        let cache_dir = cache_dir.into();
         std::fs::create_dir_all(&cache_dir).expect("Could not create cache directory");
         CachedDataset {
             base_dataset: self,
-            cache_dir: cache_dir.as_ref().to_path_buf(),
+            cache_dir,
         }
     }
 
@@ -37,15 +42,40 @@ pub trait Dataset {
 }
 
 /// A slice can act as an in-memory `Dataset`.
-impl<T: Clone> Dataset for &[T] {
+impl<T: Clone> Dataset for [T] {
     type Item = T;
 
     fn len(&self) -> usize {
-        (self as &[T]).len()
+        self.len()
     }
 
     fn get(&self, index: usize) -> T {
         self[index].clone()
+    }
+}
+
+/// References to `Dataset`s are also `Dataset`s.
+impl<D: Dataset + ?Sized> Dataset for &D {
+    type Item = D::Item;
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn get(&self, index: usize) -> Self::Item {
+        (**self).get(index)
+    }
+}
+
+impl<D: Dataset + ?Sized> Dataset for Box<D> {
+    type Item = D::Item;
+
+    fn len(&self) -> usize {
+        (**self).len()
+    }
+
+    fn get(&self, index: usize) -> Self::Item {
+        (**self).get(index)
     }
 }
 
@@ -77,7 +107,7 @@ impl<T, F: Fn(usize) -> T> Dataset for ClosureDataset<T, F> {
 /// Created using `Dataset::cached()`.
 pub struct CachedDataset<D: Dataset> {
     base_dataset: D,
-    cache_dir: std::path::PathBuf,
+    cache_dir: PathBuf,
 }
 
 impl<D: Dataset> Dataset for CachedDataset<D>
