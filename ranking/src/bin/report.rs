@@ -1,13 +1,11 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{simulate_contest, RatingSystem};
 use ranking::data_processing::get_dataset_by_name;
 use ranking::metrics::compute_metrics_custom;
+use ranking::systems;
+use ranking::systems::{simulate_contest, RatingSystem};
 use std::collections::HashMap;
 use std::time::Instant;
-
-#[allow(unused_imports)]
-use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 
 fn main() {
     // Prepare the contest system parameters
@@ -16,7 +14,7 @@ fn main() {
         for wi in -8..=4 {
             let sig_perf = si as f64;
             let weight = 10f64.powf((wi as f64) * 0.25);
-            let system = CodeforcesSystem { sig_perf, weight };
+            let system = systems::CFSys { sig_perf, weight };
             systems.push(Box::new(system));
         }
     }
@@ -24,11 +22,11 @@ fn main() {
         for li in (0..=120).step_by(20) {
             let sig_perf = pi as f64;
             let sig_drift = li as f64;
-            let system = EloRSystem {
+            let system = systems::EloMMR {
                 sig_perf,
                 sig_drift,
                 split_ties: false,
-                variant: ranking::EloRVariant::Gaussian,
+                variant: systems::EloMMRVariant::Gaussian,
             };
             systems.push(Box::new(system));
         }
@@ -38,11 +36,11 @@ fn main() {
             for li in (0..=120).step_by(20) {
                 let sig_perf = pi as f64;
                 let sig_drift = li as f64;
-                let system = EloRSystem {
+                let system = systems::EloMMR {
                     sig_perf,
                     sig_drift,
                     split_ties: false,
-                    variant: ranking::EloRVariant::Logistic(2f64.powi(ri)),
+                    variant: systems::EloMMRVariant::Logistic(2f64.powi(ri)),
                 };
                 systems.push(Box::new(system));
             }
@@ -50,7 +48,7 @@ fn main() {
     }
     for wi in -15..=15 {
         let weight_multiplier = 10f64.powf((wi as f64) * 0.1);
-        let system = TopCoderSystem { weight_multiplier };
+        let system = systems::TCSys { weight_multiplier };
         systems.push(Box::new(system));
     }
     for ei in 1..=5 {
@@ -59,7 +57,7 @@ fn main() {
                 let eps = (ei as f64) * 0.1;
                 let beta = bi as f64;
                 let sigma_growth = si as f64;
-                let system = TrueSkillSPBSystem {
+                let system = systems::TrueSkillSPb {
                     eps,
                     beta,
                     convergence_eps: 2e-4,

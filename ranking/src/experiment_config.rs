@@ -1,8 +1,5 @@
-use crate::compute_ratings::RatingSystem;
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
-
-#[allow(unused_imports)]
-use crate::{CodeforcesSystem, EloRSystem, GlickoSystem, TopCoderSystem, TrueSkillSPBSystem};
+use crate::systems::{CFSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TCSys, TrueSkillSPb};
 
 use serde::Deserialize;
 use std::path::Path;
@@ -39,34 +36,34 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
     let dataset = get_dataset_by_name(&params.contest_source).unwrap();
 
     let system: Box<dyn RatingSystem> = match params.system.method.as_str() {
-        "glicko" => Box::new(GlickoSystem {
+        "glicko" => Box::new(Glicko {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
         }),
-        "codeforces" => Box::new(CodeforcesSystem {
+        "codeforces" => Box::new(CFSys {
             sig_perf: params.system.params[0],
             weight: params.system.params[1],
         }),
-        "topcoder" => Box::new(TopCoderSystem {
+        "topcoder" => Box::new(TCSys {
             weight_multiplier: params.system.params[0],
         }),
-        "trueskill" => Box::new(TrueSkillSPBSystem {
+        "trueskill" => Box::new(TrueSkillSPb {
             eps: params.system.params[0],
             beta: params.system.params[1],
             convergence_eps: params.system.params[2],
             sigma_growth: params.system.params[3],
         }),
-        "elor-x" => Box::new(EloRSystem {
+        "elor-x" => Box::new(EloMMR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
             split_ties: params.system.params[2] > 0.,
-            variant: crate::EloRVariant::Gaussian,
+            variant: EloMMRVariant::Gaussian,
         }),
-        "elor" => Box::new(EloRSystem {
+        "elor" => Box::new(EloMMR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
             split_ties: params.system.params[2] > 0.,
-            variant: crate::EloRVariant::Logistic(params.system.params[3]),
+            variant: EloMMRVariant::Logistic(params.system.params[3]),
         }),
         x => panic!("'{}' is not a valid system name!", x),
     };

@@ -1,17 +1,17 @@
 //! Codeforces system details: https://codeforces.com/blog/entry/20762
 
-use crate::compute_ratings::{
+use super::util::{
     robust_average, standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER,
 };
 use rayon::prelude::*;
 
 #[derive(Debug)]
-pub struct CodeforcesSystem {
+pub struct CFSys {
     pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
     pub weight: f64,   // must be positive
 }
 
-impl Default for CodeforcesSystem {
+impl Default for CFSys {
     fn default() -> Self {
         Self {
             sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
@@ -20,7 +20,7 @@ impl Default for CodeforcesSystem {
     }
 }
 
-impl CodeforcesSystem {
+impl CFSys {
     // ratings is a list of the participants, ordered from first to last place
     // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
     fn compute_performance(
@@ -54,7 +54,7 @@ impl CodeforcesSystem {
     }
 }
 
-impl RatingSystem for CodeforcesSystem {
+impl RatingSystem for CFSys {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / self.sig_perf;
         standard_logistic_cdf(z)

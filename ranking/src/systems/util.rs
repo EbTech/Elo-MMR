@@ -1,4 +1,5 @@
 use crate::data_processing::Contest;
+use serde::{Deserialize, Serialize};
 use std::cell::{RefCell, RefMut};
 use std::collections::{HashMap, VecDeque};
 
@@ -53,7 +54,7 @@ impl TanhTerm {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct PlayerEvent {
     pub contest_id: usize,
     pub contest_time: u64,
@@ -199,6 +200,7 @@ pub fn standard_normal_cdf_inv(prob: f64) -> f64 {
     // Equivalently: std::f64::consts::SQRT_2 * statrs::function::erf::erf_inv(2. * prob - 1.)
 }
 
+#[allow(dead_code)]
 pub fn solve_bisection((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> f64) -> f64 {
     loop {
         let flo = f(lo);
@@ -214,6 +216,7 @@ pub fn solve_bisection((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> f64) -> 
     }
 }
 
+#[allow(dead_code)]
 pub fn solve_illinois((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> f64) -> f64 {
     let (mut flo, mut fhi, mut side) = (f(lo), f(hi), 0i8);
     loop {

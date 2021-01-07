@@ -1,24 +1,9 @@
 extern crate ranking;
 
-use ranking::compute_ratings::{simulate_contest, RatingSystem};
 use ranking::data_processing::get_dataset_by_name;
 use ranking::summary::print_ratings;
+use ranking::systems::{get_rating_system_by_name, simulate_contest};
 use std::collections::HashMap;
-
-fn get_rating_system_by_name(system_name: &str) -> Result<Box<dyn RatingSystem>, String> {
-    match system_name {
-        "glicko" => Ok(Box::new(ranking::GlickoSystem::default())),
-        "cf" => Ok(Box::new(ranking::CodeforcesSystem::default())),
-        "tc" => Ok(Box::new(ranking::TopCoderSystem::default())),
-        "ts" => Ok(Box::new(ranking::TrueSkillSPBSystem::default())),
-        "mmx" => Ok(Box::new(ranking::EloRSystem::default_gaussian())),
-        "mmr" => Ok(Box::new(ranking::EloRSystem::default())),
-        name => Err(format!(
-            "{} is not a valid rating system. Must be one of: glicko, cf, tc, ts, mmx, mmr",
-            name
-        )),
-    }
-}
 
 /// Simulates the entire history of Codeforces
 fn main() {
@@ -48,5 +33,24 @@ fn main() {
         simulate_contest(&mut players, &contest, &*system, 1500., 300.);
         last_contest_time = contest.time_seconds;
     }
-    print_ratings(&players, last_contest_time.saturating_sub(183 * 86_400));
+    let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);
+
+    // Print ratings list to data/codeforces/CFratings.txt
+    print_ratings(&players, six_months_ago);
+
+    // Print contest histories of top players to data/codeforces/top/{handle}.json
+    let dir = std::path::PathBuf::from("../data/codeforces/top");
+    std::fs::create_dir_all(&dir).expect("Could not create directory");
+    for (handle, player) in &players {
+        let player = player.borrow();
+        let last_event = player.event_history.last().expect("Empty history");
+
+        if last_event.display_rating >= 2700 && last_event.contest_time > six_months_ago {
+            let file = dir.join(format!("{}.json", handle));
+            let data_rust = &player.event_history;
+            let data_json = serde_json::to_string_pretty(&data_rust).expect("Serialization error");
+            std::fs::write(&file, data_json).expect("Failed to write to cache");
+            println!("Wrote to {:?}", file);
+        }
+    }
 }

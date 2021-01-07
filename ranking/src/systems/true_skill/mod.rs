@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use crate::compute_ratings::{standard_normal_cdf, Player, Rating, RatingSystem};
+use super::util::{standard_normal_cdf, Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -17,7 +17,7 @@ type TSContest<'a> = Vec<TSContestPlace<'a>>;
 
 // TrueSkillStPB rating system
 #[derive(Debug)]
-pub struct TrueSkillSPBSystem {
+pub struct TrueSkillSPb {
     // epsilon used for ties
     pub eps: f64,
     // performance sigma
@@ -28,7 +28,7 @@ pub struct TrueSkillSPBSystem {
     pub sigma_growth: f64,
 }
 
-impl Default for TrueSkillSPBSystem {
+impl Default for TrueSkillSPb {
     fn default() -> Self {
         Self {
             eps: 0.90,
@@ -112,7 +112,7 @@ fn check_convergence(
         .unwrap_or(0.)
 }
 
-impl TrueSkillSPBSystem {
+impl TrueSkillSPb {
     fn inference(&self, contest: &mut TSContest) {
         if contest.is_empty() {
             return;
@@ -222,7 +222,7 @@ impl TrueSkillSPBSystem {
     }
 }
 
-impl RatingSystem for TrueSkillSPBSystem {
+impl RatingSystem for TrueSkillSPb {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.beta.powi(2)).sqrt();
         let z = (player.mu - foe.mu) / sigma;

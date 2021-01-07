@@ -1,17 +1,15 @@
 //! Glicko system details: https://en.wikipedia.org/wiki/Glicko_rating_system
 
-use crate::compute_ratings::{
-    standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER,
-};
+use super::util::{standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER};
 use rayon::prelude::*;
 
 #[derive(Debug)]
-pub struct GlickoSystem {
+pub struct Glicko {
     pub sig_perf: f64,
     pub sig_drift: f64,
 }
 
-impl Default for GlickoSystem {
+impl Default for Glicko {
     fn default() -> Self {
         Self {
             sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
@@ -20,7 +18,7 @@ impl Default for GlickoSystem {
     }
 }
 
-impl RatingSystem for GlickoSystem {
+impl RatingSystem for Glicko {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / foe.sig.hypot(self.sig_perf);
         standard_logistic_cdf(z)

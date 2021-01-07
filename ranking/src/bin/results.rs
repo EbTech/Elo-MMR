@@ -2,15 +2,12 @@ extern crate ranking;
 extern crate rayon;
 use rayon::prelude::*;
 
-use ranking::compute_ratings::simulate_contest;
 use ranking::data_processing::get_dataset_by_name;
 use ranking::experiment_config::load_experiment;
 use ranking::metrics::compute_metrics_custom;
+use ranking::systems::simulate_contest;
 use std::collections::HashMap;
 use std::time::Instant;
-
-#[allow(unused_imports)]
-use ranking::{CodeforcesSystem, EloRSystem, TopCoderSystem, TrueSkillSPBSystem};
 
 fn main() {
     // Load system configs from parameter files

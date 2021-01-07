@@ -1,6 +1,6 @@
 extern crate overload;
 
-use crate::compute_ratings::{get_participant_ratings, PlayersByName, Rating};
+use crate::systems::{get_participant_ratings, PlayersByName, Rating};
 use overload::overload;
 use std::fmt;
 use std::ops;
