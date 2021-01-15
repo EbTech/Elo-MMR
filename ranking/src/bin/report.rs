@@ -72,7 +72,7 @@ fn main() {
     let dataset = get_dataset_by_name("codeforces").unwrap();
     let max_contests = usize::MAX;
     let mu_noob = 1500.;
-    let sig_noob = 300.;
+    let sig_noob = 350.;
     for system in systems {
         let mut players = HashMap::new();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);

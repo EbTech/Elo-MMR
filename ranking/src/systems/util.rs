@@ -90,9 +90,9 @@ impl Player {
         assert_eq!(last_event.display_rating, 0);
 
         // TODO: get rid of the magic numbers 2 and 80!
-        //       2.5 gives a conservative estimate: use 0 to get mean estimates
+        //       2.0 gives a conservative estimate: use 0 to get mean estimates
         //       80 is EloR's default sig_lim
-        last_event.display_rating = (rating.mu - 2.5 * (rating.sig - 80.)).round() as i32;
+        last_event.display_rating = (rating.mu - 2.0 * (rating.sig - 80.)).round() as i32;
     }
 
     pub fn update_rating_with_new_performance(&mut self, performance: Rating, max_history: usize) {

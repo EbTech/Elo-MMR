@@ -30,7 +30,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &*system, 1500., 300.);
+        simulate_contest(&mut players, &contest, &*system, 1500., 350.);
         last_contest_time = contest.time_seconds;
     }
     let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);
