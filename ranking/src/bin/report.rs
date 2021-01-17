@@ -14,7 +14,7 @@ fn main() {
         for wi in -8..=4 {
             let sig_perf = si as f64;
             let weight = 10f64.powf((wi as f64) * 0.25);
-            let system = systems::CFSys { sig_perf, weight };
+            let system = systems::CodeforcesSys { sig_perf, weight };
             systems.push(Box::new(system));
         }
     }
@@ -48,7 +48,7 @@ fn main() {
     }
     for wi in -15..=15 {
         let weight_multiplier = 10f64.powf((wi as f64) * 0.1);
-        let system = systems::TCSys { weight_multiplier };
+        let system = systems::TopcoderSys { weight_multiplier };
         systems.push(Box::new(system));
     }
     for ei in 1..=5 {

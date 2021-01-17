@@ -25,7 +25,7 @@ Note: in theory, Elo-MMR can be applied in team competitions as well, but additi
 First, [install Rust](https://www.rust-lang.org/tools/install). Then,
 ```
 cd ranking/
-cargo run --release --bin run mmr codeforces
+cargo run --release --bin rate mmr codeforces
 ```
 
 ### What does this command mean?
@@ -34,7 +34,7 @@ cargo run --release --bin run mmr codeforces
 
 `--release` creates a release build, which takes longer to compile but executes faster than a debug build.
 
-`--bin run` selects the entry-point `ranking/src/bin/run.rs`.
+`--bin rate` selects the entry-point `ranking/src/bin/rate.rs`.
 
 `mmr` is a command-line argument specifying the rating system.
 

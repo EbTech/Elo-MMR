@@ -1,15 +1,15 @@
-//! TopCoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
+//! Topcoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 //! Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
 
 use super::util::{standard_normal_cdf, standard_normal_cdf_inv, Player, Rating, RatingSystem};
 use rayon::prelude::*;
 
 #[derive(Debug)]
-pub struct TCSys {
+pub struct TopcoderSys {
     pub weight_multiplier: f64, // must be positive
 }
 
-impl Default for TCSys {
+impl Default for TopcoderSys {
     fn default() -> Self {
         Self {
             weight_multiplier: 1.,
@@ -17,7 +17,7 @@ impl Default for TCSys {
     }
 }
 
-impl RatingSystem for TCSys {
+impl RatingSystem for TopcoderSys {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig);
         standard_normal_cdf(z)

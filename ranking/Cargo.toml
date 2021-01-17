@@ -16,7 +16,7 @@ overload = "0.1"
 float-cmp = "0.8"
 
 [[bin]]
-name = "run"
+name = "rate"
 
 [[bin]]
 name = "report"

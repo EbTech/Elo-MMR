@@ -1,5 +1,7 @@
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
-use crate::systems::{CFSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TCSys, TrueSkillSPb};
+use crate::systems::{
+    CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys, TrueSkillSPb,
+};
 
 use serde::Deserialize;
 use std::path::Path;
@@ -40,11 +42,11 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
         }),
-        "codeforces" => Box::new(CFSys {
+        "codeforces" => Box::new(CodeforcesSys {
             sig_perf: params.system.params[0],
             weight: params.system.params[1],
         }),
-        "topcoder" => Box::new(TCSys {
+        "topcoder" => Box::new(TopcoderSys {
             weight_multiplier: params.system.params[0],
         }),
         "trueskill" => Box::new(TrueSkillSPb {

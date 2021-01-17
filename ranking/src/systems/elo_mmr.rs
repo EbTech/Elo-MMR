@@ -185,8 +185,8 @@ impl RatingSystem for EloMMR {
     }
 
     fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
-        const WIDTH_SUBSAMPLE: usize = 2000;
-        const MAX_HISTORY_LEN: usize = 500;
+        const WIDTH_SUBSAMPLE: usize = usize::MAX;
+        const MAX_HISTORY_LEN: usize = usize::MAX;
         let elim_newcomers = false; /*ignoring newcomers causes severe rating deflation: standings
                                     .par_iter()
                                     .filter(|(player, _, _)| !player.is_newcomer())

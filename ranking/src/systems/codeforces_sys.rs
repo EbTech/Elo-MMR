@@ -6,12 +6,12 @@ use super::util::{
 use rayon::prelude::*;
 
 #[derive(Debug)]
-pub struct CFSys {
+pub struct CodeforcesSys {
     pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
     pub weight: f64,   // must be positive
 }
 
-impl Default for CFSys {
+impl Default for CodeforcesSys {
     fn default() -> Self {
         Self {
             sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
@@ -20,7 +20,7 @@ impl Default for CFSys {
     }
 }
 
-impl CFSys {
+impl CodeforcesSys {
     // ratings is a list of the participants, ordered from first to last place
     // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
     fn compute_performance(
@@ -54,7 +54,7 @@ impl CFSys {
     }
 }
 
-impl RatingSystem for CFSys {
+impl RatingSystem for CodeforcesSys {
     fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / self.sig_perf;
         standard_logistic_cdf(z)
