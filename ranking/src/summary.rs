@@ -13,6 +13,7 @@ const TITLE: [&str; NUM_TITLES] = [
 struct RatingData {
     cur_rating: i32,
     max_rating: i32,
+    cur_sigma: i32,
     handle: String,
     last_contest: usize,
     last_contest_time: u64,
@@ -57,6 +58,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
         rating_data.push(RatingData {
             cur_rating: last_event.display_rating,
             max_rating,
+            cur_sigma: player.approx_posterior.sig.round() as i32,
             handle: handle.clone(),
             last_contest: last_event.contest_id,
             last_contest_time: last_event.contest_time,
@@ -99,8 +101,8 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
         write!(out, " {:<26}contest/{:4}: ", data.handle, data.last_contest).ok();
         writeln!(
             out,
-            "perf ={:5}, delta ={:4}",
-            data.last_perf, data.last_delta
+            "sig ={:5}, perf ={:5}, delta ={:4}",
+            data.cur_sigma, data.last_perf, data.last_delta
         )
         .ok();
     }

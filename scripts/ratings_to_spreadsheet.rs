@@ -13,7 +13,7 @@ fn main() {
     for line in buf_file.lines().map(|l| l.expect("Failed file read")) {
         if &line[11..12] == "(" {
             let rating = line[7..11].trim().to_owned();
-            let handle = line[17..41].trim().to_owned();
+            let handle = line[17..44].trim().to_owned();
             ratings.insert(handle, rating);
         }
     }

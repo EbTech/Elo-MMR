@@ -1,6 +1,6 @@
 # Elo-MMR: A Rating System for Massive Multiplayer Competitions
 
-This is a package containing implementations of several rating systems for multi-player competitions: pairwise-Glicko, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR.
+This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR.
 
 Rating systems estimate the skills of players who participate in a common activity. The Elo-MMR algorithm was designed for activities in which moderate to large numbers of players are ranked at competitive events, and results cannot be standardized across different events for any of the following reasons:
 

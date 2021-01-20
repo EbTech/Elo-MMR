@@ -1,6 +1,6 @@
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
 use crate::systems::{
-    CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys, TrueSkillSPb,
+    CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys, TrueSkillSPb, BAR,
 };
 
 use serde::Deserialize;
@@ -38,6 +38,11 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
     let dataset = get_dataset_by_name(&params.contest_source).unwrap();
 
     let system: Box<dyn RatingSystem> = match params.system.method.as_str() {
+        "bar" => Box::new(BAR {
+            sig_perf: params.system.params[0],
+            sig_drift: params.system.params[1],
+            kappa: 0.0001,
+        }),
         "glicko" => Box::new(Glicko {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
