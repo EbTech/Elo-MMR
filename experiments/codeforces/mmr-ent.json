@@ -3,8 +3,8 @@
     "mu_noob": 1500,
     "sig_noob": 300,
     "system": { 
-        "method": "elor", 
-        "params": [150.0, 20.0, 0.0, 0.125] 
+        "method": "mmr", 
+        "params": [150.0, 20.0, 0.0, 0.00390625] 
     },
     "contest_source": "codeforces"
 }

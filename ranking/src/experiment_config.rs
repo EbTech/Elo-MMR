@@ -38,14 +38,14 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
     let dataset = get_dataset_by_name(&params.contest_source).unwrap();
 
     let system: Box<dyn RatingSystem> = match params.system.method.as_str() {
+        "glicko" => Box::new(Glicko {
+            sig_perf: params.system.params[0],
+            sig_drift: params.system.params[1],
+        }),
         "bar" => Box::new(BAR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
             kappa: 1e-4,
-        }),
-        "glicko" => Box::new(Glicko {
-            sig_perf: params.system.params[0],
-            sig_drift: params.system.params[1],
         }),
         "codeforces" => Box::new(CodeforcesSys {
             sig_perf: params.system.params[0],
@@ -60,13 +60,13 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
             convergence_eps: params.system.params[2],
             sigma_growth: params.system.params[3],
         }),
-        "elor-x" => Box::new(EloMMR {
+        "mmx" => Box::new(EloMMR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
             split_ties: params.system.params[2] > 0.,
             variant: EloMMRVariant::Gaussian,
         }),
-        "elor" => Box::new(EloMMR {
+        "mmr" => Box::new(EloMMR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
             split_ties: params.system.params[2] > 0.,

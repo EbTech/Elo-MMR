@@ -3,8 +3,8 @@
     "mu_noob": 1500,
     "sig_noob": 300,
     "system": { 
-        "method": "elor", 
-        "params": [250.0, 40.0, 0.0, 2.0] 
+        "method": "mmx", 
+        "params": [400.0, 60.0, 0.0] 
     },
     "contest_source": "synthetic"
 }

@@ -11,8 +11,8 @@ use std::time::Instant;
 fn main() {
     // Load system configs from parameter files
     let mut experiment_files = vec![];
-    let datasets = vec!["codeforces", "reddit", "topcoder", "synthetic"];
-    let methods = vec!["cf", "tc", "ts", "elor", "elorX"];
+    let datasets = vec!["codeforces", "topcoder", "reddit", "synthetic"];
+    let methods = vec![/*glicko", "bar", */ "cf", "tc", "ts", "mmx", "mmr"];
     let metrics = vec!["acc", "rnk", "ent"];
 
     for dataset in &datasets {
