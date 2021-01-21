@@ -14,12 +14,13 @@ serde_json = "1.0"
 statrs = "0.13"
 overload = "0.1"
 float-cmp = "0.8"
+csv = "1.1.5"
 
 [[bin]]
 name = "rate"
 
 [[bin]]
-name = "report"
+name = "eval"
 
 [[bin]]
-name = "results"
+name = "hparam_search"

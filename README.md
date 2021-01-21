@@ -44,7 +44,7 @@ An optional integer argument may follow, to specify how many contests to process
 
 ### What does this command do?
 
-It pulls data from the Codeforces contests specified in `data/contest_ids.txt`. If a contest is not already stored in `cache/codeforces/`, then it is downloaded there via the Codeforces online API. Finally, the resulting skill ratings of all the contestants are saved in `data/ratings_output.txt`.
+It pulls data from the Codeforces contests specified in `data/codeforces/contest_ids.json`. If a contest is not already stored in `cache/codeforces/`, then it is downloaded there via the Codeforces online API. Finally, the resulting skill ratings of all the contestants are saved in `data/ratings_output.csv`.
 
 Please note that your first Codeforces run will be slower, as the data is pulled from the Codeforces API, or may even fail if the Codeforces site experiences downtime. However, subsequent runs should be much faster.
 

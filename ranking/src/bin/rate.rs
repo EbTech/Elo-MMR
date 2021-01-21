@@ -23,10 +23,11 @@ fn main() {
     // Simulate the contests and rating updates
     let mut players = HashMap::new();
     let mut last_contest_time = 0;
-    for contest in dataset.iter().take(max_contests) {
+    for (idx, contest) in dataset.iter().enumerate().take(max_contests) {
         println!(
-            "Processing {:5} contestants in contest/{:4}: {}",
+            "Processing {:5} contestants in {:4}th contest with id {:4}: {}",
             contest.standings.len(),
+            idx,
             contest.id,
             contest.name
         );

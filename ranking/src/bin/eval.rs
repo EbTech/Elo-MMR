@@ -2,7 +2,6 @@ extern crate ranking;
 extern crate rayon;
 use rayon::prelude::*;
 
-use ranking::data_processing::get_dataset_by_name;
 use ranking::experiment_config::load_experiment;
 use ranking::metrics::compute_metrics_custom;
 use ranking::systems::simulate_contest;
@@ -26,12 +25,10 @@ fn main() {
     }
 
     experiment_files.par_iter().for_each(|filename| {
+        // Grab all the details of the experiment from a file
         let experiment = load_experiment(filename);
-
-        let dataset = get_dataset_by_name("codeforces").unwrap();
-
+        let dataset = experiment.dataset;
         let system = experiment.system;
-
         let max_contests = experiment.max_contests;
         let mu_noob = experiment.mu_noob;
         let sig_noob = experiment.sig_noob;
