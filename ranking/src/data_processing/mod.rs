@@ -33,7 +33,9 @@ pub fn get_dataset_from_codeforces_api(
 
 /// Helper function to get any named dataset.
 // TODO: actually throw errors when the directory is not found.
-pub fn get_dataset_by_name(dataset_name: &str) -> Result<Box<dyn Dataset<Item = Contest>>, String> {
+pub fn get_dataset_by_name(
+    dataset_name: &str,
+) -> Result<Box<dyn Dataset<Item = Contest> + Send + Sync>, String> {
     const CF_IDS: &str = "../data/codeforces/contest_ids.json";
 
     let dataset_dir = format!("../cache/{}", dataset_name);

@@ -4,6 +4,7 @@ use ranking::data_processing::get_dataset_by_name;
 use ranking::metrics::compute_metrics_custom;
 use ranking::systems;
 use ranking::systems::{simulate_contest, RatingSystem};
+use rayon::prelude::*;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -24,7 +25,7 @@ fn main() {
     // Prepare the contest system parameters
     let perf_range = log_space(75., 600., 10, 1.);
     let drift_range = log_space(5., 40., 10, 1.);
-    let mut systems: Vec<Box<dyn RatingSystem>> = vec![];
+    let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for sig_perf in perf_range.clone() {
         for weight in log_space(0.01, 10., 16, 1e-3) {
@@ -95,7 +96,7 @@ fn main() {
     let num_rounds_to_fit = dataset.len() / 10;
     let mu_noob = 1500.;
     let sig_noob = 350.;
-    for system in systems {
+    systems.into_par_iter().for_each(|system| {
         let mut players = HashMap::new();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
         let now = Instant::now();
@@ -108,11 +109,12 @@ fn main() {
             // Now run the actual rating update
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
         }
-        println!(
+        let output = format!(
             "{:?}: {}, {}s",
             system,
             avg_perf,
             now.elapsed().as_nanos() as f64 * 1e-9
         );
-    }
+        println!("{}", output);
+    });
 }

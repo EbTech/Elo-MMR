@@ -24,6 +24,7 @@ fn main() {
         }
     }
 
+    let horizontal = "============================================================";
     experiment_files.par_iter().for_each(|filename| {
         // Grab all the details of the experiment from a file
         let experiment = load_experiment(filename);
@@ -52,13 +53,14 @@ fn main() {
             // Now run the actual rating update
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
         }
-        println!(
-            "{} {:?}: {}, {}s",
+        let output = format!(
+            "{}\n{} {:?}: {}, {}s",
+            horizontal,
             filename,
             system,
             avg_perf,
             now.elapsed().as_nanos() as f64 * 1e-9
         );
-        println!("=============================================================");
+        println!("{}", output);
     });
 }
