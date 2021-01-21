@@ -31,10 +31,10 @@ pub struct TrueSkillSPb {
 impl Default for TrueSkillSPb {
     fn default() -> Self {
         Self {
-            eps: 0.90,
-            beta: 1500. / 6., // sigma/2
-            convergence_eps: 2e-4,
-            sigma_growth: 5.,
+            eps: 1.,
+            beta: 175.,
+            convergence_eps: 1e-4,
+            sigma_growth: 35.,
         }
     }
 }
@@ -236,16 +236,15 @@ impl RatingSystem for TrueSkillSPb {
             assert!(standings[i - 1].1 <= standings[i].1);
         }
 
-        // The multiplier of 1 here assumes time between contests is a constant "time unit"
-        let noise = 1. * self.sigma_growth.powi(2);
         let mut prev = usize::MAX;
         for (user, lo, _hi) in standings {
             if lo != prev {
                 contest.push(vec![]);
             }
+            let noised = user.approx_posterior.with_noise(self.sigma_growth);
             let gaussian = Gaussian {
-                mu: user.approx_posterior.mu,
-                sigma: (user.approx_posterior.sig.powi(2) + noise).sqrt(),
+                mu: noised.mu,
+                sigma: noised.sig,
             };
             contest.last_mut().unwrap().push(vec![(user, gaussian)]);
             prev = lo;

@@ -308,6 +308,14 @@ pub fn simulate_contest(
     mu_newbie: f64,
     sig_newbie: f64,
 ) {
+    if contest.standings.is_empty() || contest.standings[0].2 + 1 >= contest.standings.len() {
+        eprintln!(
+            "WARNING: ignoring contest {} because all players tied",
+            contest.id
+        );
+        return;
+    }
+
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
         players

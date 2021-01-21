@@ -41,7 +41,7 @@ pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
         "bar" => Box::new(BAR {
             sig_perf: params.system.params[0],
             sig_drift: params.system.params[1],
-            kappa: 0.0001,
+            kappa: 1e-4,
         }),
         "glicko" => Box::new(Glicko {
             sig_perf: params.system.params[0],

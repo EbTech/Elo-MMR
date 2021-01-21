@@ -16,7 +16,7 @@ impl Default for BAR {
         Self {
             sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
             sig_drift: 35.,
-            kappa: 0.0001,
+            kappa: 1e-4,
         }
     }
 }
