@@ -33,15 +33,21 @@ fn main() {
         let mu_noob = experiment.mu_noob;
         let sig_noob = experiment.sig_noob;
 
+        // In our experiments, max_contests should just be the entire dataset
+        assert!(experiment.max_contests >= dataset.len());
+        let num_rounds_to_fit = dataset.len() / 10;
+
         let mut players = HashMap::new();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
         let now = Instant::now();
 
         // Run the contest histories and measure
-        for contest in dataset.iter().take(max_contests) {
-            // Predict performance must be run before simulate contest
-            // since we don't want to make predictions after we've seen the contest
-            avg_perf += compute_metrics_custom(&mut players, &contest.standings);
+        for (i, contest) in dataset.iter().enumerate().take(max_contests) {
+            // Evaludate the non-training set; predictions should not use the contest
+            // that they're predicting, so this step precedes simulation
+            if i >= num_rounds_to_fit {
+                avg_perf += compute_metrics_custom(&mut players, &contest.standings);
+            }
 
             // Now run the actual rating update
             simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
@@ -51,7 +57,7 @@ fn main() {
             filename,
             system,
             avg_perf,
-            now.elapsed().as_millis() as f64 / 1000.
+            now.elapsed().as_nanos() as f64 * 1e-9
         );
         println!("=============================================================");
     });

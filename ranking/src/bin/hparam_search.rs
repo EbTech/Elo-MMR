@@ -90,9 +90,9 @@ fn main() {
         }
     }
 
-    // Run the contest histories and measure
+    // Do hyperparameter search on the first 10% of the contest history
     let dataset = get_dataset_by_name("codeforces").unwrap();
-    let max_contests = usize::MAX;
+    let num_rounds_to_fit = dataset.len() / 10;
     let mu_noob = 1500.;
     let sig_noob = 350.;
     for system in systems {
@@ -100,7 +100,7 @@ fn main() {
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
         let now = Instant::now();
 
-        for contest in dataset.iter().take(max_contests) {
+        for contest in dataset.iter().take(num_rounds_to_fit) {
             // Predict performance must be run before simulate contest
             // since we don't want to make predictions after we've seen the contest
             avg_perf += compute_metrics_custom(&mut players, &contest.standings);
