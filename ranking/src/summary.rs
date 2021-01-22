@@ -117,6 +117,7 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
             TITLE_BOUND[i], TITLE[i], summary.title_count[i]
         );
     }
+    println!("Detailed ratings saved to {}", filename);
 
     let mut writer = csv::Writer::from_writer(file);
     for data in rating_data {

@@ -13,11 +13,14 @@ pub use glicko::Glicko;
 pub use topcoder_sys::TopcoderSys;
 pub use true_skill::TrueSkillSPb;
 pub use util::{
-    get_participant_ratings, simulate_contest, Player, PlayersByName, Rating, RatingSystem,
+    get_participant_ratings, outcome_free, simulate_contest, Player, PlayersByName, Rating,
+    RatingSystem,
 };
 
 // TODO: add a version that can take parameters, like in experiment_config but polymorphic
-pub fn get_rating_system_by_name(system_name: &str) -> Result<Box<dyn RatingSystem>, String> {
+pub fn get_rating_system_by_name(
+    system_name: &str,
+) -> Result<Box<dyn RatingSystem + Send>, String> {
     match system_name {
         "bar" => Ok(Box::new(BAR::default())),
         "glicko" => Ok(Box::new(Glicko::default())),

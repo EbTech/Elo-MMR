@@ -1,9 +1,31 @@
 extern crate ranking;
 
 use ranking::data_processing::get_dataset_by_name;
+use ranking::experiment_config::Experiment;
 use ranking::summary::print_ratings;
 use ranking::systems::{get_rating_system_by_name, simulate_contest};
 use std::collections::HashMap;
+
+fn get_experiment_from_args(args: &[String]) -> Experiment {
+    if args[1] == "file:" {
+        return Experiment::from_file(&args[2]);
+    }
+
+    let system = get_rating_system_by_name(&args[1]).unwrap();
+    let dataset = get_dataset_by_name(&args[2]).unwrap();
+    let max_contests = args
+        .get(3)
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(usize::MAX);
+
+    Experiment {
+        max_contests,
+        mu_noob: 1500.,
+        sig_noob: 350.,
+        system,
+        dataset,
+    }
+}
 
 /// Simulates the entire history of Codeforces
 fn main() {
@@ -13,17 +35,12 @@ fn main() {
         eprintln!("Usage: {} system_name dataset_name [num_contests]", args[0]);
         return;
     }
-    let system = get_rating_system_by_name(&args[1]).unwrap();
-    let dataset = get_dataset_by_name(&args[2]).unwrap();
-    let max_contests = args
-        .get(3)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(usize::MAX);
+    let ex = get_experiment_from_args(&args);
 
     // Simulate the contests and rating updates
     let mut players = HashMap::new();
     let mut last_contest_time = 0;
-    for (idx, contest) in dataset.iter().enumerate().take(max_contests) {
+    for (idx, contest) in ex.dataset.iter().enumerate().take(ex.max_contests) {
         println!(
             "Processing {:5} contestants in {:4}th contest with id {:4}: {}",
             contest.standings.len(),
@@ -31,7 +48,7 @@ fn main() {
             contest.id,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &*system, 1500., 350.);
+        simulate_contest(&mut players, &contest, &*ex.system, ex.mu_noob, ex.sig_noob);
         last_contest_time = contest.time_seconds;
     }
     let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);

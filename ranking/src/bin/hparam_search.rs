@@ -1,12 +1,9 @@
 extern crate ranking;
 
 use ranking::data_processing::get_dataset_by_name;
-use ranking::metrics::compute_metrics_custom;
-use ranking::systems;
-use ranking::systems::{simulate_contest, RatingSystem};
+use ranking::experiment_config::Experiment;
+use ranking::systems::{self, RatingSystem};
 use rayon::prelude::*;
-use std::collections::HashMap;
-use std::time::Instant;
 
 fn log_space(
     mut lo: f64,
@@ -22,6 +19,12 @@ fn log_space(
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: {} dataset_name", args[0]);
+        return;
+    }
+
     // Prepare the contest system parameters
     let perf_range = log_space(75., 600., 10, 1.);
     let drift_range = log_space(5., 40., 10, 1.);
@@ -91,30 +94,18 @@ fn main() {
         }
     }
 
-    // Do hyperparameter search on the first 10% of the contest history
-    let dataset = get_dataset_by_name("codeforces").unwrap();
-    let num_rounds_to_fit = dataset.len() / 10;
-    let mu_noob = 1500.;
-    let sig_noob = 350.;
     systems.into_par_iter().for_each(|system| {
-        let mut players = HashMap::new();
-        let mut avg_perf = compute_metrics_custom(&mut players, &[]);
-        let now = Instant::now();
+        // We're repeatedly loading the same dataset's metadata but this is cheap anyway
+        let dataset = get_dataset_by_name(&args[1]).unwrap();
+        let max_contests = dataset.len() / 10;
 
-        for contest in dataset.iter().take(num_rounds_to_fit) {
-            // Predict performance must be run before simulate contest
-            // since we don't want to make predictions after we've seen the contest
-            avg_perf += compute_metrics_custom(&mut players, &contest.standings);
-
-            // Now run the actual rating update
-            simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob);
-        }
-        let output = format!(
-            "{:?}: {}, {}s",
+        let experiment = Experiment {
+            max_contests,
+            mu_noob: 1500.,
+            sig_noob: 350.,
             system,
-            avg_perf,
-            now.elapsed().as_nanos() as f64 * 1e-9
-        );
-        println!("{}", output);
+            dataset,
+        };
+        experiment.eval(0, "");
     });
 }

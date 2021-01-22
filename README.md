@@ -22,10 +22,14 @@ Note: in theory, Elo-MMR can be applied in team competitions as well, but additi
 
 ## Getting Started
 
-First, [install Rust](https://www.rust-lang.org/tools/install). Then,
+First, [install Rust](https://www.rust-lang.org/tools/install). From the `ranking` directory, run the command
 ```
-cd ranking/
 cargo run --release --bin rate mmr codeforces
+```
+
+UPDATE: it's now also possible to run the rating system from a config file. Here's an example:
+```
+cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
 ```
 
 ### What does this command mean?

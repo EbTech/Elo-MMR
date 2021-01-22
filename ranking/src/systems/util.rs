@@ -301,6 +301,10 @@ pub trait RatingSystem: std::fmt::Debug {
     fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
 }
 
+pub fn outcome_free<T>(standings: &[(T, usize, usize)]) -> bool {
+    standings.is_empty() || standings[0].2 + 1 >= standings.len()
+}
+
 pub fn simulate_contest(
     players: &mut PlayersByName,
     contest: &Contest,
@@ -308,7 +312,7 @@ pub fn simulate_contest(
     mu_newbie: f64,
     sig_newbie: f64,
 ) {
-    if contest.standings.is_empty() || contest.standings[0].2 + 1 >= contest.standings.len() {
+    if outcome_free(&contest.standings) {
         eprintln!(
             "WARNING: ignoring contest {} because all players tied",
             contest.id

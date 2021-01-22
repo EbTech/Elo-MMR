@@ -1,6 +1,6 @@
 extern crate overload;
 
-use crate::systems::{get_participant_ratings, PlayersByName, Rating};
+use crate::systems::{get_participant_ratings, outcome_free, PlayersByName, Rating};
 use overload::overload;
 use std::fmt;
 use std::ops;
@@ -59,7 +59,7 @@ pub fn top_k(standings: &ParticipantRatings, k: usize) -> &ParticipantRatings {
 }
 
 pub fn pairwise_metric(standings: &ParticipantRatings) -> WeightAndSum {
-    if standings.len() < 2 {
+    if outcome_free(standings) {
         return (0., 0.);
     }
     // Compute topk (frac. of inverted pairs) metric
@@ -83,7 +83,7 @@ pub fn pairwise_metric(standings: &ParticipantRatings) -> WeightAndSum {
 }
 
 pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSum {
-    if standings.len() < 2 {
+    if outcome_free(standings) {
         return (0., 0.);
     }
     // Compute avg percentile distance metric
@@ -101,7 +101,7 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSu
 }
 
 pub fn cross_entropy_metric(standings: &ParticipantRatings, scale: f64) -> WeightAndSum {
-    if standings.len() < 2 {
+    if outcome_free(standings) {
         return (0., 0.);
     }
     // Compute base 2 cross-entropy from the logistic Elo formula

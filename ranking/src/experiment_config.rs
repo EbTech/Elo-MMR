@@ -1,9 +1,12 @@
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
 use crate::systems::{
-    CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys, TrueSkillSPb, BAR,
+    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys,
+    TrueSkillSPb, BAR,
 };
 
+use crate::metrics::compute_metrics_custom;
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Deserialize, Debug)]
@@ -25,61 +28,101 @@ pub struct Experiment {
     pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
-    pub system: Box<dyn RatingSystem>,
-    pub dataset: Box<dyn Dataset<Item = Contest>>,
+
+    // Experiment should implement Send so that it can be sent across threads
+    pub system: Box<dyn RatingSystem + Send>,
+    pub dataset: Box<dyn Dataset<Item = Contest> + Send>,
 }
 
-pub fn load_experiment(source: impl AsRef<Path>) -> Experiment {
-    let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
-    let params: ExperimentConfig =
-        serde_json::from_str(&params_json).expect("Failed to parse parameters as JSON");
+impl Experiment {
+    pub fn from_file(source: impl AsRef<Path>) -> Self {
+        let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
+        let params = serde_json::from_str(&params_json).expect("Failed to parse params as JSON");
+        Self::from_config(params)
+    }
 
-    println!("Loading rating system:\n{:#?}", params);
-    let dataset = get_dataset_by_name(&params.contest_source).unwrap();
+    pub fn from_config(params: ExperimentConfig) -> Self {
+        println!("Loading rating system:\n{:#?}", params);
+        let dataset = get_dataset_by_name(&params.contest_source).unwrap();
 
-    let system: Box<dyn RatingSystem> = match params.system.method.as_str() {
-        "glicko" => Box::new(Glicko {
-            sig_perf: params.system.params[0],
-            sig_drift: params.system.params[1],
-        }),
-        "bar" => Box::new(BAR {
-            sig_perf: params.system.params[0],
-            sig_drift: params.system.params[1],
-            kappa: 1e-4,
-        }),
-        "codeforces" => Box::new(CodeforcesSys {
-            sig_perf: params.system.params[0],
-            weight: params.system.params[1],
-        }),
-        "topcoder" => Box::new(TopcoderSys {
-            weight_multiplier: params.system.params[0],
-        }),
-        "trueskill" => Box::new(TrueSkillSPb {
-            eps: params.system.params[0],
-            beta: params.system.params[1],
-            convergence_eps: params.system.params[2],
-            sigma_growth: params.system.params[3],
-        }),
-        "mmx" => Box::new(EloMMR {
-            sig_perf: params.system.params[0],
-            sig_drift: params.system.params[1],
-            split_ties: params.system.params[2] > 0.,
-            variant: EloMMRVariant::Gaussian,
-        }),
-        "mmr" => Box::new(EloMMR {
-            sig_perf: params.system.params[0],
-            sig_drift: params.system.params[1],
-            split_ties: params.system.params[2] > 0.,
-            variant: EloMMRVariant::Logistic(params.system.params[3]),
-        }),
-        x => panic!("'{}' is not a valid system name!", x),
-    };
+        let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
+            "glicko" => Box::new(Glicko {
+                sig_perf: params.system.params[0],
+                sig_drift: params.system.params[1],
+            }),
+            "bar" => Box::new(BAR {
+                sig_perf: params.system.params[0],
+                sig_drift: params.system.params[1],
+                kappa: 1e-4,
+            }),
+            "codeforces" => Box::new(CodeforcesSys {
+                sig_perf: params.system.params[0],
+                weight: params.system.params[1],
+            }),
+            "topcoder" => Box::new(TopcoderSys {
+                weight_multiplier: params.system.params[0],
+            }),
+            "trueskill" => Box::new(TrueSkillSPb {
+                eps: params.system.params[0],
+                beta: params.system.params[1],
+                convergence_eps: params.system.params[2],
+                sigma_growth: params.system.params[3],
+            }),
+            "mmx" => Box::new(EloMMR {
+                sig_perf: params.system.params[0],
+                sig_drift: params.system.params[1],
+                split_ties: params.system.params[2] > 0.,
+                variant: EloMMRVariant::Gaussian,
+            }),
+            "mmr" => Box::new(EloMMR {
+                sig_perf: params.system.params[0],
+                sig_drift: params.system.params[1],
+                split_ties: params.system.params[2] > 0.,
+                variant: EloMMRVariant::Logistic(params.system.params[3]),
+            }),
+            x => panic!("'{}' is not a valid system name!", x),
+        };
 
-    Experiment {
-        max_contests: params.max_contests,
-        mu_noob: params.mu_noob,
-        sig_noob: params.sig_noob,
-        system,
-        dataset,
+        Self {
+            max_contests: params.max_contests,
+            mu_noob: params.mu_noob,
+            sig_noob: params.sig_noob,
+            system,
+            dataset,
+        }
+    }
+
+    pub fn eval(self, mut num_rounds_postpone_eval: usize, tag: &str) {
+        let mut players = HashMap::new();
+        let mut avg_perf = compute_metrics_custom(&mut players, &[]);
+
+        // Run the contest histories and measure
+        let now = std::time::Instant::now();
+        for contest in self.dataset.iter().take(self.max_contests) {
+            // Evaludate the non-training set; predictions should not use the contest
+            // that they're predicting, so this step precedes simulation
+            if num_rounds_postpone_eval > 0 {
+                num_rounds_postpone_eval -= 1;
+            } else {
+                avg_perf += compute_metrics_custom(&mut players, &contest.standings);
+            }
+
+            // Now run the actual rating update
+            simulate_contest(
+                &mut players,
+                &contest,
+                &*self.system,
+                self.mu_noob,
+                self.sig_noob,
+            );
+        }
+        let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
+
+        let horizontal = "============================================================";
+        let output = format!(
+            "{} {:?}: {}, {}s\n{}",
+            tag, self.system, avg_perf, secs_elapsed, horizontal
+        );
+        println!("{}", output);
     }
 }
