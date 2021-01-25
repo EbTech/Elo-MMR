@@ -54,6 +54,21 @@ Please note that your first Codeforces run will be slower, as the data is pulled
 
 ### How can I rate contestants of my own games?
 
+We use json as the basic format to storing contests. A sample json contest file is as follows:
+```
+{
+    "id": [int, contest id], 
+    "name": [str, contest name], 
+    "time_seconds": [int, seconds since epoch], 
+    "standings": [["player 0", lowest possible rank, highest possible rank], 
+                  ["player 1", lowest possible rank, highest possible rank],
+                  ...]]
+}
+```
+The lowest and highest possible ranks for a player are 0-indexed and used in case of a tie (for example, if there is a tie in the top-two spots, the lowest possible rank for player 0 is 0 and the highest is 1).
+
+#### For more examples of sample contest files:
+
 - Run the basic Codeforces command for at least a few seconds to download some contest standings files.
 
 - Follow their format when creating your own files. The `id` and `name` fields are only for debugging. `time_seconds` is measured from the Unix Epoch.
