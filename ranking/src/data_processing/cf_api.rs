@@ -1,4 +1,5 @@
 use super::Contest;
+use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
@@ -112,12 +113,15 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 /// json/ directly, that will be used. This way, you can process your own custom contests.
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
-pub fn fetch_cf_contest(contest_id: usize) -> Contest {
+pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
     let url = format!(
         "https://codeforces.com/api/contest.ratingChanges?contestId={}",
         contest_id
     );
-    let response = reqwest::blocking::get(&url).expect("HTTP error: is Codeforces.com down?");
+    let response = client
+        .get(&url)
+        .send()
+        .expect("HTTP error: is Codeforces.com down?");
     if !response.status().is_success() {
         eprintln!("HTTP status {}: is Codeforces.com down?", response.status());
     }

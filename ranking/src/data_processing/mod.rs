@@ -2,6 +2,7 @@ mod cf_api;
 mod dataset;
 
 pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset};
+use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
 /// Represents the outcome of a contest.
@@ -21,13 +22,14 @@ pub struct Contest {
 pub fn get_dataset_from_codeforces_api(
     contest_id_file: impl AsRef<std::path::Path>,
 ) -> impl Dataset<Item = Contest> {
+    let client = Client::new();
     let contests_json =
         std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs from file");
     let contest_ids: Vec<usize> = serde_json::from_str(&contests_json)
         .expect("Failed to parse JSON contest IDs as a Vec<usize>");
 
     dataset::ClosureDataset::new(contest_ids.len(), move |i| {
-        cf_api::fetch_cf_contest(contest_ids[i])
+        cf_api::fetch_cf_contest(&client, contest_ids[i])
     })
 }
 
