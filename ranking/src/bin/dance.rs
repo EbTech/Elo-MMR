@@ -5,16 +5,42 @@ use select::predicate::{Attr, Name};
 use serde::Serialize;
 use std::ops::RangeInclusive;
 
+const ROOT_URL: &str = "https://results.o2cm.com/";
+
 #[derive(Serialize)]
 struct O2cmDateFilter {
     inyear: usize,
     inmonth: usize,
 }
 
+#[allow(non_snake_case)]
+#[derive(Serialize)]
+struct O2cmEventFilter {
+    selDiv: String,
+    selAge: String,
+    selSkl: String,
+    selSty: String,
+    selEnt: String,
+    submit: String,
+}
+
+impl Default for O2cmEventFilter {
+    fn default() -> Self {
+        Self {
+            selDiv: "".to_string(),
+            selAge: "".to_string(),
+            selSkl: "".to_string(),
+            selSty: "".to_string(),
+            selEnt: "".to_string(),
+            submit: "OK".to_string(),
+        }
+    }
+}
+
 fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
     let response = builder
         .send()
-        .expect("HTTP error: is results.o2cm.com down?");
+        .expect("HTTP error: is the source website down?");
     if response.status().is_success() {
         let page_text = response
             .text()
@@ -23,6 +49,13 @@ fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
     } else {
         Err(response.status())
     }
+}
+
+fn get_urls(page: &Document) -> impl Iterator<Item = String> + '_ {
+    page.select(Name("a")).map(|node| {
+        let path = node.attr("href").expect("Missing href");
+        format!("{}{}", ROOT_URL, path)
+    })
 }
 
 fn get_range(page: &Document, property_name: &str) -> RangeInclusive<usize> {
@@ -43,56 +76,54 @@ fn get_range(page: &Document, property_name: &str) -> RangeInclusive<usize> {
     min..=max
 }
 
-fn process_comp(comp_page: Document) {
-    println!("EXTRACTED {:?}", comp_page);
+fn process_heat(client: &Client, heat_page: Document) {
+    println!("EXTRACTED {:?}", heat_page);
     /* TODO:
-        - for each competition of this month,
-        - for each [choose filter] in this competition,
-        - for each category in the [choose filter],
-        - for each heat in this category,
-        - make a Contest object, competitors ranked by aggregate of all judges
+        Each table on a heat's page, EXCEPT for the "Summary" table (when it exists), belongs
+        to a different round, and should be made into its own Contest object. You'll have to
+        toggle the drop-down menu to access all the tables.
 
-      The [choose filter] step is needed to make the list of heats small enough to
-      display on one page. Note that any table labeled "Summary" must be ignored,
-      but any extra tables hidden under a round drop-down must be included.
+        In each contest, participants are ranked by aggregating all judges' verdicts.
 
-      We'll have to think about whether to model couples as teams,
-      and how to add zero noise within a comp without messing up the sigmas.
+        We'll have to think about whether to model couples as teams, and how to make
+        the noise zero between rounds of the same comp without messing up the sigmas.
     */
 }
 
 fn main() {
-    const ROOT_URL: &str = "https://results.o2cm.com/";
-
     let client = Client::new();
     let root_req = client.get(ROOT_URL);
     let root_page = request(root_req).expect("Failed status");
     let year_range = get_range(&root_page, "inyear");
     let month_range = get_range(&root_page, "inmonth");
+    let event_filter = O2cmEventFilter::default();
+    let mut num_heats = 0;
 
-    for inyear in year_range {
+    // The first 2 years contain no data, so we save time by skipping them
+    for inyear in year_range.skip(2) {
         for inmonth in month_range.clone() {
             let date_filter = O2cmDateFilter { inyear, inmonth };
             let month_req = client.post(ROOT_URL).form(&date_filter);
             let month_page = request(month_req).expect("Failed status");
 
-            for comp_node in month_page.select(Name("a")) {
-                let comp_path = comp_node.attr("href").expect("Missing href");
-                let comp_url = format!("{}{}", ROOT_URL, comp_path);
-                let comp_req = client.get(&comp_url);
+            // TODO: reverse iteration order to make it chronological
+            for comp_url in get_urls(&month_page) {
+                let comp_req = client.post(&comp_url).form(&event_filter);
                 match request(comp_req) {
                     Ok(comp_page) => {
-                        process_comp(comp_page);
+                        println!("{:2}/{} Processing {}", inmonth, inyear, comp_url);
+                        for heat_url in get_urls(&comp_page).skip(1) {
+                            //let heat_page = request(client.get(&heat_url)).expect("Failed status");
+                            //process_heat(&client, heat_page);
+                            num_heats += 1;
+                        }
+                        println!("Success! Processed {} heats so far.", num_heats);
                     }
                     Err(status) => {
                         eprintln!(
-                            "WARNING: {} at {}  ~~  There might be no data on {} {}.",
-                            status,
-                            comp_url,
-                            comp_node.text(),
-                            inyear,
+                            "{:2}/{} WARNING missing data: {} at {}",
+                            inmonth, inyear, status, comp_url,
                         );
-                        continue;
                     }
                 }
             }
