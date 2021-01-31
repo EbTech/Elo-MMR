@@ -18,12 +18,13 @@ impl Default for TopcoderSys {
 }
 
 impl RatingSystem for TopcoderSys {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig);
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let weight = contest_weight * self.weight_multiplier;
+        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig) / weight;
         standard_normal_cdf(z)
     }
 
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
             .iter()
@@ -60,7 +61,11 @@ impl RatingSystem for TopcoderSys {
                 let ex_rank = standings
                     .iter()
                     .map(|&(ref foe, _, _)| {
-                        self.win_probability(&foe.approx_posterior, &player.approx_posterior)
+                        self.win_probability(
+                            contest_weight,
+                            &foe.approx_posterior,
+                            &player.approx_posterior,
+                        )
                     })
                     .sum::<f64>();
                 let ac_rank = 0.5 * (1 + lo + hi) as f64;
@@ -73,7 +78,7 @@ impl RatingSystem for TopcoderSys {
 
                 let num_contests = player.event_history.len() as f64;
                 let mut weight = 1. / (0.82 - 0.42 / num_contests) - 1.;
-                weight *= self.weight_multiplier;
+                weight *= contest_weight * self.weight_multiplier;
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {

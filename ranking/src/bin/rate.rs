@@ -42,10 +42,11 @@ fn main() {
     let mut last_contest_time = 0;
     for (idx, contest) in ex.dataset.iter().enumerate().take(ex.max_contests) {
         println!(
-            "Processing {:5} contestants in {:4}th contest with id {:4}: {}",
+            "Processing{:6} contestants in{:5}th contest with id={:4}, wt={}: {}",
             contest.standings.len(),
             idx,
             contest.id,
+            contest.weight,
             contest.name
         );
         simulate_contest(&mut players, &contest, &*ex.system, ex.mu_noob, ex.sig_noob);

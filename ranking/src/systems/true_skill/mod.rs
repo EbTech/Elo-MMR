@@ -24,7 +24,7 @@ pub struct TrueSkillSPb {
     pub beta: f64,
     // epsilon used for convergence loop
     pub convergence_eps: f64,
-    // defines sigma growth per second
+    // defines sigma growth per round
     pub sigma_growth: f64,
 }
 
@@ -113,13 +113,14 @@ fn check_convergence(
 }
 
 impl TrueSkillSPb {
-    fn inference(&self, contest: &mut TSContest) {
+    fn inference(&self, contest_weight: f64, contest: &mut TSContest) {
         if contest.is_empty() {
             return;
         }
 
         // could be optimized, written that way for simplicity
         // TODO: invent better variable names
+        let beta = self.beta / contest_weight.sqrt();
         let mut s = gen_player_message(contest, &ProdNode::new());
         let mut perf = gen_player_message(contest, &ProdNode::new());
         let mut p = gen_player_message(contest, &ProdNode::new());
@@ -150,7 +151,7 @@ impl TrueSkillSPb {
                     RefCell::borrow_mut(perf[i][j][k].get_edges_mut().last_mut().unwrap()).1 =
                         Gaussian {
                             mu: 0.,
-                            sigma: self.beta,
+                            sigma: beta,
                         };
 
                     players.push((i, j, k, new_edge));
@@ -223,13 +224,14 @@ impl TrueSkillSPb {
 }
 
 impl RatingSystem for TrueSkillSPb {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.beta.powi(2)).sqrt();
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let sig_perf = self.beta / contest_weight.sqrt();
+        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2)).sqrt();
         let z = (player.mu - foe.mu) / sigma;
         standard_normal_cdf(z)
     }
 
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
         let mut contest = TSContest::new();
 
         for i in 1..standings.len() {
@@ -251,6 +253,6 @@ impl RatingSystem for TrueSkillSPb {
         }
 
         // do inference
-        self.inference(&mut contest);
+        self.inference(contest_weight, &mut contest);
     }
 }

@@ -75,9 +75,15 @@ pub enum EloMMRVariant {
 }
 
 #[derive(Debug)]
+pub enum EvolutionModel {
+    TowardsVar(f64),
+    VarPerSecond(f64),
+}
+
+#[derive(Debug)]
 pub struct EloMMR {
-    pub sig_perf: f64,          // variation in individual performances
-    pub sig_drift: f64,         // skill drift between successive performances
+    pub sig_perf: f64,          // variation in individual performances, at weight 1
+    pub evo: EvolutionModel,    // skill drift between successive performances
     pub split_ties: bool,       // whether to split ties into half win and half loss
     pub variant: EloMMRVariant, // whether to use logistic or Gaussian distributions
 }
@@ -103,11 +109,10 @@ impl EloMMR {
     ) -> Self {
         assert!(sig_limit > 0.);
         assert!(sig_perf > sig_limit);
-        let sig_drift =
-            ((sig_limit.powi(-2) - sig_perf.powi(-2)).recip() - sig_limit.powi(2)).sqrt();
+        let evo = EvolutionModel::TowardsVar(sig_limit * sig_limit);
         Self {
             sig_perf,
-            sig_drift,
+            evo,
             split_ties,
             variant,
         }
@@ -175,8 +180,9 @@ impl EloMMR {
 }
 
 impl RatingSystem for EloMMR {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * self.sig_perf.powi(2)).sqrt();
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let sig_perf = self.sig_perf / contest_weight.sqrt();
+        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2)).sqrt();
         let z = (player.mu - foe.mu) / sigma;
         match self.variant {
             EloMMRVariant::Gaussian => standard_normal_cdf(z),
@@ -184,7 +190,7 @@ impl RatingSystem for EloMMR {
         }
     }
 
-    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
         const WIDTH_SUBSAMPLE: usize = usize::MAX;
         const MAX_HISTORY_LEN: usize = usize::MAX;
         let elim_newcomers = false; /*ignoring newcomers causes severe rating deflation: standings
@@ -192,23 +198,30 @@ impl RatingSystem for EloMMR {
                                     .filter(|(player, _, _)| !player.is_newcomer())
                                     .count()
                                     >= WIDTH_SUBSAMPLE;*/
+        let sig_perf = self.sig_perf / contest_weight.sqrt();
 
         // Update ratings due to waiting period between contests
         let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .filter_map(|(player, lo, _)| {
+                let sig_drift = match self.evo {
+                    EvolutionModel::TowardsVar(var_limit) => {
+                        ((var_limit.recip() - sig_perf.powi(-2)).recip() - var_limit).sqrt()
+                    }
+                    EvolutionModel::VarPerSecond(growth_rate) => growth_rate * player.last_dt(),
+                };
                 match self.variant {
                     // if transfer_speed is infinite or the system is Gaussian, the logistic
                     // weights become zero so this special-case optimization clears them out
                     EloMMRVariant::Logistic(transfer_speed) if transfer_speed < f64::INFINITY => {
-                        player.add_noise_best(self.sig_drift, transfer_speed)
+                        player.add_noise_best(sig_drift, transfer_speed)
                     }
-                    _ => player.add_noise_and_collapse(self.sig_drift),
+                    _ => player.add_noise_and_collapse(sig_drift),
                 }
                 if elim_newcomers && player.is_newcomer() {
                     None
                 } else {
-                    Some((player.approx_posterior.with_noise(self.sig_perf), *lo))
+                    Some((player.approx_posterior.with_noise(sig_perf), *lo))
                 }
             })
             .collect();
@@ -230,7 +243,7 @@ impl RatingSystem for EloMMR {
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, my_rank, _)| {
             let extra = if elim_newcomers && player.is_newcomer() {
-                Some(player.approx_posterior.with_noise(self.sig_perf))
+                Some(player.approx_posterior.with_noise(sig_perf))
             } else {
                 None
             };
@@ -272,7 +285,7 @@ impl RatingSystem for EloMMR {
             player.update_rating_with_new_performance(
                 Rating {
                     mu: perf,
-                    sig: self.sig_perf,
+                    sig: sig_perf,
                 },
                 MAX_HISTORY_LEN,
             );

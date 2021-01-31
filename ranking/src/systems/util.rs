@@ -83,6 +83,17 @@ impl Player {
         self.event_history.len() <= 1
     }
 
+    pub fn last_dt(&self) -> f64 {
+        if self.is_newcomer() {
+            0.
+        } else {
+            let len_hist = self.event_history.len();
+            let prior_t = self.event_history[len_hist - 2].contest_time;
+            let last_t = self.event_history[len_hist - 1].contest_time;
+            (last_t - prior_t) as f64
+        }
+    }
+
     pub fn update_rating(&mut self, rating: Rating) {
         // Assumes that a placeholder history item has been pushed containing contest id and time
         self.approx_posterior = rating;
@@ -297,8 +308,8 @@ pub fn robust_average(
 }
 
 pub trait RatingSystem: std::fmt::Debug {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64;
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>);
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64;
+    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>);
 }
 
 pub fn outcome_free<T>(standings: &[(T, usize, usize)]) -> bool {
@@ -350,7 +361,7 @@ pub fn simulate_contest(
         .map(|(player, &(_, lo, hi))| (player, lo, hi))
         .collect();
 
-    system.round_update(standings);
+    system.round_update(contest.weight, standings);
 }
 
 pub fn get_participant_ratings(

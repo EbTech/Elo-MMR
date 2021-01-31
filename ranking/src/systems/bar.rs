@@ -22,13 +22,14 @@ impl Default for BAR {
 }
 
 impl RatingSystem for BAR {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        let c_sq = player.sig.powi(2) + foe.sig.powi(2) + 2. * self.sig_perf.powi(2);
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let sig_perf = self.sig_perf / contest_weight.sqrt();
+        let c_sq = player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2);
         let z = (player.mu - foe.mu) / c_sq.sqrt();
         standard_logistic_cdf(z)
     }
 
-    fn round_update(&self, mut standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
         let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {
@@ -37,7 +38,7 @@ impl RatingSystem for BAR {
             })
             .collect();
 
-        let sig_perf_sq = self.sig_perf.powi(2);
+        let sig_perf_sq = self.sig_perf.powi(2) / contest_weight;
         standings.into_par_iter().for_each(|(player, my_lo, _)| {
             let my_rating = &player.approx_posterior;
             let old_sig_sq = my_rating.sig.powi(2);
@@ -49,7 +50,7 @@ impl RatingSystem for BAR {
                     std::cmp::Ordering::Equal => 0.5,
                     std::cmp::Ordering::Greater => 0.,
                 };
-                let probability = self.win_probability(my_rating, rating);
+                let probability = self.win_probability(contest_weight, my_rating, rating);
 
                 let c_sq = old_sig_sq + rating.sig.powi(2) + 2. * sig_perf_sq;
                 info += probability * (1. - probability) / c_sq;

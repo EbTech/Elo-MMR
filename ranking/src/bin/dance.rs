@@ -93,7 +93,7 @@ fn process_heat(client: &Client, heat_page: Document) {
 fn main() {
     let client = Client::new();
     let root_req = client.get(ROOT_URL);
-    let root_page = request(root_req).expect("Failed status");
+    let root_page = request(root_req).expect("Failed HTTP status");
     let year_range = get_range(&root_page, "inyear");
     let month_range = get_range(&root_page, "inmonth");
     let event_filter = O2cmEventFilter::default();
@@ -104,7 +104,7 @@ fn main() {
         for inmonth in month_range.clone() {
             let date_filter = O2cmDateFilter { inyear, inmonth };
             let month_req = client.post(ROOT_URL).form(&date_filter);
-            let month_page = request(month_req).expect("Failed status");
+            let month_page = request(month_req).expect("Failed HTTP status");
 
             // TODO: reverse iteration order to make it chronological
             for comp_url in get_urls(&month_page) {

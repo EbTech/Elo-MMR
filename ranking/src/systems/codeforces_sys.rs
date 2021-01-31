@@ -8,14 +8,14 @@ use rayon::prelude::*;
 #[derive(Debug)]
 pub struct CodeforcesSys {
     pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
-    pub weight: f64,   // must be positive
+    pub weight_multiplier: f64, // must be positive
 }
 
 impl Default for CodeforcesSys {
     fn default() -> Self {
         Self {
             sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
-            weight: 1.,
+            weight_multiplier: 1.,
         }
     }
 }
@@ -25,6 +25,7 @@ impl CodeforcesSys {
     // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
     fn compute_performance(
         &self,
+        contest_weight: f64,
         better: &[Rating],
         worse: &[Rating],
         all: &[Rating],
@@ -40,7 +41,7 @@ impl CodeforcesSys {
         let ex_rank = 0.5 / my_rating.sig
             + all
                 .iter()
-                .map(|rating| self.win_probability(rating, &my_rating) / rating.sig)
+                .map(|rating| self.win_probability(contest_weight, rating, &my_rating) / rating.sig)
                 .sum::<f64>();
 
         let geo_rank = (ac_rank * ex_rank).sqrt();
@@ -55,12 +56,13 @@ impl CodeforcesSys {
 }
 
 impl RatingSystem for CodeforcesSys {
-    fn win_probability(&self, player: &Rating, foe: &Rating) -> f64 {
-        let z = (player.mu - foe.mu) / self.sig_perf;
+    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let sig_perf = self.sig_perf / contest_weight.sqrt();
+        let z = (player.mu - foe.mu) / sig_perf;
         standard_logistic_cdf(z)
     }
 
-    fn round_update(&self, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
         let all_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, _, _)| Rating {
@@ -74,12 +76,14 @@ impl RatingSystem for CodeforcesSys {
             .zip(all_ratings.par_iter())
             .for_each(|((player, lo, hi), &my_rating)| {
                 let geo_perf = self.compute_performance(
+                    contest_weight,
                     &all_ratings[..lo],
                     &all_ratings[hi + 1..],
                     &all_ratings,
                     my_rating,
                 );
-                let mu = (my_rating.mu + self.weight * geo_perf) / (1. + self.weight);
+                let weight = contest_weight * self.weight_multiplier;
+                let mu = (my_rating.mu + weight * geo_perf) / (1. + weight);
                 let sig = player.approx_posterior.sig;
                 player.update_rating(Rating { mu, sig });
             });

@@ -5,6 +5,14 @@ pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset}
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
+fn one() -> f64 {
+    1.0
+}
+
+fn is_one(&weight: &f64) -> bool {
+    weight == one()
+}
+
 /// Represents the outcome of a contest.
 #[derive(Serialize, Deserialize)]
 pub struct Contest {
@@ -16,6 +24,9 @@ pub struct Contest {
     pub time_seconds: u64,
     /// The list of standings, containing a name and the enclosing range of ties.
     pub standings: Vec<(String, usize, usize)>,
+    /// The relative weight of a contest, default is 1.
+    #[serde(default = "one", skip_serializing_if = "is_one")]
+    pub weight: f64,
 }
 
 /// Helper function to get contest results from the Codeforces API.

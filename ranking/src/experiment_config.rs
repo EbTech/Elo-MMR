@@ -1,7 +1,7 @@
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
 use crate::systems::{
-    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys,
-    TrueSkillSPb, BAR,
+    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, EvolutionModel, Glicko, RatingSystem,
+    TopcoderSys, TrueSkillSPb, BAR,
 };
 
 use crate::metrics::compute_metrics_custom;
@@ -15,8 +15,17 @@ pub struct SystemParams {
     pub params: Vec<f64>,
 }
 
+fn usize_max() -> usize {
+    usize::MAX
+}
+
+fn is_usize_max(&num: &usize) -> bool {
+    num == usize_max()
+}
+
 #[derive(Deserialize, Debug)]
 pub struct ExperimentConfig {
+    #[serde(default = "usize_max", skip_serializing_if = "is_usize_max")]
     pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
@@ -57,7 +66,7 @@ impl Experiment {
             }),
             "codeforces" => Box::new(CodeforcesSys {
                 sig_perf: params.system.params[0],
-                weight: params.system.params[1],
+                weight_multiplier: params.system.params[1],
             }),
             "topcoder" => Box::new(TopcoderSys {
                 weight_multiplier: params.system.params[0],
@@ -70,13 +79,13 @@ impl Experiment {
             }),
             "mmx" => Box::new(EloMMR {
                 sig_perf: params.system.params[0],
-                sig_drift: params.system.params[1],
+                evo: EvolutionModel::TowardsVar(params.system.params[1].powi(2)),
                 split_ties: params.system.params[2] > 0.,
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
                 sig_perf: params.system.params[0],
-                sig_drift: params.system.params[1],
+                evo: EvolutionModel::TowardsVar(params.system.params[1].powi(2)),
                 split_ties: params.system.params[2] > 0.,
                 variant: EloMMRVariant::Logistic(params.system.params[3]),
             }),

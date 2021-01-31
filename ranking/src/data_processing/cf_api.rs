@@ -105,6 +105,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
             name,
             time_seconds,
             standings,
+            weight: 1.0,
         })
     }
 }

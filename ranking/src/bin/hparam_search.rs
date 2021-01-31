@@ -31,8 +31,11 @@ fn main() {
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for sig_perf in perf_range.clone() {
-        for weight in log_space(0.01, 10., 16, 1e-3) {
-            let system = systems::CodeforcesSys { sig_perf, weight };
+        for weight_multiplier in log_space(0.01, 10., 16, 1e-3) {
+            let system = systems::CodeforcesSys {
+                sig_perf,
+                weight_multiplier,
+            };
             systems.push(Box::new(system));
         }
     }
@@ -55,10 +58,11 @@ fn main() {
     }
     for sig_perf in perf_range.clone() {
         for sig_drift in drift_range.clone() {
+            let var_drift = sig_drift * sig_drift;
             for &split_ties in &[false, true] {
                 let system = systems::EloMMR {
                     sig_perf,
-                    sig_drift,
+                    evo: systems::EvolutionModel::TowardsVar(var_drift),
                     split_ties,
                     variant: systems::EloMMRVariant::Gaussian,
                 };
@@ -68,8 +72,8 @@ fn main() {
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
                         sig_perf,
-                        sig_drift,
-                        split_ties: false,
+                        evo: systems::EvolutionModel::TowardsVar(var_drift),
+                        split_ties,
                         variant: systems::EloMMRVariant::Logistic(rho),
                     };
                     systems.push(Box::new(system));
