@@ -11,6 +11,7 @@ fn log_space(
     steps: usize,
     resolution: f64,
 ) -> impl Iterator<Item = f64> + Clone {
+    assert!(lo < hi && steps > 1);
     lo = lo.ln();
     hi = hi.ln();
     let mult = ((steps - 1) as f64).recip();
@@ -26,14 +27,14 @@ fn main() {
     }
 
     // Prepare the contest system parameters
-    let perf_range = log_space(75., 600., 10, 1.);
+    let beta_range = log_space(75., 600., 10, 1.);
     let drift_range = log_space(5., 40., 10, 1.);
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
-    for sig_perf in perf_range.clone() {
+    for beta in beta_range.clone() {
         for weight_multiplier in log_space(0.01, 10., 16, 1e-3) {
             let system = systems::CodeforcesSys {
-                sig_perf,
+                beta,
                 weight_multiplier,
             };
             systems.push(Box::new(system));
@@ -44,25 +45,25 @@ fn main() {
         systems.push(Box::new(system));
     }
     for eps in log_space(0.5, 50., 9, 0.1) {
-        for sig_perf in perf_range.clone() {
+        for beta in beta_range.clone() {
             for sig_drift in drift_range.clone() {
                 let system = systems::TrueSkillSPb {
                     eps,
-                    beta: sig_perf,
+                    beta,
                     convergence_eps: 1e-4,
-                    sigma_growth: sig_drift,
+                    sig_drift,
                 };
                 systems.push(Box::new(system));
             }
         }
     }
-    for sig_perf in perf_range.clone() {
-        for sig_drift in drift_range.clone() {
-            let var_drift = sig_drift * sig_drift;
+    for beta in beta_range.clone() {
+        for sig_limit in log_space(20., 0.5 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
                 let system = systems::EloMMR {
-                    sig_perf,
-                    evo: systems::EvolutionModel::TowardsVar(var_drift),
+                    beta,
+                    sig_limit,
+                    drift_per_sec: 0.,
                     split_ties,
                     variant: systems::EloMMRVariant::Gaussian,
                 };
@@ -71,8 +72,9 @@ fn main() {
                 let rho_vals = &[0., 0.04, 0.2, 1., 5., f64::INFINITY];
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
-                        sig_perf,
-                        evo: systems::EvolutionModel::TowardsVar(var_drift),
+                        beta,
+                        sig_limit,
+                        drift_per_sec: 0.,
                         split_ties,
                         variant: systems::EloMMRVariant::Logistic(rho),
                     };
@@ -81,16 +83,13 @@ fn main() {
             }
         }
     }
-    for sig_perf in perf_range.clone() {
+    for beta in beta_range.clone() {
         for sig_drift in drift_range.clone() {
-            let system = systems::Glicko {
-                sig_perf,
-                sig_drift,
-            };
+            let system = systems::Glicko { beta, sig_drift };
             systems.push(Box::new(system));
 
             let system = systems::BAR {
-                sig_perf,
+                beta,
                 sig_drift,
                 kappa: 1e-4,
             };

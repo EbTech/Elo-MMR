@@ -8,7 +8,7 @@ mod util;
 
 pub use bar::BAR;
 pub use codeforces_sys::CodeforcesSys;
-pub use elo_mmr::{EloMMR, EloMMRVariant, EvolutionModel};
+pub use elo_mmr::{EloMMR, EloMMRVariant};
 pub use glicko::Glicko;
 pub use topcoder_sys::TopcoderSys;
 pub use true_skill::TrueSkillSPb;

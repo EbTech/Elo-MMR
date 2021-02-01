@@ -1,7 +1,6 @@
 //! Elo-R system details: https://arxiv.org/abs/2101.00400
 use super::util::{
-    solve_newton, standard_logistic_cdf, standard_normal_cdf, standard_normal_pdf, Player, Rating,
-    RatingSystem, TanhTerm,
+    solve_newton, standard_normal_cdf, standard_normal_pdf, Player, Rating, RatingSystem, TanhTerm,
 };
 use rayon::prelude::*;
 use std::cmp::Ordering;
@@ -75,17 +74,18 @@ pub enum EloMMRVariant {
 }
 
 #[derive(Debug)]
-pub enum EvolutionModel {
-    TowardsVar(f64),
-    VarPerSecond(f64),
-}
-
-#[derive(Debug)]
 pub struct EloMMR {
-    pub sig_perf: f64,          // variation in individual performances, at weight 1
-    pub evo: EvolutionModel,    // skill drift between successive performances
-    pub split_ties: bool,       // whether to split ties into half win and half loss
-    pub variant: EloMMRVariant, // whether to use logistic or Gaussian distributions
+    // squared variation in individual performances, when the contest_weight is 1
+    pub beta: f64,
+    // each contest participation adds an amount of drift such that, in the absence of
+    // much time passing, the limiting skill uncertainty's square approaches this value
+    pub sig_limit: f64,
+    // additional variance per second, from a drift that's continuous in time
+    pub drift_per_sec: f64,
+    // whether to count ties as half a win plus half a loss
+    pub split_ties: bool,
+    // whether to use a Gaussian or logistic performance model
+    pub variant: EloMMRVariant,
 }
 
 impl Default for EloMMR {
@@ -101,18 +101,13 @@ impl EloMMR {
 
     // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
     // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
-    pub fn from_limit(
-        sig_perf: f64,
-        sig_limit: f64,
-        split_ties: bool,
-        variant: EloMMRVariant,
-    ) -> Self {
+    pub fn from_limit(beta: f64, sig_limit: f64, split_ties: bool, variant: EloMMRVariant) -> Self {
         assert!(sig_limit > 0.);
-        assert!(sig_perf > sig_limit);
-        let evo = EvolutionModel::TowardsVar(sig_limit * sig_limit);
+        assert!(beta > sig_limit);
         Self {
-            sig_perf,
-            evo,
+            beta,
+            sig_limit,
+            drift_per_sec: 0.,
             split_ties,
             variant,
         }
@@ -180,16 +175,6 @@ impl EloMMR {
 }
 
 impl RatingSystem for EloMMR {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
-        let sig_perf = self.sig_perf / contest_weight.sqrt();
-        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2)).sqrt();
-        let z = (player.mu - foe.mu) / sigma;
-        match self.variant {
-            EloMMRVariant::Gaussian => standard_normal_cdf(z),
-            EloMMRVariant::Logistic(_) => standard_logistic_cdf(z),
-        }
-    }
-
     fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
         const WIDTH_SUBSAMPLE: usize = usize::MAX;
         const MAX_HISTORY_LEN: usize = usize::MAX;
@@ -198,18 +183,16 @@ impl RatingSystem for EloMMR {
                                     .filter(|(player, _, _)| !player.is_newcomer())
                                     .count()
                                     >= WIDTH_SUBSAMPLE;*/
-        let sig_perf = self.sig_perf / contest_weight.sqrt();
+        let excess_beta_sq =
+            (self.beta * self.beta - self.sig_limit * self.sig_limit) / contest_weight;
+        let sig_perf = (self.sig_limit * self.sig_limit + excess_beta_sq).sqrt();
+        let discrete_drift = self.sig_limit.powi(4) / excess_beta_sq;
 
         // Update ratings due to waiting period between contests
         let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .filter_map(|(player, lo, _)| {
-                let sig_drift = match self.evo {
-                    EvolutionModel::TowardsVar(var_limit) => {
-                        ((var_limit.recip() - sig_perf.powi(-2)).recip() - var_limit).sqrt()
-                    }
-                    EvolutionModel::VarPerSecond(growth_rate) => growth_rate * player.last_dt(),
-                };
+                let sig_drift = (discrete_drift + self.drift_per_sec * player.last_dt()).sqrt();
                 match self.variant {
                     // if transfer_speed is infinite or the system is Gaussian, the logistic
                     // weights become zero so this special-case optimization clears them out
@@ -251,7 +234,7 @@ impl RatingSystem for EloMMR {
             let idx_subsample =
                 Self::subsample(&idx_by_rating, &all_ratings, player_mu, WIDTH_SUBSAMPLE);
             let bounds = (-6000.0, 9000.0);
-            let perf = match self.variant {
+            match self.variant {
                 EloMMRVariant::Gaussian => {
                     let idx_subsample = idx_subsample
                         .map(|i| all_ratings[i])
@@ -264,7 +247,11 @@ impl RatingSystem for EloMMR {
                             })
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
-                    solve_newton(bounds, f)
+                    let mu_perf = solve_newton(bounds, f);
+                    player.update_rating_with_normal(Rating {
+                        mu: mu_perf,
+                        sig: sig_perf,
+                    });
                 }
                 EloMMRVariant::Logistic(_) => {
                     let idx_subsample = idx_subsample
@@ -278,17 +265,16 @@ impl RatingSystem for EloMMR {
                             })
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
-                    solve_newton(bounds, f)
+                    let mu_perf = solve_newton(bounds, f);
+                    player.update_rating_with_logistic(
+                        Rating {
+                            mu: mu_perf,
+                            sig: sig_perf,
+                        },
+                        MAX_HISTORY_LEN,
+                    );
                 }
             };
-
-            player.update_rating_with_new_performance(
-                Rating {
-                    mu: perf,
-                    sig: sig_perf,
-                },
-                MAX_HISTORY_LEN,
-            );
         });
     }
 }

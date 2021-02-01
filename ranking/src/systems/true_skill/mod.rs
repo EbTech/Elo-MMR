@@ -1,7 +1,7 @@
 mod nodes;
 mod normal;
 
-use super::util::{standard_normal_cdf, Player, Rating, RatingSystem};
+use super::util::{Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -25,7 +25,7 @@ pub struct TrueSkillSPb {
     // epsilon used for convergence loop
     pub convergence_eps: f64,
     // defines sigma growth per round
-    pub sigma_growth: f64,
+    pub sig_drift: f64,
 }
 
 impl Default for TrueSkillSPb {
@@ -34,7 +34,7 @@ impl Default for TrueSkillSPb {
             eps: 1.,
             beta: 175.,
             convergence_eps: 1e-4,
-            sigma_growth: 35.,
+            sig_drift: 35.,
         }
     }
 }
@@ -120,7 +120,7 @@ impl TrueSkillSPb {
 
         // could be optimized, written that way for simplicity
         // TODO: invent better variable names
-        let beta = self.beta / contest_weight.sqrt();
+        let sig_perf = self.beta / contest_weight.sqrt();
         let mut s = gen_player_message(contest, &ProdNode::new());
         let mut perf = gen_player_message(contest, &ProdNode::new());
         let mut p = gen_player_message(contest, &ProdNode::new());
@@ -151,7 +151,7 @@ impl TrueSkillSPb {
                     RefCell::borrow_mut(perf[i][j][k].get_edges_mut().last_mut().unwrap()).1 =
                         Gaussian {
                             mu: 0.,
-                            sigma: beta,
+                            sigma: sig_perf,
                         };
 
                     players.push((i, j, k, new_edge));
@@ -215,22 +215,18 @@ impl TrueSkillSPb {
             let (player, gaussian) = &mut contest[i][j][k];
 
             *gaussian = prior * performance;
-            player.update_rating(Rating {
-                mu: gaussian.mu,
-                sig: gaussian.sigma,
-            });
+            player.update_rating(
+                Rating {
+                    mu: gaussian.mu,
+                    sig: gaussian.sigma,
+                },
+                0.,
+            );
         }
     }
 }
 
 impl RatingSystem for TrueSkillSPb {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
-        let sig_perf = self.beta / contest_weight.sqrt();
-        let sigma = (player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2)).sqrt();
-        let z = (player.mu - foe.mu) / sigma;
-        standard_normal_cdf(z)
-    }
-
     fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
         let mut contest = TSContest::new();
 
@@ -243,7 +239,7 @@ impl RatingSystem for TrueSkillSPb {
             if lo != prev {
                 contest.push(vec![]);
             }
-            let noised = user.approx_posterior.with_noise(self.sigma_growth);
+            let noised = user.approx_posterior.with_noise(self.sig_drift);
             let gaussian = Gaussian {
                 mu: noised.mu,
                 sigma: noised.sig,

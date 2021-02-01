@@ -17,13 +17,14 @@ impl Default for TopcoderSys {
     }
 }
 
-impl RatingSystem for TopcoderSys {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
-        let weight = contest_weight * self.weight_multiplier;
-        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig) / weight;
+impl TopcoderSys {
+    fn win_probability(&self, multiplier: f64, player: &Rating, foe: &Rating) -> f64 {
+        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig) / multiplier;
         standard_normal_cdf(z)
     }
+}
 
+impl RatingSystem for TopcoderSys {
     fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
@@ -52,17 +53,18 @@ impl RatingSystem for TopcoderSys {
         let cap_multiplier = self.weight_multiplier * (1. + limit_weight)
             / (1. + limit_weight * self.weight_multiplier);
 
-        let new_ratings: Vec<Rating> = standings
+        let new_ratings: Vec<(Rating, f64)> = standings
             .par_iter()
             .map(|(player, lo, hi)| {
                 let old_rating = player.approx_posterior.mu;
                 let vol_sq = player.approx_posterior.sig.powi(2);
 
+                let mut weight = contest_weight * self.weight_multiplier;
                 let ex_rank = standings
                     .iter()
                     .map(|&(ref foe, _, _)| {
                         self.win_probability(
-                            contest_weight,
+                            weight,
                             &foe.approx_posterior,
                             &player.approx_posterior,
                         )
@@ -77,8 +79,7 @@ impl RatingSystem for TopcoderSys {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let num_contests = player.event_history.len() as f64;
-                let mut weight = 1. / (0.82 - 0.42 / num_contests) - 1.;
-                weight *= contest_weight * self.weight_multiplier;
+                weight *= 1. / (0.82 - 0.42 / num_contests) - 1.;
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {
@@ -93,18 +94,20 @@ impl RatingSystem for TopcoderSys {
                 let new_vol =
                     ((try_rating - old_rating).powi(2) / weight + vol_sq / (1. + weight)).sqrt();
 
-                Rating {
-                    mu: new_rating,
-                    sig: new_vol,
-                }
+                (
+                    Rating {
+                        mu: new_rating,
+                        sig: new_vol,
+                    },
+                    perf_as,
+                )
             })
             .collect();
 
-        standings
-            .into_par_iter()
-            .zip(new_ratings)
-            .for_each(|((player, _, _), new_rating)| {
-                player.update_rating(new_rating);
-            });
+        standings.into_par_iter().zip(new_ratings).for_each(
+            |((player, _, _), (new_rating, new_perf))| {
+                player.update_rating(new_rating, new_perf);
+            },
+        );
     }
 }

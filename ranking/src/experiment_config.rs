@@ -1,7 +1,7 @@
 use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
 use crate::systems::{
-    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, EvolutionModel, Glicko, RatingSystem,
-    TopcoderSys, TrueSkillSPb, BAR,
+    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys,
+    TrueSkillSPb, BAR,
 };
 
 use crate::metrics::compute_metrics_custom;
@@ -56,16 +56,16 @@ impl Experiment {
 
         let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
             "glicko" => Box::new(Glicko {
-                sig_perf: params.system.params[0],
+                beta: params.system.params[0],
                 sig_drift: params.system.params[1],
             }),
             "bar" => Box::new(BAR {
-                sig_perf: params.system.params[0],
+                beta: params.system.params[0],
                 sig_drift: params.system.params[1],
                 kappa: 1e-4,
             }),
             "codeforces" => Box::new(CodeforcesSys {
-                sig_perf: params.system.params[0],
+                beta: params.system.params[0],
                 weight_multiplier: params.system.params[1],
             }),
             "topcoder" => Box::new(TopcoderSys {
@@ -75,17 +75,19 @@ impl Experiment {
                 eps: params.system.params[0],
                 beta: params.system.params[1],
                 convergence_eps: params.system.params[2],
-                sigma_growth: params.system.params[3],
+                sig_drift: params.system.params[3],
             }),
             "mmx" => Box::new(EloMMR {
-                sig_perf: params.system.params[0],
-                evo: EvolutionModel::TowardsVar(params.system.params[1].powi(2)),
+                beta: params.system.params[0],
+                sig_limit: params.system.params[1],
+                drift_per_sec: 0.,
                 split_ties: params.system.params[2] > 0.,
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
-                sig_perf: params.system.params[0],
-                evo: EvolutionModel::TowardsVar(params.system.params[1].powi(2)),
+                beta: params.system.params[0],
+                sig_limit: params.system.params[1],
+                drift_per_sec: 0.,
                 split_ties: params.system.params[2] > 0.,
                 variant: EloMMRVariant::Logistic(params.system.params[3]),
             }),

@@ -5,35 +5,34 @@ use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct Glicko {
-    pub sig_perf: f64,
+    pub beta: f64,
     pub sig_drift: f64,
 }
 
 impl Default for Glicko {
     fn default() -> Self {
         Self {
-            sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
+            beta: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
             sig_drift: 35.,
         }
     }
 }
 
-impl RatingSystem for Glicko {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
-        let sig_perf = self.sig_perf / contest_weight.sqrt();
+impl Glicko {
+    fn win_probability(&self, sig_perf: f64, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / foe.sig.hypot(sig_perf);
         standard_logistic_cdf(z)
     }
+}
 
+impl RatingSystem for Glicko {
     fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let sig_perf = self.sig_perf / contest_weight.sqrt();
+        let sig_perf = self.beta / contest_weight.sqrt();
         let all_ratings: Vec<(Rating, usize, f64)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {
                 player.add_noise_and_collapse(self.sig_drift);
-                let g = 1f64
-                    .hypot(player.approx_posterior.sig / sig_perf)
-                    .recip();
+                let g = 1f64.hypot(player.approx_posterior.sig / sig_perf).recip();
                 (player.approx_posterior, *lo, g)
             })
             .collect();
@@ -49,7 +48,7 @@ impl RatingSystem for Glicko {
                     std::cmp::Ordering::Equal => 0.5,
                     std::cmp::Ordering::Greater => 0.,
                 };
-                let probability = self.win_probability(contest_weight, my_rating, rating);
+                let probability = self.win_probability(sig_perf, my_rating, rating);
                 // Equivalently, let probability =
                 //  (1f64 + (gli_q * g * (rating.mu - my_rating.mu)).exp()).recip();
 
@@ -68,7 +67,7 @@ impl RatingSystem for Glicko {
             update *= gli_q * sig * sig;
             let mu = my_rating.mu + update;
 
-            player.update_rating(Rating { mu, sig });
+            player.update_rating(Rating { mu, sig }, 0.);
         });
     }
 }

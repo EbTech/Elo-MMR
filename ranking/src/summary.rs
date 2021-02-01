@@ -54,11 +54,6 @@ pub fn make_leaderboard(
             .map(|event| event.display_rating)
             .max()
             .unwrap();
-        let last_perf = player
-            .logistic_factors
-            .back()
-            .map(|r| r.mu.round() as i32)
-            .unwrap_or(0);
         let previous_rating = if num_contests == 1 {
             960 // TODO: get rid of this magic number
         } else {
@@ -72,7 +67,7 @@ pub fn make_leaderboard(
             num_contests,
             last_contest: last_event.contest_id,
             last_contest_time: last_event.contest_time,
-            last_perf,
+            last_perf: last_event.perf_score,
             last_delta: last_event.display_rating - previous_rating,
             handle: handle.clone(),
         });

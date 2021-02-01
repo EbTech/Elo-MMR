@@ -7,14 +7,14 @@ use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct CodeforcesSys {
-    pub sig_perf: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
+    pub beta: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
     pub weight_multiplier: f64, // must be positive
 }
 
 impl Default for CodeforcesSys {
     fn default() -> Self {
         Self {
-            sig_perf: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
+            beta: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
             weight_multiplier: 1.,
         }
     }
@@ -25,14 +25,14 @@ impl CodeforcesSys {
     // returns: performance of the player in ratings[id] who tied against ratings[lo..hi]
     fn compute_performance(
         &self,
-        contest_weight: f64,
+        sig_perf: f64,
         better: &[Rating],
         worse: &[Rating],
         all: &[Rating],
         my_rating: Rating,
     ) -> f64 {
         // The conversion is 2*rank - 1/my_sig = 2*pos_offset + tied_offset = pos - neg + all
-        // Note: the caller currently guarantees that every .sig equals self.sig_perf
+        // Note: the caller currently guarantees that every .sig equals sig_perf
         let pos_offset: f64 = better.iter().map(|rating| rating.sig.recip()).sum();
         let neg_offset: f64 = worse.iter().map(|rating| rating.sig.recip()).sum();
         let all_offset: f64 = all.iter().map(|rating| rating.sig.recip()).sum();
@@ -41,7 +41,7 @@ impl CodeforcesSys {
         let ex_rank = 0.5 / my_rating.sig
             + all
                 .iter()
-                .map(|rating| self.win_probability(contest_weight, rating, &my_rating) / rating.sig)
+                .map(|rating| self.win_probability(sig_perf, rating, &my_rating) / rating.sig)
                 .sum::<f64>();
 
         let geo_rank = (ac_rank * ex_rank).sqrt();
@@ -53,21 +53,21 @@ impl CodeforcesSys {
         );
         geo_rating
     }
-}
 
-impl RatingSystem for CodeforcesSys {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64 {
-        let sig_perf = self.sig_perf / contest_weight.sqrt();
+    fn win_probability(&self, sig_perf: f64, player: &Rating, foe: &Rating) -> f64 {
         let z = (player.mu - foe.mu) / sig_perf;
         standard_logistic_cdf(z)
     }
+}
 
+impl RatingSystem for CodeforcesSys {
     fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
+        let sig_perf = self.beta / contest_weight.sqrt();
         let all_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, _, _)| Rating {
                 mu: player.approx_posterior.mu,
-                sig: self.sig_perf,
+                sig: sig_perf,
             })
             .collect();
 
@@ -76,7 +76,7 @@ impl RatingSystem for CodeforcesSys {
             .zip(all_ratings.par_iter())
             .for_each(|((player, lo, hi), &my_rating)| {
                 let geo_perf = self.compute_performance(
-                    contest_weight,
+                    sig_perf,
                     &all_ratings[..lo],
                     &all_ratings[hi + 1..],
                     &all_ratings,
@@ -85,7 +85,7 @@ impl RatingSystem for CodeforcesSys {
                 let weight = contest_weight * self.weight_multiplier;
                 let mu = (my_rating.mu + weight * geo_perf) / (1. + weight);
                 let sig = player.approx_posterior.sig;
-                player.update_rating(Rating { mu, sig });
+                player.update_rating(Rating { mu, sig }, geo_perf);
             });
     }
 }

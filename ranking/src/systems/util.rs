@@ -59,12 +59,12 @@ pub struct PlayerEvent {
     pub contest_id: usize,
     pub contest_time: u64,
     pub display_rating: i32,
+    pub perf_score: i32,
 }
 
 pub struct Player {
-    // TODO: mark all fields private, with API based on appropriately-named read-only methods
     normal_factor: Rating,
-    pub logistic_factors: VecDeque<TanhTerm>,
+    logistic_factors: VecDeque<TanhTerm>,
     pub event_history: Vec<PlayerEvent>,
     pub approx_posterior: Rating,
 }
@@ -90,23 +90,38 @@ impl Player {
             let len_hist = self.event_history.len();
             let prior_t = self.event_history[len_hist - 2].contest_time;
             let last_t = self.event_history[len_hist - 1].contest_time;
-            (last_t - prior_t) as f64
+            last_t.saturating_sub(prior_t) as f64
         }
     }
 
-    pub fn update_rating(&mut self, rating: Rating) {
+    pub fn update_rating(&mut self, rating: Rating, performance_score: f64) {
         // Assumes that a placeholder history item has been pushed containing contest id and time
-        self.approx_posterior = rating;
         let last_event = self.event_history.last_mut().unwrap();
         assert_eq!(last_event.display_rating, 0);
 
         // TODO: get rid of the magic numbers 2 and 80!
         //       2.0 gives a conservative estimate: use 0 to get mean estimates
         //       80 is EloR's default sig_lim
+        self.approx_posterior = rating;
         last_event.display_rating = (rating.mu - 2.0 * (rating.sig - 80.)).round() as i32;
+        last_event.perf_score = performance_score.round() as i32;
     }
 
-    pub fn update_rating_with_new_performance(&mut self, performance: Rating, max_history: usize) {
+    pub fn update_rating_with_normal(&mut self, performance: Rating) {
+        let wn = self.normal_factor.sig.powi(-2);
+        let wp = performance.sig.powi(-2);
+        self.normal_factor.mu = (wn * self.normal_factor.mu + wp * performance.mu) / (wn + wp);
+        self.normal_factor.sig = (wn + wp).recip().sqrt();
+
+        let new_rating = if self.logistic_factors.is_empty() {
+            self.approx_posterior
+        } else {
+            self.approximate_posterior(performance.sig)
+        };
+        self.update_rating(new_rating, performance.mu);
+    }
+
+    pub fn update_rating_with_logistic(&mut self, performance: Rating, max_history: usize) {
         if self.logistic_factors.len() >= max_history {
             // wl can be chosen so as to preserve total weight or rating; we choose the former.
             // Either way, the deleted element should be small enough not to matter.
@@ -118,16 +133,23 @@ impl Player {
         }
         self.logistic_factors.push_back(performance.into());
 
-        let weight = self.normal_factor.sig.powi(-2);
+        let new_rating = self.approximate_posterior(performance.sig);
+        self.update_rating(new_rating, performance.mu);
+    }
+
+    // Helper function that assumes the factors have been updated with the latest performance,
+    // but self.approx_posterior has not yet been updated with this performance.
+    fn approximate_posterior(&self, perf_sig: f64) -> Rating {
+        let normal_weight = self.normal_factor.sig.powi(-2);
         let mu = robust_average(
             self.logistic_factors.iter().cloned(),
-            -self.normal_factor.mu * weight,
-            weight,
+            -self.normal_factor.mu * normal_weight,
+            normal_weight,
         );
-        let sig = (self.approx_posterior.sig.powi(-2) + performance.sig.powi(-2))
+        let sig = (self.approx_posterior.sig.powi(-2) + perf_sig.powi(-2))
             .recip()
             .sqrt();
-        self.update_rating(Rating { mu, sig });
+        Rating { mu, sig }
     }
 
     // Method #1: the Gaussian/Brownian approximation, in which rating is a Markov state
@@ -308,7 +330,6 @@ pub fn robust_average(
 }
 
 pub trait RatingSystem: std::fmt::Debug {
-    fn win_probability(&self, contest_weight: f64, player: &Rating, foe: &Rating) -> f64;
     fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>);
 }
 
@@ -333,6 +354,8 @@ pub fn simulate_contest(
 
     // If a player is competing for the first time, initialize with a default rating
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
+        // TODO TEAMS: make an entry for every member of the team, then make the team object
+        //             in teams: PlayersByName with system.make_team(players)
         players
             .entry(handle.clone())
             .or_insert_with(|| RefCell::new(Player::with_rating(mu_newbie, sig_newbie)));
@@ -343,6 +366,7 @@ pub fn simulate_contest(
     let mut guards: Vec<RefMut<Player>> = contest
         .standings
         .iter()
+        // TODO TEAMS: if individual, get guard to that, else get guard to its team
         .map(|&(ref handle, _, _)| players.get(handle).expect("Duplicate handles").borrow_mut())
         .collect();
 
@@ -354,6 +378,7 @@ pub fn simulate_contest(
                 contest_id: contest.id,
                 contest_time: contest.time_seconds,
                 display_rating: 0,
+                perf_score: 0,
             });
             std::ops::DerefMut::deref_mut(player)
         })
@@ -362,6 +387,9 @@ pub fn simulate_contest(
         .collect();
 
     system.round_update(contest.weight, standings);
+
+    // TODO TEAMS: each participant uses its team's update using system.infer_from_team(),
+    // making sure to copy the team's event_history metadata as well
 }
 
 pub fn get_participant_ratings(
