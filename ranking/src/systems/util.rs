@@ -114,7 +114,7 @@ impl Player {
         self.normal_factor.sig = (wn + wp).recip().sqrt();
 
         let new_rating = if self.logistic_factors.is_empty() {
-            self.approx_posterior
+            self.normal_factor
         } else {
             self.approximate_posterior(performance.sig)
         };

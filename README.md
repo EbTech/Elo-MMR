@@ -22,7 +22,7 @@ Note: in theory, Elo-MMR can be applied in team competitions as well, but additi
 
 ## Getting Started
 
-First, [install Rust](https://www.rust-lang.org/tools/install). From the `ranking` directory, run the command
+First, [install Rust](https://www.rust-lang.org/tools/install). From the `ranking/` directory, run the command
 ```
 cargo run --release --bin rate mmr codeforces
 ```

@@ -1,6 +1,7 @@
 ﻿namespace infernet
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Collections;
     using System.Collections.Generic;
@@ -14,7 +15,7 @@
     {
         public int id;
         public string name;
-        public int time_seconds;
+        public long time_seconds;
         [Newtonsoft.Json.JsonConverter(typeof(TupleListConverter<string, int, int>))]
         public List<Tuple<string, int, int>> standings;
     }
@@ -24,49 +25,57 @@
         static void Main(string[] args)
         {
             // TrueSkill parameters
-            double mu_noob = 1500, sig_noob = 200, perf_sig = 100;
+            const double mu_noob = 1500, sig_noob = 350, sig_perf = 175, sig_drift = 30, eps = 1;
 
-            // Read in CF files
-            string CFPath = "C:\\Users\\bb8\\Documents\\cs-projects\\EloR\\cache\\codeforces";
+            // Read in Codeforces files
+            string CFPath = Path.Combine("..", "cache", "codeforces");
 
             var priorRatings = new Dictionary<string, Gaussian>();
 
-            for (int contest_id = 1; contest_id <= 1; contest_id++)
+            for (int contest_id = 0; contest_id <= 0; contest_id++)
             {
-                string jsontext = System.IO.File.ReadAllText($"{CFPath}\\{contest_id}.json");
+                string jsontext = System.IO.File.ReadAllText(Path.Combine(CFPath, $"{contest_id}.json"));
                 Contest contest = JsonConvert.DeserializeObject<Contest>(jsontext);
+                int N = contest.standings.Count;
 
                 // Fill in missing priors
-                for (int i = 0; i < contest.standings.Count; i++)
+                for (int i = 0; i < N; i++)
                 {
-                    var playerName = contest.standings[i].Item1;
+                    string playerName = contest.standings[i].Item1;
                     if (!priorRatings.ContainsKey(playerName))
                     {
-                        priorRatings[playerName] = Gaussian.FromMeanAndVariance(mu_noob, sig_noob);
+                        priorRatings[playerName] = Gaussian.FromMeanAndVariance(mu_noob, sig_noob * sig_noob);
                     }
                 }
-
-                // Number of participants in this contest
-                var N = contest.standings.Count;
 
                 // Solve an instance of TrueSkill, using previous round ratings as priors
                 // (Can also do a massive program with all participants together if retaining history)
                 var playerSkills = Variable.Array<double>(new Range(N));
                 for (int i = 0; i < N; i++)
                 {
-                    var playerName = contest.standings[i].Item1;
+                    string playerName = contest.standings[i].Item1;
                     Gaussian prior = priorRatings[playerName];
-                    playerSkills[i] = Variable.GaussianFromMeanAndVariance(prior.GetMean(), prior.GetVariance());
+                    double newVariance = prior.GetVariance() + sig_drift * sig_drift;
+                    playerSkills[i] = Variable.GaussianFromMeanAndVariance(prior.GetMean(), newVariance);
                 }
 
-                for (int i = 0; i < N - 1; i++)
+                for (int i = 1; i < N; i++)
                 {
-                    // The player performance is a noisy version of their skill
-                    var winnerPerformance = Variable.GaussianFromMeanAndVariance(playerSkills[i], perf_sig);
-                    var loserPerformance = Variable.GaussianFromMeanAndVariance(playerSkills[i + 1], perf_sig);
+                    // The player performance is a noisy version of their skill
+                    var winnerPerformance = Variable.GaussianFromMeanAndVariance(playerSkills[i - 1], sig_perf * sig_perf);
+                    var loserPerformance = Variable.GaussianFromMeanAndVariance(playerSkills[i], sig_perf * sig_perf);
+                    var perfDelta = winnerPerformance - loserPerformance;
 
-                    // The winner performed better in this game
-                    Variable.ConstrainTrue(winnerPerformance > loserPerformance);
+                    if (contest.standings[i - 1].Item2 != contest.standings[i].Item2)
+                    {
+                        // The winner performed better in this game
+                        Variable.ConstrainTrue(perfDelta > eps);
+                    }
+                    else
+                    {
+                        // The players tied
+                        Variable.ConstrainBetween(perfDelta, -eps, eps);
+                    }
                 }
 
                 // Run inference
@@ -76,7 +85,7 @@
                 // Save the posterior
                 for (int i = 0; i < N; i++)
                 {
-                    var playerName = contest.standings[i].Item1;
+                    string playerName = contest.standings[i].Item1;
                     priorRatings[playerName] = inferredSkills[i];
                 }
             }
@@ -88,7 +97,7 @@
 
             foreach (var playerSkill in orderedPlayerSkills)
             {
-                Console.WriteLine($"Player {playerSkill.Player} skill: {playerSkill.Skill}");
+                Console.WriteLine($"Player {playerSkill.Player}'s skill: {playerSkill.Skill}");
             }
             Console.WriteLine("Computations done");
         }

@@ -58,7 +58,7 @@ fn main() {
         }
     }
     for beta in beta_range.clone() {
-        for sig_limit in log_space(20., 0.5 * beta, 10, 1.) {
+        for sig_limit in log_space(20., 0.75 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
                 let system = systems::EloMMR {
                     beta,

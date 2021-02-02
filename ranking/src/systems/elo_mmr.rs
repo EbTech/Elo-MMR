@@ -192,7 +192,12 @@ impl RatingSystem for EloMMR {
         let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .filter_map(|(player, lo, _)| {
-                let sig_drift = (discrete_drift + self.drift_per_sec * player.last_dt()).sqrt();
+                let continuous_drift = if self.drift_per_sec == 0. {
+                    0.
+                } else {
+                    self.drift_per_sec * player.last_dt()
+                };
+                let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 match self.variant {
                     // if transfer_speed is infinite or the system is Gaussian, the logistic
                     // weights become zero so this special-case optimization clears them out
