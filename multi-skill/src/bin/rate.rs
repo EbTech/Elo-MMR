@@ -1,9 +1,9 @@
-extern crate ranking;
+extern crate multi_skill;
 
-use ranking::data_processing::get_dataset_by_name;
-use ranking::experiment_config::Experiment;
-use ranking::summary::print_ratings;
-use ranking::systems::{get_rating_system_by_name, simulate_contest};
+use multi_skill::data_processing::get_dataset_by_name;
+use multi_skill::experiment_config::Experiment;
+use multi_skill::summary::print_ratings;
+use multi_skill::systems::{get_rating_system_by_name, simulate_contest};
 use std::collections::HashMap;
 
 fn get_experiment_from_args(args: &[String]) -> Experiment {

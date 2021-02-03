@@ -1,5 +1,7 @@
 # Elo-MMR: A Rating System for Massive Multiplayer Competitions
 
+[![Latest Version](https://img.shields.io/crates/v/multi-skill.svg)](https://crates.io/crates/multi-skill)
+
 This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR.
 
 Rating systems estimate the skills of players who participate in a common activity. The Elo-MMR algorithm was designed for activities in which moderate to large numbers of players are ranked at competitive events, and results cannot be standardized across different events for any of the following reasons:
@@ -14,7 +16,7 @@ In these settings, it's often useful to quantify how good a player is. Ratings c
 
 - Massively Multiplayer: the algorithm is fast and numerically stable, even with thousands or millions of individually ranked contestants.
 
-- Aligned Incentives: the better you do in competitions, the higher your rating will be.
+- Incentive-Compatible: the better you do in competitions, the higher your rating will be.
 
 - Robust Response: one very bad (or very good) event cannot change your rating too much.
 
@@ -57,21 +59,20 @@ Please note that your first Codeforces run will be slower, as the data is pulled
 We use json as the basic format to storing contests. A sample json contest file is as follows:
 ```
 {
-    "id": [int, contest id], 
-    "name": [str, contest name], 
-    "time_seconds": [int, seconds since epoch], 
-    "standings": [["player 0", lowest possible rank, highest possible rank], 
-                  ["player 1", lowest possible rank, highest possible rank],
+    "weight": [float, defaults to 1 if not included]
+    "id": [int, unique ID of the contest], 
+    "name": [str, human-readable name of the contest], 
+    "time_seconds": [int, seconds since the Unix epoch], 
+    "standings": [["player 0", lowest rank tied with, highest rank tied with], 
+                  ["player 1", ..., ...],
                   ...]]
 }
 ```
-The lowest and highest possible ranks for a player are 0-indexed and used in case of a tie (for example, if there is a tie in the top-two spots, the lowest possible rank for player 0 is 0 and the highest is 1).
+The low and high ranks for a player are 0-indexed and will differ in case of a tie. For example, if there is a three-way tie at the top, players 0, 1 and 2 will each have a low rank of 0 and a high rank of 2.
 
-#### For more examples of sample contest files:
+If you ran the above Codeforces command for at least a few seconds, then you will have downloaded some example contest files in `cache/codeforces/`, which you may use as a reference.
 
-- Run the basic Codeforces command for at least a few seconds to download some contest standings files.
-
-- Follow their format when creating your own files. The `id` and `name` fields are only for debugging. `time_seconds` is measured from the Unix Epoch.
+With this file format in mind, you can run your own contests as follows:
 
 - Number your files with consecutive integers, the first contest being saved in `0.json`, the second in `1.json`, and so on.
 
@@ -81,4 +82,4 @@ The lowest and highest possible ranks for a player are 0-indexed and used in cas
 
 ## Mathematical Details
 
-Please see the [full paper](https://arxiv.org/abs/2101.00400).
+Please see the [full paper](https://arxiv.org/abs/2101.00400) published at the Web Conference 2021.

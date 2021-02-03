@@ -1,8 +1,8 @@
-extern crate ranking;
+extern crate multi_skill;
 
-use ranking::data_processing::get_dataset_by_name;
-use ranking::experiment_config::Experiment;
-use ranking::systems::{self, RatingSystem};
+use multi_skill::data_processing::get_dataset_by_name;
+use multi_skill::experiment_config::Experiment;
+use multi_skill::systems::{self, RatingSystem};
 use rayon::prelude::*;
 
 fn log_space(

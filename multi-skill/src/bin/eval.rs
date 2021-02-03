@@ -1,8 +1,8 @@
-extern crate ranking;
+extern crate multi_skill;
 extern crate rayon;
 use rayon::prelude::*;
 
-use ranking::experiment_config::Experiment;
+use multi_skill::experiment_config::Experiment;
 
 fn main() {
     // Load system configs from parameter files
