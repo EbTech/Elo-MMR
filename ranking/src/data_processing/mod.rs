@@ -29,6 +29,40 @@ pub struct Contest {
     pub weight: f64,
 }
 
+impl Contest {
+    /// Create a contest with empty standings, useful for testing.
+    pub fn with_id(id: usize) -> Self {
+        Self {
+            id,
+            name: format!("Round #{}", id),
+            time_seconds: id as u64 * 86_400,
+            standings: vec![],
+            weight: 1.,
+        }
+    }
+
+    /// Remove a contestant with the given handle, and return it if it exists.
+    pub fn remove_contestant(&mut self, handle: &str) -> Option<(String, usize, usize)> {
+        let pos = self.standings.iter().position(|x| x.0 == handle)?;
+        let contestant = self.standings.remove(pos);
+        for (_, lo, hi) in self.standings.iter_mut() {
+            if *hi >= pos {
+                *hi -= 1;
+                if *lo > pos {
+                    *lo -= 1;
+                }
+            }
+        }
+        Some(contestant)
+    }
+
+    /// Add a contestant with the given handle in last place.
+    pub fn push_contestant(&mut self, handle: impl Into<String>) {
+        let place = self.standings.len();
+        self.standings.push((handle.into(), place, place));
+    }
+}
+
 /// Helper function to get contest results from the Codeforces API.
 pub fn get_dataset_from_codeforces_api(
     contest_id_file: impl AsRef<std::path::Path>,
