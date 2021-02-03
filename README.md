@@ -1,6 +1,9 @@
 # Elo-MMR: A Rating System for Massive Multiplayer Competitions
 
-[![Latest Version](https://img.shields.io/crates/v/multi-skill.svg)](https://crates.io/crates/multi-skill)
+[![Crates.io Version](https://img.shields.io/crates/v/multi-skill.svg)](https://crates.io/crates/multi-skill)
+[![Documentation](https://docs.rs/multi-skill/badge.svg)](https://docs.rs/multi-skill)<!--- [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bevyengine/bevy/blob/master/LICENSE) -->
+[![Crates.io Downloads](https://img.shields.io/crates/d/multi-skill.svg)](https://crates.io/crates/multi-skill)
+[![Gitter](https://badges.gitter.im/multi-skill/community.svg)](https://gitter.im/multi-skill/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR.
 
