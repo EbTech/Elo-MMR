@@ -109,7 +109,7 @@ impl Experiment {
 
         // Run the contest histories and measure
         let now = std::time::Instant::now();
-        for contest in self.dataset.iter().take(self.max_contests) {
+        for (index, contest) in self.dataset.iter().enumerate().take(self.max_contests) {
             // Evaludate the non-training set; predictions should not use the contest
             // that they're predicting, so this step precedes simulation
             if num_rounds_postpone_eval > 0 {
@@ -125,6 +125,7 @@ impl Experiment {
                 &*self.system,
                 self.mu_noob,
                 self.sig_noob,
+                index,
             );
         }
         let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;

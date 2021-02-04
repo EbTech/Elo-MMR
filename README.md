@@ -59,19 +59,18 @@ Please note that your first Codeforces run will be slower, as the data is pulled
 
 ### How can I rate contestants of my own games?
 
-We use json as the basic format to storing contests. A sample json contest file is as follows:
+Contests are stored in JSON format, with the standings listed in order from first to last place. Here is a sample contest file, where the angled brackets and ellipsis should be replaced with your own data:
 ```
 {
-    "weight": [float, defaults to 1 if not included]
-    "id": [int, unique ID of the contest], 
-    "name": [str, human-readable name of the contest], 
-    "time_seconds": [int, seconds since the Unix epoch], 
-    "standings": [["player 0", lowest rank tied with, highest rank tied with], 
-                  ["player 1", ..., ...],
+    "name": <str, human-readable name of the contest>, 
+    "time_seconds": <int, seconds since the Unix epoch>, 
+    "standings": [[<str, player 0's name>, <int, low rank>, <int, high rank>], 
+                  [<str, player 1's name>, <int, low rank>, <int, high rank>],
                   ...]]
+    "weight": <optional float, defaults to 1 if not included>
 }
 ```
-The low and high ranks for a player are 0-indexed and will differ in case of a tie. For example, if there is a three-way tie at the top, players 0, 1 and 2 will each have a low rank of 0 and a high rank of 2.
+The low and high ranks are 0-indexed and will differ for players who are involved in a tie. They specify the range of players with whom this player tied. For example, if there is a three-way tie at the top, players 0, 1 and 2 will each have a low rank of 0 and a high rank of 2.
 
 If you ran the above Codeforces command for at least a few seconds, then you will have downloaded some example contest files in `cache/codeforces/`, which you may use as a reference.
 
@@ -85,4 +84,4 @@ With this file format in mind, you can run your own contests as follows:
 
 ## Mathematical Details
 
-Please see the [full paper](https://arxiv.org/abs/2101.00400) published at the Web Conference 2021.
+Please see the [full paper](https://arxiv.org/abs/2101.00400) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.

@@ -23,7 +23,7 @@ pub struct PlayerSummary {
     max_rating: i32,
     cur_sigma: i32,
     num_contests: usize,
-    last_contest: usize,
+    last_contest_index: usize,
     last_contest_time: u64,
     last_perf: i32,
     last_delta: i32,
@@ -65,14 +65,14 @@ pub fn make_leaderboard(
             max_rating,
             cur_sigma: player.approx_posterior.sig.round() as i32,
             num_contests,
-            last_contest: last_event.contest_id,
-            last_contest_time: last_event.contest_time,
+            last_contest_index: last_event.contest_index,
+            last_contest_time: player.update_time,
             last_perf: last_event.perf_score,
             last_delta: last_event.display_rating - previous_rating,
             handle: handle.clone(),
         });
 
-        if last_event.contest_time > rated_since {
+        if player.update_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
                 .find(|&i| last_event.display_rating >= TITLE_BOUND[i])

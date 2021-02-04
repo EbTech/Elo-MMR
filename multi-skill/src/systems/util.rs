@@ -20,12 +20,14 @@ impl Rating {
         }
     }
 
+    // TODO: consider making time_decay head towards a limit (mu_noob, sig_moob),
+    //       or alternatively keep mu the same while having sig -> sig_noob.
     pub fn towards_noise(self, decay: f64, limit: Self) -> Self {
         let mu_diff = self.mu - limit.mu;
         let sig_sq_diff = self.sig * self.sig - limit.sig * limit.sig;
         Self {
             mu: limit.mu + mu_diff * decay,
-            sig: (self.sig * self.sig + sig_sq_diff * decay * decay).sqrt(),
+            sig: (limit.sig * limit.sig + sig_sq_diff * decay * decay).sqrt(),
         }
     }
 }
@@ -56,10 +58,10 @@ impl TanhTerm {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct PlayerEvent {
-    pub contest_id: usize,
-    pub contest_time: u64,
+    pub contest_index: usize,
     pub display_rating: i32,
     pub perf_score: i32,
+    pub place: usize,
 }
 
 pub struct Player {
@@ -67,31 +69,24 @@ pub struct Player {
     logistic_factors: VecDeque<TanhTerm>,
     pub event_history: Vec<PlayerEvent>,
     pub approx_posterior: Rating,
+    pub update_time: u64,
+    pub delta_time: u64,
 }
 
 impl Player {
-    pub fn with_rating(mu: f64, sig: f64) -> Self {
+    pub fn with_rating(mu: f64, sig: f64, update_time: u64) -> Self {
         Player {
             normal_factor: Rating { mu, sig },
             logistic_factors: VecDeque::new(),
             event_history: vec![],
             approx_posterior: Rating { mu, sig },
+            update_time,
+            delta_time: 0,
         }
     }
 
     pub fn is_newcomer(&self) -> bool {
         self.event_history.len() <= 1
-    }
-
-    pub fn last_dt(&self) -> f64 {
-        if self.is_newcomer() {
-            0.
-        } else {
-            let len_hist = self.event_history.len();
-            let prior_t = self.event_history[len_hist - 2].contest_time;
-            let last_t = self.event_history[len_hist - 1].contest_time;
-            last_t.saturating_sub(prior_t) as f64
-        }
     }
 
     pub fn update_rating(&mut self, rating: Rating, performance_score: f64) {
@@ -343,11 +338,12 @@ pub fn simulate_contest(
     system: &dyn RatingSystem,
     mu_newbie: f64,
     sig_newbie: f64,
+    contest_index: usize,
 ) {
     if outcome_free(&contest.standings) {
         eprintln!(
             "WARNING: ignoring contest {} because all players tied",
-            contest.id
+            contest_index
         );
         return;
     }
@@ -356,9 +352,13 @@ pub fn simulate_contest(
     contest.standings.iter().for_each(|&(ref handle, _, _)| {
         // TODO TEAMS: make an entry for every member of the team, then make the team object
         //             in teams: PlayersByName with system.make_team(players)
-        players
-            .entry(handle.clone())
-            .or_insert_with(|| RefCell::new(Player::with_rating(mu_newbie, sig_newbie)));
+        players.entry(handle.clone()).or_insert_with(|| {
+            RefCell::new(Player::with_rating(
+                mu_newbie,
+                sig_newbie,
+                contest.time_seconds,
+            ))
+        });
     });
 
     // Low-level magic: verify that handles are distinct and store guards so that the cells
@@ -373,17 +373,19 @@ pub fn simulate_contest(
     // Update player metadata and get &mut references to all requested players
     let standings: Vec<(&mut Player, usize, usize)> = guards
         .iter_mut()
-        .map(|player| {
-            player.event_history.push(PlayerEvent {
-                contest_id: contest.id,
-                contest_time: contest.time_seconds,
-                display_rating: 0,
-                perf_score: 0,
-            });
-            std::ops::DerefMut::deref_mut(player)
-        })
+        .map(std::ops::DerefMut::deref_mut)
         .zip(contest.standings.iter())
-        .map(|(player, &(_, lo, hi))| (player, lo, hi))
+        .map(|(player, &(_, lo, hi))| {
+            player.event_history.push(PlayerEvent {
+                contest_index,
+                display_rating: 0, // will be filled by system.round_update()
+                perf_score: 0,     // will be filled by system.round_update()
+                place: lo,
+            });
+            player.delta_time = contest.time_seconds - player.update_time;
+            player.update_time = contest.time_seconds;
+            (player, lo, hi)
+        })
         .collect();
 
     system.round_update(contest.weight, standings);

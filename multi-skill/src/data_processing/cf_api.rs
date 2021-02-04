@@ -101,7 +101,6 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
         standings.reverse();
 
         Ok(Self {
-            id,
             name,
             time_seconds,
             standings,

@@ -2,7 +2,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Generic `Dataset` trait, modeled after PyTorch's `utils.data.Dataset`.
-/// It represents a collection of objects indexed by integers from 0 to `len()`.
+/// It represents a collection of objects indexed in the range `0..len()`.
 pub trait Dataset {
     /// The type of objects procured by the `Dataset`.
     type Item;

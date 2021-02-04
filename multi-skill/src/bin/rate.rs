@@ -1,6 +1,6 @@
 extern crate multi_skill;
 
-use multi_skill::data_processing::get_dataset_by_name;
+use multi_skill::data_processing::{get_dataset_by_name, ContestSummary};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::{get_rating_system_by_name, simulate_contest};
@@ -39,17 +39,25 @@ fn main() {
 
     // Simulate the contests and rating updates
     let mut players = HashMap::new();
+    let mut summaries = Vec::with_capacity(ex.dataset.len().min(ex.max_contests));
     let mut last_contest_time = 0;
-    for (idx, contest) in ex.dataset.iter().enumerate().take(ex.max_contests) {
+    for (index, contest) in ex.dataset.iter().enumerate().take(ex.max_contests) {
         println!(
-            "Processing{:6} contestants in{:5}th contest with id={:4}, wt={}: {}",
+            "Processing{:6} contestants in{:5}th contest with wt={}: {}",
             contest.standings.len(),
-            idx,
-            contest.id,
+            index,
             contest.weight,
             contest.name
         );
-        simulate_contest(&mut players, &contest, &*ex.system, ex.mu_noob, ex.sig_noob);
+        simulate_contest(
+            &mut players,
+            &contest,
+            &*ex.system,
+            ex.mu_noob,
+            ex.sig_noob,
+            index,
+        );
+        summaries.push(ContestSummary::new(&contest));
         last_contest_time = contest.time_seconds;
     }
     let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);
@@ -57,17 +65,21 @@ fn main() {
     // Print ratings list to data/codeforces/CFratings.txt
     print_ratings(&players, six_months_ago);
 
+    // Write contest summaries to data/codeforces/summaries.json
+    let dir = std::path::PathBuf::from("../data/codeforces");
+    let summaries_json = serde_json::to_string_pretty(&summaries).expect("Serialization error");
+    std::fs::write(dir.join("summaries.json"), summaries_json).expect("Failed to write to cache");
+
     // Print contest histories of top players to data/codeforces/top/{handle}.json
-    let dir = std::path::PathBuf::from("../data/codeforces/top");
     std::fs::create_dir_all(&dir).expect("Could not create directory");
     for (handle, player) in &players {
         let player = player.borrow();
         let last_event = player.event_history.last().expect("Empty history");
 
-        if last_event.display_rating >= 2700 && last_event.contest_time > six_months_ago {
-            let file = dir.join(format!("{}.json", handle));
+        if last_event.display_rating >= 2700 && player.update_time > six_months_ago {
+            let file = dir.join(format!("top/{}.json", handle));
             let data_rust = &player.event_history;
-            let data_json = serde_json::to_string_pretty(&data_rust).expect("Serialization error");
+            let data_json = serde_json::to_string_pretty(data_rust).expect("Serialization error");
             std::fs::write(&file, data_json).expect("Failed to write to cache");
             println!("Wrote to {:?}", file);
         }

@@ -16,8 +16,6 @@ fn is_one(&weight: &f64) -> bool {
 /// Represents the outcome of a contest.
 #[derive(Serialize, Deserialize)]
 pub struct Contest {
-    /// A unique ID for the contest.
-    pub id: usize,
     /// A human-readable title for the contest.
     pub name: String,
     /// The number of seconds from the Unix Epoch to the end of the contest.
@@ -31,11 +29,10 @@ pub struct Contest {
 
 impl Contest {
     /// Create a contest with empty standings, useful for testing.
-    pub fn with_id(id: usize) -> Self {
+    pub fn new(index: usize) -> Self {
         Self {
-            id,
-            name: format!("Round #{}", id),
-            time_seconds: id as u64 * 86_400,
+            name: format!("Round #{}", index),
+            time_seconds: index as u64 * 86_400,
             standings: vec![],
             weight: 1.,
         }
@@ -60,6 +57,27 @@ impl Contest {
     pub fn push_contestant(&mut self, handle: impl Into<String>) {
         let place = self.standings.len();
         self.standings.push((handle.into(), place, place));
+    }
+}
+
+/// Compressed summary of a contest
+#[derive(Serialize, Deserialize)]
+pub struct ContestSummary {
+    pub name: String,
+    pub time_seconds: u64,
+    pub num_contestants: usize,
+    pub weight: f64,
+}
+
+impl ContestSummary {
+    /// Returns a summary of the given contest, stripped of detailed standings
+    pub fn new(contest: &Contest) -> Self {
+        Self {
+            name: contest.name.clone(),
+            time_seconds: contest.time_seconds,
+            num_contestants: contest.standings.len(),
+            weight: contest.weight,
+        }
     }
 }
 
