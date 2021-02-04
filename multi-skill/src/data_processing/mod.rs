@@ -25,6 +25,8 @@ pub struct Contest {
     /// The relative weight of a contest, default is 1.
     #[serde(default = "one", skip_serializing_if = "is_one")]
     pub weight: f64,
+    /// The source URL, if any.
+    pub url: Option<String>,
 }
 
 impl Contest {
@@ -35,6 +37,7 @@ impl Contest {
             time_seconds: index as u64 * 86_400,
             standings: vec![],
             weight: 1.,
+            url: None,
         }
     }
 
@@ -67,6 +70,7 @@ pub struct ContestSummary {
     pub time_seconds: u64,
     pub num_contestants: usize,
     pub weight: f64,
+    pub url: Option<String>,
 }
 
 impl ContestSummary {
@@ -77,6 +81,7 @@ impl ContestSummary {
             time_seconds: contest.time_seconds,
             num_contestants: contest.standings.len(),
             weight: contest.weight,
+            url: contest.url.clone(),
         }
     }
 }

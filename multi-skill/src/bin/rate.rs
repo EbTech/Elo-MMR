@@ -61,27 +61,29 @@ fn main() {
         last_contest_time = contest.time_seconds;
     }
     let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);
+    let dir = std::path::PathBuf::from("../data/output");
+    std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
 
     // Print ratings list to data/codeforces/CFratings.txt
-    print_ratings(&players, six_months_ago);
+    print_ratings(&players, six_months_ago, &dir);
 
     // Write contest summaries to data/codeforces/summaries.json
-    let dir = std::path::PathBuf::from("../data/codeforces");
-    let summaries_json = serde_json::to_string_pretty(&summaries).expect("Serialization error");
-    std::fs::write(dir.join("summaries.json"), summaries_json).expect("Failed to write to cache");
+    let summary_file = dir.join("all_contests.json");
+    let summary_json = serde_json::to_string_pretty(&summaries).expect("Serialization error");
+    std::fs::write(&summary_file, summary_json).expect("Failed to write to cache");
+    println!("Contests summary saved to {:?}", summary_file);
 
-    // Print contest histories of top players to data/codeforces/top/{handle}.json
-    std::fs::create_dir_all(&dir).expect("Could not create directory");
+    // Print contest histories of top players to data/output/players/{handle}.json
     for (handle, player) in &players {
         let player = player.borrow();
         let last_event = player.event_history.last().expect("Empty history");
 
         if last_event.display_rating >= 2700 && player.update_time > six_months_ago {
-            let file = dir.join(format!("top/{}.json", handle));
-            let data_rust = &player.event_history;
-            let data_json = serde_json::to_string_pretty(data_rust).expect("Serialization error");
-            std::fs::write(&file, data_json).expect("Failed to write to cache");
-            println!("Wrote to {:?}", file);
+            let player_file = dir.join(format!("players/{}.json", handle));
+            let player_json =
+                serde_json::to_string_pretty(&player.event_history).expect("Serialization error");
+            std::fs::write(&player_file, player_json).expect("Failed to write to cache");
+            println!("Wrote to {:?}", player_file);
         }
     }
 }

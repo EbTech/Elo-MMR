@@ -99,11 +99,15 @@ pub fn make_leaderboard(
     (global_summary, rating_data)
 }
 
-pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u64) {
+pub fn print_ratings(
+    players: &HashMap<String, RefCell<Player>>,
+    rated_since: u64,
+    dir: impl AsRef<std::path::Path>,
+) {
+    // TODO: decide whether all_contests and all_players should be printed as CSV or JSON,
+    //       and refactor this "summary" section to instead print a distribution.[csv|json].
+    //       Somehow make the distribution aware of titles so we can keep printing titles.
     let (summary, rating_data) = make_leaderboard(players, rated_since);
-
-    let filename = "../data/ratings_output.csv";
-    let file = std::fs::File::create(filename).expect("Output file not found");
 
     println!("Mean rating.mu = {}", summary.mean_rating);
     for i in (0..NUM_TITLES).rev() {
@@ -112,7 +116,9 @@ pub fn print_ratings(players: &HashMap<String, RefCell<Player>>, rated_since: u6
             TITLE_BOUND[i], TITLE[i], summary.title_count[i]
         );
     }
-    println!("Detailed ratings saved to {}", filename);
+    let filename = dir.as_ref().join("all_players.csv");
+    let file = std::fs::File::create(&filename).expect("Output file not found");
+    println!("Detailed ratings saved to {:?}", filename);
 
     let mut writer = csv::Writer::from_writer(file);
     for data in rating_data {

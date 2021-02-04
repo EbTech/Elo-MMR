@@ -28,6 +28,17 @@ struct CFRatingChange {
     newRating: i32,
 }
 
+fn codeforces_human_url(contest_id: usize) -> String {
+    format!("https://codeforces.com/contest/{}/standings", contest_id)
+}
+
+fn codeforces_api_url(contest_id: usize) -> String {
+    format!(
+        "https://codeforces.com/api/contest.ratingChanges?contestId={}",
+        contest_id
+    )
+}
+
 impl TryFrom<Vec<CFRatingChange>> for Contest {
     type Error = String;
 
@@ -105,6 +116,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
             time_seconds,
             standings,
             weight: 1.0,
+            url: Some(codeforces_human_url(id)),
         })
     }
 }
@@ -114,12 +126,8 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 /// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
-    let url = format!(
-        "https://codeforces.com/api/contest.ratingChanges?contestId={}",
-        contest_id
-    );
     let response = client
-        .get(&url)
+        .get(&codeforces_api_url(contest_id))
         .send()
         .expect("HTTP error: is Codeforces.com down?");
     if !response.status().is_success() {
