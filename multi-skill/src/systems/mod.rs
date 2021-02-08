@@ -13,8 +13,8 @@ pub use glicko::Glicko;
 pub use topcoder_sys::TopcoderSys;
 pub use true_skill::TrueSkillSPb;
 pub use util::{
-    get_participant_ratings, outcome_free, simulate_contest, Player, PlayersByName, Rating,
-    RatingSystem,
+    get_participant_ratings, outcome_free, simulate_contest, Player, PlayerEvent, PlayersByName,
+    Rating, RatingSystem,
 };
 
 // TODO: add a version that can take parameters, like in experiment_config but polymorphic

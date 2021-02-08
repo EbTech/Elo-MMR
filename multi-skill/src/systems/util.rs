@@ -59,8 +59,8 @@ impl TanhTerm {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct PlayerEvent {
     pub contest_index: usize,
-    pub display_rating: i32,
-    pub posterior_mu: f64,
+    pub rating_mu: i32,
+    pub rating_sig: i32,
     pub perf_score: i32,
     pub place: usize,
 }
@@ -93,14 +93,13 @@ impl Player {
     pub fn update_rating(&mut self, rating: Rating, performance_score: f64) {
         // Assumes that a placeholder history item has been pushed containing contest id and time
         let last_event = self.event_history.last_mut().unwrap();
-        assert_eq!(last_event.display_rating, 0);
+        assert_eq!(last_event.rating_mu, 0);
+        assert_eq!(last_event.rating_sig, 0);
+        assert_eq!(last_event.perf_score, 0);
 
-        // TODO: get rid of the magic numbers 2 and 80!
-        //       2.0 gives a conservative estimate: use 0 to get mean estimates
-        //       80 is EloR's default sig_lim
         self.approx_posterior = rating;
-        last_event.display_rating = (rating.mu - 2.0 * (rating.sig - 80.)).round() as i32;
-        last_event.posterior_mu = rating.mu;
+        last_event.rating_mu = rating.mu.round() as i32;
+        last_event.rating_sig = rating.sig.round() as i32;
         last_event.perf_score = performance_score.round() as i32;
     }
 
@@ -380,9 +379,9 @@ pub fn simulate_contest(
         .map(|(player, &(_, lo, hi))| {
             player.event_history.push(PlayerEvent {
                 contest_index,
-                display_rating: 0, // will be filled by system.round_update()
-                posterior_mu: 0.0,
-                perf_score: 0,     // will be filled by system.round_update()
+                rating_mu: 0,  // will be filled by system.round_update()
+                rating_sig: 0, // will be filled by system.round_update()
+                perf_score: 0, // will be filled by system.round_update()
                 place: lo,
             });
             player.delta_time = contest.time_seconds - player.update_time;

@@ -42,15 +42,18 @@ impl Contest {
         }
     }
 
+    pub fn find_contestant(&mut self, handle: &str) -> Option<usize> {
+        self.standings.iter().position(|x| x.0 == handle)
+    }
+
     /// Detect if a given contestant exists
     pub fn has_contestant(&mut self, handle: &str) -> bool {
-        let pos = self.standings.iter().position(|x| x.0 == handle);
-        !pos.is_none()
+        self.find_contestant(handle).is_some()
     }
 
     /// Remove a contestant with the given handle, and return it if it exists.
     pub fn remove_contestant(&mut self, handle: &str) -> Option<(String, usize, usize)> {
-        let pos = self.standings.iter().position(|x| x.0 == handle)?;
+        let pos = self.find_contestant(handle)?;
         let contestant = self.standings.remove(pos);
         for (_, lo, hi) in self.standings.iter_mut() {
             if *hi >= pos {
@@ -106,8 +109,7 @@ fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<()
     let mut writer = csv::Writer::from_writer(file);
     values
         .iter()
-        .map(|val| writer.serialize(val))
-        .collect::<Result<_, _>>()
+        .try_for_each(|val| writer.serialize(val))
         .map_err(|_| "Failed to serialize row")
 }
 

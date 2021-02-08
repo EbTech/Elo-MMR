@@ -1,5 +1,5 @@
 use crate::data_processing::write_slice_to_file;
-use crate::systems::Player;
+use crate::systems::{Player, PlayerEvent};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -31,6 +31,17 @@ pub struct PlayerSummary {
     handle: String,
 }
 
+pub fn get_display_rating_from_floats(mu: i32, sig: i32) -> i32 {
+    // TODO: get rid of the magic numbers 2 and 80!
+    //       2.0 gives a conservative estimate: use 0 to get mean estimates
+    //       80 is EloR's default sig_lim
+    mu - 2 * (sig - 80)
+}
+
+pub fn get_display_rating(event: &PlayerEvent) -> i32 {
+    get_display_rating_from_floats(event.rating_mu, event.rating_sig)
+}
+
 pub fn make_leaderboard(
     players: &HashMap<String, RefCell<Player>>,
     rated_since: u64,
@@ -52,31 +63,32 @@ pub fn make_leaderboard(
         let max_rating = player
             .event_history
             .iter()
-            .map(|event| event.display_rating)
+            .map(get_display_rating)
             .max()
             .unwrap();
-        let previous_rating = if num_contests == 1 {
-            960 // TODO: get rid of this magic number
+        let cur_rating = get_display_rating(&last_event);
+        let prev_rating = if num_contests == 1 {
+            get_display_rating_from_floats(1500, 350)
         } else {
-            player.event_history[num_contests - 2].display_rating
+            get_display_rating(&player.event_history[num_contests - 2])
         };
         rating_data.push(PlayerSummary {
             rank: None,
-            cur_rating: last_event.display_rating,
+            cur_rating,
             max_rating,
             cur_sigma: player.approx_posterior.sig.round() as i32,
             num_contests,
             last_contest_index: last_event.contest_index,
             last_contest_time: player.update_time,
             last_perf: last_event.perf_score,
-            last_change: last_event.display_rating - previous_rating,
+            last_change: cur_rating - prev_rating,
             handle: handle.clone(),
         });
 
         if player.update_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
-                .find(|&i| last_event.display_rating >= TITLE_BOUND[i])
+                .find(|&i| get_display_rating(&last_event) >= TITLE_BOUND[i])
             {
                 title_count[title_id] += 1;
             }
@@ -117,9 +129,6 @@ pub fn print_ratings(
         );
     }
 
-    // Write both JSON and CSV versions
-    let filename = dir.as_ref().join("all_players.json");
-    write_slice_to_file(&rating_data, &filename);
     let filename = dir.as_ref().join("all_players.csv");
     write_slice_to_file(&rating_data, &filename);
 }

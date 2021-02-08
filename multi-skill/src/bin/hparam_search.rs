@@ -60,11 +60,13 @@ fn main() {
     for beta in beta_range.clone() {
         for sig_limit in log_space(20., 0.75 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
+                let subsample_size = 500; // make the algorithm fast
                 let system = systems::EloMMR {
                     beta,
                     sig_limit,
                     drift_per_sec: 0.,
                     split_ties,
+                    subsample_size,
                     variant: systems::EloMMRVariant::Gaussian,
                 };
                 systems.push(Box::new(system));
@@ -76,6 +78,7 @@ fn main() {
                         sig_limit,
                         drift_per_sec: 0.,
                         split_ties,
+                        subsample_size,
                         variant: systems::EloMMRVariant::Logistic(rho),
                     };
                     systems.push(Box::new(system));

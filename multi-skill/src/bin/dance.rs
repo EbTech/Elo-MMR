@@ -24,6 +24,7 @@ struct O2cmEventFilter {
     submit: String,
 }
 
+/// The default filter is no filter at all, yielding all the dance heats
 impl Default for O2cmEventFilter {
     fn default() -> Self {
         Self {

@@ -84,6 +84,8 @@ pub struct EloMMR {
     pub drift_per_sec: f64,
     // whether to count ties as half a win plus half a loss
     pub split_ties: bool,
+    // maximum number of opponents and recent events to use, as a compute-saving approximation
+    pub subsample_size: usize,
     // whether to use a Gaussian or logistic performance model
     pub variant: EloMMRVariant,
 }
@@ -109,6 +111,7 @@ impl EloMMR {
             sig_limit,
             drift_per_sec: 0.,
             split_ties,
+            subsample_size: usize::MAX,
             variant,
         }
     }
@@ -176,13 +179,11 @@ impl EloMMR {
 
 impl RatingSystem for EloMMR {
     fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        const WIDTH_SUBSAMPLE: usize = 200;
-        const MAX_HISTORY_LEN: usize = 200;
         let elim_newcomers = false; /*ignoring newcomers causes severe rating deflation: standings
                                     .par_iter()
                                     .filter(|(player, _, _)| !player.is_newcomer())
                                     .count()
-                                    >= WIDTH_SUBSAMPLE;*/
+                                    >= self.subsample_size;*/
         let excess_beta_sq =
             (self.beta * self.beta - self.sig_limit * self.sig_limit) / contest_weight;
         let sig_perf = (self.sig_limit * self.sig_limit + excess_beta_sq).sqrt();
@@ -233,7 +234,7 @@ impl RatingSystem for EloMMR {
             };
             let player_mu = player.approx_posterior.mu;
             let idx_subsample =
-                Self::subsample(&idx_by_rating, &all_ratings, player_mu, WIDTH_SUBSAMPLE);
+                Self::subsample(&idx_by_rating, &all_ratings, player_mu, self.subsample_size);
             let bounds = (-6000.0, 9000.0);
             match self.variant {
                 EloMMRVariant::Gaussian => {
@@ -272,7 +273,7 @@ impl RatingSystem for EloMMR {
                             mu: mu_perf,
                             sig: sig_perf,
                         },
-                        MAX_HISTORY_LEN,
+                        self.subsample_size,
                     );
                 }
             };
