@@ -27,9 +27,9 @@ fn main() {
     let seq_types = vec!["adversarial", "normal"];
 
     let (mu_noob, sig_noob) = (1500., 350.);
-    let initial_phase = 100;
-    let win_time = 300;
-    let max_contests = 400;
+    let initial_phase = 128; // tourist's 45th
+    let win_time = 346;      // tourist's 90th (+45)
+    let max_contests = 462;  // tourist's 105th (+15)
     let tcoder_system = get_rating_system_by_name("tc").unwrap();
     let custom_system = get_rating_system_by_name(&args[1]).unwrap();
 
@@ -58,7 +58,7 @@ fn main() {
 
             if is_adversarial && initial_phase <= index && index < win_time {
                 let player = tcoder_players["tourist"].borrow();
-                if player.approx_posterior.mu > 3000.0 {
+                if player.approx_posterior.mu > 2975.0 {
                     if contest.remove_contestant("tourist").is_some() {
                         contest.push_contestant("tourist");
                     }
