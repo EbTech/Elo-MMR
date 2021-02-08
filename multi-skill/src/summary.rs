@@ -20,7 +20,7 @@ pub struct GlobalSummary {
 #[derive(Serialize, Deserialize)]
 pub struct PlayerSummary {
     rank: Option<usize>,
-    cur_rating: i32,
+    display_rating: i32,
     max_rating: i32,
     cur_sigma: i32,
     num_contests: usize,
@@ -66,7 +66,7 @@ pub fn make_leaderboard(
             .map(get_display_rating)
             .max()
             .unwrap();
-        let cur_rating = get_display_rating(&last_event);
+        let display_rating = get_display_rating(&last_event);
         let prev_rating = if num_contests == 1 {
             get_display_rating_from_ints(1500, 350)
         } else {
@@ -74,14 +74,14 @@ pub fn make_leaderboard(
         };
         rating_data.push(PlayerSummary {
             rank: None,
-            cur_rating,
+            display_rating,
             max_rating,
             cur_sigma: player.approx_posterior.sig.round() as i32,
             num_contests,
             last_contest_index: last_event.contest_index,
             last_contest_time: player.update_time,
             last_perf: last_event.perf_score,
-            last_change: cur_rating - prev_rating,
+            last_change: display_rating - prev_rating,
             handle: handle.clone(),
         });
 
@@ -94,7 +94,7 @@ pub fn make_leaderboard(
             }
         }
     }
-    rating_data.sort_unstable_by_key(|data| (-data.cur_rating, data.handle.clone()));
+    rating_data.sort_unstable_by_key(|data| (-data.display_rating, data.handle.clone()));
 
     let mut rank = 0;
     for data in &mut rating_data {
