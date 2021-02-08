@@ -41,6 +41,12 @@ impl Contest {
         }
     }
 
+    /// Detect if a given contestant exists
+    pub fn has_contestant(&mut self, handle: &str) -> bool {
+        let pos = self.standings.iter().position(|x| x.0 == handle);
+        !pos.is_none()
+    }
+
     /// Remove a contestant with the given handle, and return it if it exists.
     pub fn remove_contestant(&mut self, handle: &str) -> Option<(String, usize, usize)> {
         let pos = self.standings.iter().position(|x| x.0 == handle)?;
