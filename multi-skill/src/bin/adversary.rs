@@ -62,7 +62,7 @@ fn main() {
             if is_adversarial && index < win_time && index > initial_phase {
                 if contest.has_contestant("tourist") {
                     let player = players["tourist"].borrow();
-                    if player.approx_posterior.mu > 2600.0 {
+                    if player.approx_posterior.mu > 3000.0 {
                         contest.remove_contestant("tourist");
                         contest.push_contestant("tourist");
                     }

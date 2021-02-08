@@ -31,7 +31,7 @@ pub struct PlayerSummary {
     handle: String,
 }
 
-pub fn get_display_rating_from_floats(mu: i32, sig: i32) -> i32 {
+pub fn get_display_rating_from_ints(mu: i32, sig: i32) -> i32 {
     // TODO: get rid of the magic numbers 2 and 80!
     //       2.0 gives a conservative estimate: use 0 to get mean estimates
     //       80 is EloR's default sig_lim
@@ -39,7 +39,7 @@ pub fn get_display_rating_from_floats(mu: i32, sig: i32) -> i32 {
 }
 
 pub fn get_display_rating(event: &PlayerEvent) -> i32 {
-    get_display_rating_from_floats(event.rating_mu, event.rating_sig)
+    get_display_rating_from_ints(event.rating_mu, event.rating_sig)
 }
 
 pub fn make_leaderboard(
@@ -68,7 +68,7 @@ pub fn make_leaderboard(
             .unwrap();
         let cur_rating = get_display_rating(&last_event);
         let prev_rating = if num_contests == 1 {
-            get_display_rating_from_floats(1500, 350)
+            get_display_rating_from_ints(1500, 350)
         } else {
             get_display_rating(&player.event_history[num_contests - 2])
         };
