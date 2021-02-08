@@ -33,3 +33,6 @@ name = "hparam_search"
 
 [[bin]]
 name = "dance"
+
+[[bin]]
+name = "adversary"

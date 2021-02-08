@@ -176,8 +176,8 @@ impl EloMMR {
 
 impl RatingSystem for EloMMR {
     fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        const WIDTH_SUBSAMPLE: usize = usize::MAX;
-        const MAX_HISTORY_LEN: usize = usize::MAX;
+        const WIDTH_SUBSAMPLE: usize = 200;
+        const MAX_HISTORY_LEN: usize = 200;
         let elim_newcomers = false; /*ignoring newcomers causes severe rating deflation: standings
                                     .par_iter()
                                     .filter(|(player, _, _)| !player.is_newcomer())

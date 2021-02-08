@@ -60,6 +60,7 @@ impl TanhTerm {
 pub struct PlayerEvent {
     pub contest_index: usize,
     pub display_rating: i32,
+    pub posterior_mu: f64,
     pub perf_score: i32,
     pub place: usize,
 }
@@ -99,6 +100,7 @@ impl Player {
         //       80 is EloR's default sig_lim
         self.approx_posterior = rating;
         last_event.display_rating = (rating.mu - 2.0 * (rating.sig - 80.)).round() as i32;
+        last_event.posterior_mu = rating.mu;
         last_event.perf_score = performance_score.round() as i32;
     }
 
@@ -379,6 +381,7 @@ pub fn simulate_contest(
             player.event_history.push(PlayerEvent {
                 contest_index,
                 display_rating: 0, // will be filled by system.round_update()
+                posterior_mu: 0.0,
                 perf_score: 0,     // will be filled by system.round_update()
                 place: lo,
             });

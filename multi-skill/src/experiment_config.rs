@@ -19,6 +19,7 @@ fn usize_max() -> usize {
     usize::MAX
 }
 
+#[allow(dead_code)]
 fn is_usize_max(&num: &usize) -> bool {
     num == usize_max()
 }
