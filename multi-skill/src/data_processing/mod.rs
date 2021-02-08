@@ -4,6 +4,7 @@ mod dataset;
 pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 fn one() -> f64 {
     1.0
@@ -18,15 +19,15 @@ fn is_one(&weight: &f64) -> bool {
 pub struct Contest {
     /// A human-readable title for the contest.
     pub name: String,
+    /// The source URL, if any.
+    pub url: Option<String>,
+    /// The relative weight of a contest, default is 1.
+    #[serde(default = "one", skip_serializing_if = "is_one")]
+    pub weight: f64,
     /// The number of seconds from the Unix Epoch to the end of the contest.
     pub time_seconds: u64,
     /// The list of standings, containing a name and the enclosing range of ties.
     pub standings: Vec<(String, usize, usize)>,
-    /// The relative weight of a contest, default is 1.
-    #[serde(default = "one", skip_serializing_if = "is_one")]
-    pub weight: f64,
-    /// The source URL, if any.
-    pub url: Option<String>,
 }
 
 impl Contest {
@@ -34,10 +35,10 @@ impl Contest {
     pub fn new(index: usize) -> Self {
         Self {
             name: format!("Round #{}", index),
+            url: None,
+            weight: 1.,
             time_seconds: index as u64 * 86_400,
             standings: vec![],
-            weight: 1.,
-            url: None,
         }
     }
 
@@ -73,10 +74,10 @@ impl Contest {
 #[derive(Serialize, Deserialize)]
 pub struct ContestSummary {
     pub name: String,
+    pub url: Option<String>,
+    pub weight: f64,
     pub time_seconds: u64,
     pub num_contestants: usize,
-    pub weight: f64,
-    pub url: Option<String>,
 }
 
 impl ContestSummary {
@@ -84,12 +85,43 @@ impl ContestSummary {
     pub fn new(contest: &Contest) -> Self {
         Self {
             name: contest.name.clone(),
+            url: contest.url.clone(),
+            weight: contest.weight,
             time_seconds: contest.time_seconds,
             num_contestants: contest.standings.len(),
-            weight: contest.weight,
-            url: contest.url.clone(),
         }
     }
+}
+
+fn write_to_json<T: Serialize + ?Sized>(
+    value: &T,
+    path: impl AsRef<Path>,
+) -> Result<(), &'static str> {
+    let cached_json = serde_json::to_string_pretty(&value).map_err(|_| "Serialization error")?;
+    std::fs::write(path.as_ref(), cached_json).map_err(|_| "File writing error")
+}
+
+fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
+    let file = std::fs::File::create(path.as_ref()).map_err(|_| "Output file not found")?;
+    let mut writer = csv::Writer::from_writer(file);
+    values
+        .iter()
+        .map(|val| writer.serialize(val))
+        .collect::<Result<_, _>>()
+        .map_err(|_| "Failed to serialize row")
+}
+
+pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
+    let path = path.as_ref();
+    let write_res = match path.extension().and_then(|s| s.to_str()) {
+        Some("json") => write_to_json(values, path),
+        Some("csv") => write_to_csv(values, path),
+        _ => Err("Invalid or missing filename extension"),
+    };
+    match write_res {
+        Ok(()) => println!("Successfully wrote to {:?}", path),
+        Err(msg) => eprintln!("WARNING: failed write to {:?} because {}", path, msg),
+    };
 }
 
 /// Helper function to get contest results from the Codeforces API.

@@ -130,9 +130,7 @@ where
                 let contest = self.base_dataset.get(index);
 
                 // Write the contest to the cache
-                let cached_json =
-                    serde_json::to_string_pretty(&contest).expect("Serialization error");
-                std::fs::write(&cache_file, cached_json).expect("Failed to write to cache");
+                super::write_to_json(&contest, &cache_file).expect("Failed to write to cache");
                 println!("Codeforces contest successfully cached at {:?}", cache_file);
 
                 contest
