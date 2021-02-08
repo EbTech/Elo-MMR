@@ -1,3 +1,4 @@
+use crate::data_processing::write_slice_to_file;
 use crate::systems::Player;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -26,7 +27,7 @@ pub struct PlayerSummary {
     last_contest_index: usize,
     last_contest_time: u64,
     last_perf: i32,
-    last_delta: i32,
+    last_change: i32,
     handle: String,
 }
 
@@ -68,7 +69,7 @@ pub fn make_leaderboard(
             last_contest_index: last_event.contest_index,
             last_contest_time: player.update_time,
             last_perf: last_event.perf_score,
-            last_delta: last_event.display_rating - previous_rating,
+            last_change: last_event.display_rating - previous_rating,
             handle: handle.clone(),
         });
 
@@ -104,8 +105,7 @@ pub fn print_ratings(
     rated_since: u64,
     dir: impl AsRef<std::path::Path>,
 ) {
-    // TODO: decide whether all_contests and all_players should be printed as CSV or JSON,
-    //       and refactor this "summary" section to instead print a distribution.[csv|json].
+    // TODO: refactor this "summary" section to instead print a distribution.[csv|json].
     //       Somehow make the distribution aware of titles so we can keep printing titles.
     let (summary, rating_data) = make_leaderboard(players, rated_since);
 
@@ -116,12 +116,10 @@ pub fn print_ratings(
             TITLE_BOUND[i], TITLE[i], summary.title_count[i]
         );
     }
-    let filename = dir.as_ref().join("all_players.csv");
-    let file = std::fs::File::create(&filename).expect("Output file not found");
-    println!("Detailed ratings saved to {:?}", filename);
 
-    let mut writer = csv::Writer::from_writer(file);
-    for data in rating_data {
-        writer.serialize(data).unwrap();
-    }
+    // Write both JSON and CSV versions
+    let filename = dir.as_ref().join("all_players.json");
+    write_slice_to_file(&rating_data, &filename);
+    let filename = dir.as_ref().join("all_players.csv");
+    write_slice_to_file(&rating_data, &filename);
 }

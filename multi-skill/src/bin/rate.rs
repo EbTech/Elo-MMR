@@ -1,6 +1,6 @@
 extern crate multi_skill;
 
-use multi_skill::data_processing::{get_dataset_by_name, ContestSummary};
+use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file, ContestSummary};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::{get_rating_system_by_name, simulate_contest};
@@ -64,26 +64,22 @@ fn main() {
     let dir = std::path::PathBuf::from("../data/output");
     std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
 
+    // Print contest histories of top players to data/output/players/{handle}.json
+    for (handle, player) in &players {
+        let player = player.borrow();
+        // let last_event = player.event_history.last().expect("Empty history");
+
+        // if last_event.display_rating >= 2700 && player.update_time > six_months_ago
+        if true {
+            let player_file = dir.join(format!("players/{}.json", handle));
+            write_slice_to_file(&player.event_history, &player_file);
+        }
+    }
+
     // Print ratings list to data/codeforces/CFratings.txt
     print_ratings(&players, six_months_ago, &dir);
 
     // Write contest summaries to data/codeforces/summaries.json
     let summary_file = dir.join("all_contests.json");
-    let summary_json = serde_json::to_string_pretty(&summaries).expect("Serialization error");
-    std::fs::write(&summary_file, summary_json).expect("Failed to write to cache");
-    println!("Contests summary saved to {:?}", summary_file);
-
-    // Print contest histories of top players to data/output/players/{handle}.json
-    for (handle, player) in &players {
-        let player = player.borrow();
-        let last_event = player.event_history.last().expect("Empty history");
-
-        if last_event.display_rating >= 2700 && player.update_time > six_months_ago {
-            let player_file = dir.join(format!("players/{}.json", handle));
-            let player_json =
-                serde_json::to_string_pretty(&player.event_history).expect("Serialization error");
-            std::fs::write(&player_file, player_json).expect("Failed to write to cache");
-            println!("Wrote to {:?}", player_file);
-        }
-    }
+    write_slice_to_file(&summaries, &summary_file);
 }

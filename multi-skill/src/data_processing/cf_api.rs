@@ -113,10 +113,10 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 
         Ok(Self {
             name,
+            url: Some(codeforces_human_url(id)),
+            weight: 1.0,
             time_seconds,
             standings,
-            weight: 1.0,
-            url: Some(codeforces_human_url(id)),
         })
     }
 }
