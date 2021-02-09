@@ -7,11 +7,42 @@ use std::cmp::Ordering;
 use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
 trait Term {
-    fn eval(self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64);
+    fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64);
+    // my_rank is assumed to be a non-empty, sorted slice.
+    // This function is a computational bottleneck, so it's important to optimize.
+    fn evals(&self, x: f64, ranks: &[usize], my_rank: usize, split_ties: bool) -> (f64, f64) {
+        if ranks.len() == 1 {
+            // The unit-length case is very common, so we optimize it.
+            let (value, deriv) = self.eval(x, ranks[0].cmp(&my_rank), split_ties);
+            return (value, deriv);
+        }
+        let (pref, suff, mut value, mut deriv) = match ranks.binary_search(&my_rank) {
+            Ok(pref) => {
+                let suff = ranks.len() - pref - 1;
+                let (e, ep) = self.eval(x, Ordering::Equal, split_ties);
+                (pref, suff, e, ep)
+            }
+            Err(pref) => {
+                let suff = ranks.len() - pref;
+                (pref, suff, 0., 0.)
+            }
+        };
+        if pref > 0 {
+            let (l, lp) = self.eval(x, Ordering::Less, split_ties);
+            value += pref as f64 * l;
+            deriv += pref as f64 * lp;
+        }
+        if suff > 0 {
+            let (g, gp) = self.eval(x, Ordering::Greater, split_ties);
+            value += suff as f64 * g;
+            deriv += suff as f64 * gp;
+        }
+        (value, deriv)
+    }
 }
 
 impl Term for Rating {
-    fn eval(self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
+    fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
         let z = (x - self.mu) / self.sig;
         let pdf = standard_normal_pdf(z) / self.sig;
         let pdf_prime = -z * pdf / self.sig;
@@ -49,7 +80,7 @@ impl Term for Rating {
 }
 
 impl Term for TanhTerm {
-    fn eval(self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
+    fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
         let z = (x - self.mu) * self.w_arg;
         let val = -z.tanh() * self.w_out;
         let val_prime = -z.cosh().powi(-2) * self.w_arg * self.w_out;
@@ -121,7 +152,7 @@ impl EloMMR {
     ) -> Self {
         assert!(sig_limit > 0.);
         assert!(beta > sig_limit);
-        let subsample_size = if fast { 500 } else { usize::MAX };
+        let subsample_size = if fast { 200 } else { usize::MAX };
         Self {
             beta,
             sig_limit,
@@ -132,61 +163,40 @@ impl EloMMR {
         }
     }
 
+    fn sig_perf_and_drift(&self, contest_weight: f64) -> (f64, f64) {
+        let excess_beta_sq =
+            (self.beta * self.beta - self.sig_limit * self.sig_limit) / contest_weight;
+        let sig_perf = (self.sig_limit * self.sig_limit + excess_beta_sq).sqrt();
+        let discrete_drift = self.sig_limit.powi(4) / excess_beta_sq;
+        (sig_perf, discrete_drift)
+    }
+
     fn subsample<'a>(
         idx_by_rating: &'a [usize],
-        all_ratings: &[(Rating, usize)],
+        terms: &[(Rating, Vec<usize>)],
         rating: f64,
         num_samples: usize,
     ) -> impl Iterator<Item = usize> + Clone + 'a {
+        // TODO: ensure the player still includes themself exactly once, and try
+        //       to adaptively fuse near-rating terms dependong on subsample_size.
         let mut beg = idx_by_rating
             .binary_search_by(|&i| {
-                all_ratings[i]
-                    .0
-                    .mu
-                    .partial_cmp(&rating)
+                let mu_i = &terms[i].0.mu;
+                mu_i.partial_cmp(&rating)
                     .unwrap()
                     .then(std::cmp::Ordering::Greater)
             })
             .unwrap_err();
-        let mut end = idx_by_rating
-            .binary_search_by(|&i| {
-                all_ratings[i]
-                    .0
-                    .mu
-                    .partial_cmp(&rating)
-                    .unwrap()
-                    .then(std::cmp::Ordering::Less)
-            })
-            .unwrap_err();
+        let mut end = beg + 1;
 
         let expand = (num_samples.saturating_sub(end - beg) + 1) / 2;
         beg = beg.saturating_sub(expand);
-        end = all_ratings.len().min(end + expand);
+        end = terms.len().min(end + expand);
 
         let expand = num_samples.saturating_sub(end - beg);
         beg = beg.saturating_sub(expand);
-        end = all_ratings.len().min(end + expand);
+        end = terms.len().min(end + expand);
 
-        beg = idx_by_rating
-            .binary_search_by(|&i| {
-                all_ratings[i]
-                    .0
-                    .mu
-                    .partial_cmp(&all_ratings[idx_by_rating[beg]].0.mu)
-                    .unwrap()
-                    .then(std::cmp::Ordering::Greater)
-            })
-            .unwrap_err();
-        end = idx_by_rating
-            .binary_search_by(|&i| {
-                all_ratings[i]
-                    .0
-                    .mu
-                    .partial_cmp(&all_ratings[idx_by_rating[end - 1]].0.mu)
-                    .unwrap()
-                    .then(std::cmp::Ordering::Less)
-            })
-            .unwrap_err();
         idx_by_rating[beg..end].iter().cloned()
         //.filter(move |&i| i != player_i)
         //.chain(Some(player_i))
@@ -200,19 +210,19 @@ impl RatingSystem for EloMMR {
                                     .filter(|(player, _, _)| !player.is_newcomer())
                                     .count()
                                     >= self.subsample_size;*/
-        let excess_beta_sq =
-            (self.beta * self.beta - self.sig_limit * self.sig_limit) / contest_weight;
-        let sig_perf = (self.sig_limit * self.sig_limit + excess_beta_sq).sqrt();
-        let discrete_drift = self.sig_limit.powi(4) / excess_beta_sq;
+        let (sig_perf, discrete_drift) = self.sig_perf_and_drift(contest_weight);
 
-        // Update ratings due to waiting period between contests
-        let all_ratings: Vec<(Rating, usize)> = standings
+        // Update ratings due to waiting period between contests,
+        // then use it to create Gaussian terms for the Q-function.
+        // The rank must also be stored in order to determine if it's a win, loss, or tie
+        // term. filter_map can exclude the least useful terms from subsampling.
+        let normal_terms: Vec<(Rating, Vec<usize>)> = standings
             .par_iter_mut()
             .filter_map(|(player, lo, _)| {
                 let continuous_drift = self.drift_per_sec * player.update_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 match self.variant {
-                    // if transfer_speed is infinite or the system is Gaussian, the logistic
+                    // if transfer_speed is infinite or the prior is Gaussian, the logistic
                     // weights become zero so this special-case optimization clears them out
                     EloMMRVariant::Logistic(transfer_speed) if transfer_speed < f64::INFINITY => {
                         player.add_noise_best(sig_drift, transfer_speed)
@@ -222,23 +232,23 @@ impl RatingSystem for EloMMR {
                 if elim_newcomers && player.is_newcomer() {
                     None
                 } else {
-                    Some((player.approx_posterior.with_noise(sig_perf), *lo))
+                    Some((player.approx_posterior.with_noise(sig_perf), vec![*lo]))
                 }
             })
             .collect();
 
-        let tanh_terms: Vec<(TanhTerm, usize)> = all_ratings
+        // Create the equivalent logistic terms.
+        let tanh_terms: Vec<(TanhTerm, Vec<usize>)> = normal_terms
             .iter()
-            .map(|&(rating, lo)| (rating.into(), lo))
+            .map(|(rating, ranks)| ((*rating).into(), ranks.clone()))
             .collect();
 
-        let mut idx_by_rating: Vec<usize> = (0..all_ratings.len()).collect();
+        // Sort terms by rating to allow for subsampling within a range or ratings.
+        let mut idx_by_rating: Vec<usize> = (0..normal_terms.len()).collect();
         idx_by_rating.sort_unstable_by(|&i, &j| {
-            all_ratings[i]
-                .0
-                .mu
-                .partial_cmp(&all_ratings[j].0.mu)
-                .unwrap()
+            let mu_i = &normal_terms[i].0.mu;
+            let mu_j = &normal_terms[j].0.mu;
+            mu_i.partial_cmp(mu_j).unwrap()
         });
 
         // Store the maximum subsample we've seen so far, to avoid logging excessive warnings
@@ -246,15 +256,14 @@ impl RatingSystem for EloMMR {
 
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, my_rank, _)| {
-            let extra = if elim_newcomers && player.is_newcomer() {
+            /*let extra = if elim_newcomers && player.is_newcomer() {
                 Some(player.approx_posterior.with_noise(sig_perf))
             } else {
                 None
-            };
+            };*/
             let player_mu = player.approx_posterior.mu;
-            let bounds = (-6000.0, 9000.0);
             let idx_subsample =
-                Self::subsample(&idx_by_rating, &all_ratings, player_mu, self.subsample_size);
+                Self::subsample(&idx_by_rating, &normal_terms, player_mu, self.subsample_size);
             // Log a warning if the subsample size is very large
             let idx_len_upper_bound = idx_subsample.size_hint().1.unwrap_or(usize::MAX);
             if idx_len_max.fetch_max(idx_len_upper_bound, Relaxed) < idx_len_upper_bound {
@@ -263,17 +272,18 @@ impl RatingSystem for EloMMR {
                     idx_len_upper_bound
                 );
             }
+            let bounds = (-6000.0, 9000.0);
 
             match self.variant {
                 EloMMRVariant::Gaussian => {
                     let idx_subsample = idx_subsample
-                        .map(|i| all_ratings[i])
-                        .chain(extra.map(|rating| (rating, my_rank)));
+                        .map(|i| &normal_terms[i]);
+                        //.chain(extra.map(|rating| (rating, my_rank)));
                     let f = |x| {
                         idx_subsample
                             .clone()
-                            .map(|(rating, rank)| {
-                                rating.eval(x, rank.cmp(&my_rank), self.split_ties)
+                            .map(|(rating, ranks)| {
+                                rating.evals(x, &ranks, my_rank, self.split_ties)
                             })
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
@@ -285,13 +295,13 @@ impl RatingSystem for EloMMR {
                 }
                 EloMMRVariant::Logistic(_) => {
                     let idx_subsample = idx_subsample
-                        .map(|i| tanh_terms[i])
-                        .chain(extra.map(|rating| (rating.into(), my_rank)));
+                        .map(|i| &tanh_terms[i]);
+                        //.chain(extra.map(|rating| (rating.into(), my_rank)));
                     let f = |x| {
                         idx_subsample
                             .clone()
-                            .map(|(rating, rank)| {
-                                rating.eval(x, rank.cmp(&my_rank), self.split_ties)
+                            .map(|(rating, ranks)| {
+                                rating.evals(x, &ranks, my_rank, self.split_ties)
                             })
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };

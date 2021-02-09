@@ -18,20 +18,17 @@ use multi_skill::systems::{get_rating_system_by_name, simulate_contest, PlayersB
 fn main() {
     // Parse the method we're applying the adversarial strategy on
     let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: {} method_name (suggestion: mmr)", args[0]);
-        return;
-    }
+    let sys_name = args.get(1).map(|s| s.as_str()).unwrap_or("mmr");
 
     let dataset = get_dataset_by_name("codeforces").unwrap();
     let seq_types = vec!["adversarial", "normal"];
 
     let (mu_noob, sig_noob) = (1500., 350.);
     let initial_phase = 128; // tourist's 45th
-    let win_time = 346; // tourist's 90th (+45)
+    let win_time = 346; //      tourist's 90th (+45)
     let max_contests = 462; // tourist's 105th (+15)
     let tcoder_system = get_rating_system_by_name("tc").unwrap();
-    let custom_system = get_rating_system_by_name(&args[1]).unwrap();
+    let custom_system = get_rating_system_by_name(sys_name).unwrap();
 
     for seq_type in seq_types {
         // The var below tracks tourist's score alterations.
@@ -92,7 +89,7 @@ fn main() {
         write_slice_to_file(&player.event_history, &player_file);
 
         let player = custom_players["tourist"].borrow();
-        let player_file = dir.join(format!("tourist_{}_{}.json", &args[1], seq_type));
+        let player_file = dir.join(format!("tourist_{}_{}.json", sys_name, seq_type));
         write_slice_to_file(&player.event_history, &player_file);
     }
 }

@@ -7,8 +7,8 @@ use multi_skill::experiment_config::Experiment;
 fn main() {
     // Load system configs from parameter files
     let mut experiment_files = vec![];
-    let datasets = vec!["codeforces", "topcoder", "reddit", "synthetic"];
-    let methods = vec![/*glicko", "bar", */ "cf", "tc", "ts", "mmx", "mmr"];
+    let datasets = vec!["codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
+    let methods = vec!["glicko", "bar", "cf", "tc", "ts", "mmx-fast", "mmr-fast"];
     let metrics = vec!["acc", "rnk", "ent"];
 
     for dataset in &datasets {
