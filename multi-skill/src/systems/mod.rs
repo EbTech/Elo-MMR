@@ -28,9 +28,11 @@ pub fn get_rating_system_by_name(
         "tc" => Ok(Box::new(TopcoderSys::default())),
         "ts" => Ok(Box::new(TrueSkillSPb::default())),
         "mmx" => Ok(Box::new(EloMMR::default_gaussian())),
+        "mmx-fast" => Ok(Box::new(EloMMR::default_gaussian_fast())),
         "mmr" => Ok(Box::new(EloMMR::default())),
+        "mmr-fast" => Ok(Box::new(EloMMR::default_fast())),
         name => Err(format!(
-            "{} is not a valid rating system. Must be one of: bar, glicko, cf, tc, ts, mmx, mmr",
+            "{} is not a valid rating system. Must be one of: bar, glicko, cf, tc, ts, mmx, mmx-fast, mmr, mmr-fast",
             name
         )),
     }

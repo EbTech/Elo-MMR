@@ -4,6 +4,7 @@ use super::util::{
 };
 use rayon::prelude::*;
 use std::cmp::Ordering;
+use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 
 trait Term {
     fn eval(self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64);
@@ -92,26 +93,41 @@ pub struct EloMMR {
 
 impl Default for EloMMR {
     fn default() -> Self {
-        Self::from_limit(200., 80., false, EloMMRVariant::Logistic(1.))
+        Self::from_limit(200., 80., false, false, EloMMRVariant::Logistic(1.))
     }
 }
 
 impl EloMMR {
+    pub fn default_fast() -> Self {
+        Self::from_limit(200., 80., false, true, EloMMRVariant::Logistic(1.))
+    }
+
     pub fn default_gaussian() -> Self {
-        Self::from_limit(200., 80., false, EloMMRVariant::Gaussian)
+        Self::from_limit(200., 80., false, false, EloMMRVariant::Gaussian)
+    }
+
+    pub fn default_gaussian_fast() -> Self {
+        Self::from_limit(200., 80., false, true, EloMMRVariant::Gaussian)
     }
 
     // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
     // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
-    pub fn from_limit(beta: f64, sig_limit: f64, split_ties: bool, variant: EloMMRVariant) -> Self {
+    pub fn from_limit(
+        beta: f64,
+        sig_limit: f64,
+        split_ties: bool,
+        fast: bool,
+        variant: EloMMRVariant,
+    ) -> Self {
         assert!(sig_limit > 0.);
         assert!(beta > sig_limit);
+        let subsample_size = if fast { 500 } else { usize::MAX };
         Self {
             beta,
             sig_limit,
             drift_per_sec: 0.,
             split_ties,
-            subsample_size: usize::MAX,
+            subsample_size,
             variant,
         }
     }
@@ -225,6 +241,9 @@ impl RatingSystem for EloMMR {
                 .unwrap()
         });
 
+        // Store the maximum subsample we've seen so far, to avoid logging excessive warnings
+        let idx_len_max = AtomicUsize::new(9999);
+
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, my_rank, _)| {
             let extra = if elim_newcomers && player.is_newcomer() {
@@ -233,9 +252,18 @@ impl RatingSystem for EloMMR {
                 None
             };
             let player_mu = player.approx_posterior.mu;
+            let bounds = (-6000.0, 9000.0);
             let idx_subsample =
                 Self::subsample(&idx_by_rating, &all_ratings, player_mu, self.subsample_size);
-            let bounds = (-6000.0, 9000.0);
+            // Log a warning if the subsample size is very large
+            let idx_len_upper_bound = idx_subsample.size_hint().1.unwrap_or(usize::MAX);
+            if idx_len_max.fetch_max(idx_len_upper_bound, Relaxed) < idx_len_upper_bound {
+                eprintln!(
+                    "WARNING: subsampling {} opponents might be slow; consider decreasing subsample_size.",
+                    idx_len_upper_bound
+                );
+            }
+
             match self.variant {
                 EloMMRVariant::Gaussian => {
                     let idx_subsample = idx_subsample

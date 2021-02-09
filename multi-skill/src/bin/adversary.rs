@@ -28,8 +28,8 @@ fn main() {
 
     let (mu_noob, sig_noob) = (1500., 350.);
     let initial_phase = 128; // tourist's 45th
-    let win_time = 346;      // tourist's 90th (+45)
-    let max_contests = 462;  // tourist's 105th (+15)
+    let win_time = 346; // tourist's 90th (+45)
+    let max_contests = 462; // tourist's 105th (+15)
     let tcoder_system = get_rating_system_by_name("tc").unwrap();
     let custom_system = get_rating_system_by_name(&args[1]).unwrap();
 
