@@ -13,14 +13,14 @@ struct O2cmDateFilter {
     inmonth: usize,
 }
 
-#[allow(non_snake_case)]
+#[serde(rename_all = "camelCase")]
 #[derive(Serialize)]
 struct O2cmEventFilter {
-    selDiv: String,
-    selAge: String,
-    selSkl: String,
-    selSty: String,
-    selEnt: String,
+    sel_div: String,
+    sel_age: String,
+    sel_skl: String,
+    sel_sty: String,
+    sel_ent: String,
     submit: String,
 }
 
@@ -28,11 +28,11 @@ struct O2cmEventFilter {
 impl Default for O2cmEventFilter {
     fn default() -> Self {
         Self {
-            selDiv: "".to_string(),
-            selAge: "".to_string(),
-            selSkl: "".to_string(),
-            selSty: "".to_string(),
-            selEnt: "".to_string(),
+            sel_div: "".to_string(),
+            sel_age: "".to_string(),
+            sel_skl: "".to_string(),
+            sel_sty: "".to_string(),
+            sel_ent: "".to_string(),
             submit: "OK".to_string(),
         }
     }

@@ -16,16 +16,16 @@ enum CFResponse<T> {
 
 /// A RatingChange object from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp/objects#RatingChange
-#[allow(non_snake_case)]
+#[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize)]
 struct CFRatingChange {
-    contestId: usize,
-    contestName: String,
+    contest_id: usize,
+    contest_name: String,
     handle: String,
     rank: usize,
-    ratingUpdateTimeSeconds: u64,
-    oldRating: i32,
-    newRating: i32,
+    rating_update_time_seconds: u64,
+    old_rating: i32,
+    new_rating: i32,
 }
 
 fn codeforces_human_url(contest_id: usize) -> String {
@@ -45,9 +45,9 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     /// Checks the integrity of our API response and convert it into a more convenient format.
     fn try_from(json_contest: Vec<CFRatingChange>) -> Result<Self, Self::Error> {
         let first_change = json_contest.get(0).ok_or("Empty standings")?;
-        let id = first_change.contestId;
-        let name = first_change.contestName.clone();
-        let time_seconds = first_change.ratingUpdateTimeSeconds;
+        let id = first_change.contest_id;
+        let name = first_change.contest_name.clone();
+        let time_seconds = first_change.rating_update_time_seconds;
 
         let mut lo_rank = json_contest.len() + 1;
         let mut hi_rank = json_contest.len() + 1;
@@ -55,24 +55,24 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
         let mut standings = Vec::with_capacity(json_contest.len());
 
         for (i, mut change) in json_contest.into_iter().enumerate().rev() {
-            if id != change.contestId {
+            if id != change.contest_id {
                 return Err(format!(
                     "Inconsistent contests ids {} and {}",
-                    id, change.contestId
+                    id, change.contest_id
                 ));
             }
-            if name != change.contestName {
+            if name != change.contest_name {
                 return Err(format!(
                     "Inconsistent contest names {} and {}",
-                    name, change.contestName
+                    name, change.contest_name
                 ));
             }
-            if time_seconds != change.ratingUpdateTimeSeconds {
+            if time_seconds != change.rating_update_time_seconds {
                 // I don't know why but contests 61,318,347,373,381,400,404,405
                 // each contain one discrepancy, usually 4 hours late
                 eprintln!(
                     "WARNING @ {}: Inconsistent contest times {} and {}",
-                    id, time_seconds, change.ratingUpdateTimeSeconds
+                    id, time_seconds, change.rating_update_time_seconds
                 );
             }
             while let Some(j) = seen_handles.insert(change.handle.clone(), i) {
