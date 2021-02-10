@@ -84,6 +84,7 @@ impl Experiment {
                 drift_per_sec: 0.,
                 split_ties: params.system.params[2] > 0.,
                 subsample_size: params.system.params[3] as usize,
+                subsample_bucket: params.system.params[4],
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
@@ -92,7 +93,8 @@ impl Experiment {
                 drift_per_sec: 0.,
                 split_ties: params.system.params[2] > 0.,
                 subsample_size: params.system.params[3] as usize,
-                variant: EloMMRVariant::Logistic(params.system.params[4]),
+                subsample_bucket: params.system.params[4],
+                variant: EloMMRVariant::Logistic(params.system.params[5]),
             }),
             x => panic!("'{}' is not a valid system name!", x),
         };

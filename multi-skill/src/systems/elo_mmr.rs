@@ -126,6 +126,8 @@ pub struct EloMMR {
     pub split_ties: bool,
     // maximum number of opponents and recent events to use, as a compute-saving approximation
     pub subsample_size: usize,
+    // width of mu and sigma to group subsamples by
+    pub subsample_bucket: f64,
     // whether to use a Gaussian or logistic performance model
     pub variant: EloMMRVariant,
 }
@@ -161,12 +163,14 @@ impl EloMMR {
         assert!(sig_limit > 0.);
         assert!(beta > sig_limit);
         let subsample_size = if fast { 100 } else { usize::MAX };
+        let subsample_bucket = if fast { 2. } else { 1e-5 };
         Self {
             beta,
             sig_limit,
             drift_per_sec: 0.,
             split_ties,
             subsample_size,
+            subsample_bucket,
             variant,
         }
     }
@@ -183,11 +187,12 @@ impl EloMMR {
         terms: &[(Rating, Vec<usize>)],
         rating: f64,
         num_samples: usize,
+        subsample_bucket: f64,
     ) -> impl Iterator<Item = usize> + Clone {
         // TODO: ensure the player still includes themself exactly once
         let mut beg = terms
             .binary_search_by(|term| {
-                cmp_by_bucket(term.0.mu, rating, 2.).then(std::cmp::Ordering::Greater)
+                cmp_by_bucket(term.0.mu, rating, subsample_bucket).then(std::cmp::Ordering::Greater)
             })
             .unwrap_err();
         let mut end = beg + 1;
@@ -233,16 +238,18 @@ impl RatingSystem for EloMMR {
 
         // Sort terms by rating to allow for subsampling within a range or ratings.
         base_terms.sort_unstable_by(|a, b| {
-            cmp_by_bucket(a.0.mu, b.0.mu, 2.)
-                .then_with(|| cmp_by_bucket(a.0.sig, b.0.sig, 2.))
+            cmp_by_bucket(a.0.mu, b.0.mu, self.subsample_bucket)
+                .then_with(|| cmp_by_bucket(a.0.sig, b.0.sig, self.subsample_bucket))
                 .then_with(|| a.1.cmp(&b.1))
         });
         let mut normal_terms: Vec<(Rating, Vec<usize>)> = vec![];
         for (term, lo) in base_terms {
             if let Some((last_term, ranks)) = normal_terms.last_mut() {
                 let len = ranks.len() as f64;
-                if bucket(last_term.mu, 2.) == bucket(term.mu, 2.)
-                    && bucket(last_term.sig, 2.) == bucket(term.sig, 2.)
+                if bucket(last_term.mu, self.subsample_bucket)
+                    == bucket(term.mu, self.subsample_bucket)
+                    && bucket(last_term.sig, self.subsample_bucket)
+                        == bucket(term.sig, self.subsample_bucket)
                 {
                     last_term.mu = (len * last_term.mu + term.mu) / (len + 1.);
                     last_term.sig = (len * last_term.sig + term.sig) / (len + 1.);
@@ -264,14 +271,9 @@ impl RatingSystem for EloMMR {
 
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, my_rank, _)| {
-            /*let extra = if elim_newcomers && player.is_newcomer() {
-                Some(player.approx_posterior.with_noise(sig_perf))
-            } else {
-                None
-            };*/
             let player_mu = player.approx_posterior.mu;
             let idx_subsample =
-                Self::subsample(&normal_terms, player_mu, self.subsample_size);
+                Self::subsample(&normal_terms, player_mu, self.subsample_size, self.subsample_bucket);
             // Log a warning if the subsample size is very large
             let idx_len_upper_bound = idx_subsample.size_hint().1.unwrap_or(usize::MAX);
             if idx_len_max.fetch_max(idx_len_upper_bound, Relaxed) < idx_len_upper_bound {
@@ -286,7 +288,6 @@ impl RatingSystem for EloMMR {
                 EloMMRVariant::Gaussian => {
                     let idx_subsample = idx_subsample
                         .map(|i| &normal_terms[i]);
-                        //.chain(extra.map(|rating| (rating, my_rank)));
                     let f = |x| {
                         idx_subsample
                             .clone()
@@ -304,7 +305,6 @@ impl RatingSystem for EloMMR {
                 EloMMRVariant::Logistic(_) => {
                     let idx_subsample = idx_subsample
                         .map(|i| &tanh_terms[i]);
-                        //.chain(extra.map(|rating| (rating.into(), my_rank)));
                     let f = |x| {
                         idx_subsample
                             .clone()

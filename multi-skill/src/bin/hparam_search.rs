@@ -60,17 +60,23 @@ fn main() {
     for beta in beta_range.clone() {
         for sig_limit in log_space(20., 0.75 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
-                let subsample_size = 100; // make the algorithm fast
+                // make the algorithm fast
+                let subsample_size = 100;
+                let subsample_bucket = 2.;
+
+                // Gaussian performance model
                 let system = systems::EloMMR {
                     beta,
                     sig_limit,
                     drift_per_sec: 0.,
                     split_ties,
                     subsample_size,
+                    subsample_bucket,
                     variant: systems::EloMMRVariant::Gaussian,
                 };
                 systems.push(Box::new(system));
 
+                // Logistic performance model with pseudodiffusion
                 let rho_vals = &[0., 0.04, 0.2, 1., 5., f64::INFINITY];
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
@@ -79,6 +85,7 @@ fn main() {
                         drift_per_sec: 0.,
                         split_ties,
                         subsample_size,
+                        subsample_bucket,
                         variant: systems::EloMMRVariant::Logistic(rho),
                     };
                     systems.push(Box::new(system));
