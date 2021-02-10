@@ -41,15 +41,13 @@ impl Default for O2cmEventFilter {
 fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
     let response = builder
         .send()
-        .expect("HTTP error: is the source website down?");
-    if response.status().is_success() {
-        let page_text = response
-            .text()
-            .expect("Failed to extract and decode the HTTP response body");
-        Ok(Document::from(page_text.as_str()))
-    } else {
-        Err(response.status())
-    }
+        .expect("HTTP error: is the source website down?")
+        .error_for_status()
+        .map_err(|e| e.status().unwrap())?;
+    let page_text = response
+        .text()
+        .expect("Failed to extract and decode the HTTP response body");
+    Ok(Document::from(page_text.as_str()))
 }
 
 fn get_urls(page: &Document) -> impl Iterator<Item = String> + '_ {

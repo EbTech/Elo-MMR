@@ -129,10 +129,9 @@ pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
     let response = client
         .get(&codeforces_api_url(contest_id))
         .send()
-        .expect("HTTP error: is Codeforces.com down?");
-    if !response.status().is_success() {
-        eprintln!("HTTP status {}: is Codeforces.com down?", response.status());
-    }
+        .expect("Connection error: is Codeforces.com down?")
+        .error_for_status()
+        .expect("Status error: is Codeforces.com down?");
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
