@@ -99,6 +99,14 @@ impl Term for TanhTerm {
     }
 }
 
+fn bucket(a: f64, width: f64) -> i32 {
+    (a / width).round() as i32
+}
+
+fn cmp_by_bucket(a: f64, b: f64, width: f64) -> Ordering {
+    bucket(a, width).cmp(&bucket(b, width))
+}
+
 #[derive(Debug)]
 pub enum EloMMRVariant {
     Gaussian,
@@ -152,7 +160,7 @@ impl EloMMR {
     ) -> Self {
         assert!(sig_limit > 0.);
         assert!(beta > sig_limit);
-        let subsample_size = if fast { 200 } else { usize::MAX };
+        let subsample_size = if fast { 100 } else { usize::MAX };
         Self {
             beta,
             sig_limit,
@@ -171,20 +179,15 @@ impl EloMMR {
         (sig_perf, discrete_drift)
     }
 
-    fn subsample<'a>(
-        idx_by_rating: &'a [usize],
+    fn subsample(
         terms: &[(Rating, Vec<usize>)],
         rating: f64,
         num_samples: usize,
-    ) -> impl Iterator<Item = usize> + Clone + 'a {
-        // TODO: ensure the player still includes themself exactly once, and try
-        //       to adaptively fuse near-rating terms dependong on subsample_size.
-        let mut beg = idx_by_rating
-            .binary_search_by(|&i| {
-                let mu_i = &terms[i].0.mu;
-                mu_i.partial_cmp(&rating)
-                    .unwrap()
-                    .then(std::cmp::Ordering::Greater)
+    ) -> impl Iterator<Item = usize> + Clone {
+        // TODO: ensure the player still includes themself exactly once
+        let mut beg = terms
+            .binary_search_by(|term| {
+                cmp_by_bucket(term.0.mu, rating, 2.).then(std::cmp::Ordering::Greater)
             })
             .unwrap_err();
         let mut end = beg + 1;
@@ -197,7 +200,7 @@ impl EloMMR {
         beg = beg.saturating_sub(expand);
         end = terms.len().min(end + expand);
 
-        idx_by_rating[beg..end].iter().cloned()
+        beg..end
         //.filter(move |&i| i != player_i)
         //.chain(Some(player_i))
     }
@@ -205,20 +208,15 @@ impl EloMMR {
 
 impl RatingSystem for EloMMR {
     fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let elim_newcomers = false; /*ignoring newcomers causes severe rating deflation: standings
-                                    .par_iter()
-                                    .filter(|(player, _, _)| !player.is_newcomer())
-                                    .count()
-                                    >= self.subsample_size;*/
         let (sig_perf, discrete_drift) = self.sig_perf_and_drift(contest_weight);
 
         // Update ratings due to waiting period between contests,
         // then use it to create Gaussian terms for the Q-function.
         // The rank must also be stored in order to determine if it's a win, loss, or tie
         // term. filter_map can exclude the least useful terms from subsampling.
-        let normal_terms: Vec<(Rating, Vec<usize>)> = standings
+        let mut base_terms: Vec<(Rating, usize)> = standings
             .par_iter_mut()
-            .filter_map(|(player, lo, _)| {
+            .map(|(player, lo, _)| {
                 let continuous_drift = self.drift_per_sec * player.update_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 match self.variant {
@@ -229,27 +227,37 @@ impl RatingSystem for EloMMR {
                     }
                     _ => player.add_noise_and_collapse(sig_drift),
                 }
-                if elim_newcomers && player.is_newcomer() {
-                    None
-                } else {
-                    Some((player.approx_posterior.with_noise(sig_perf), vec![*lo]))
-                }
+                (player.approx_posterior.with_noise(sig_perf), *lo)
             })
             .collect();
+
+        // Sort terms by rating to allow for subsampling within a range or ratings.
+        base_terms.sort_unstable_by(|a, b| {
+            cmp_by_bucket(a.0.mu, b.0.mu, 2.)
+                .then_with(|| cmp_by_bucket(a.0.sig, b.0.sig, 2.))
+                .then_with(|| a.1.cmp(&b.1))
+        });
+        let mut normal_terms: Vec<(Rating, Vec<usize>)> = vec![];
+        for (term, lo) in base_terms {
+            if let Some((last_term, ranks)) = normal_terms.last_mut() {
+                let len = ranks.len() as f64;
+                if bucket(last_term.mu, 2.) == bucket(term.mu, 2.)
+                    && bucket(last_term.sig, 2.) == bucket(term.sig, 2.)
+                {
+                    last_term.mu = (len * last_term.mu + term.mu) / (len + 1.);
+                    last_term.sig = (len * last_term.sig + term.sig) / (len + 1.);
+                    ranks.push(lo);
+                    continue;
+                }
+            }
+            normal_terms.push((term, vec![lo]));
+        }
 
         // Create the equivalent logistic terms.
         let tanh_terms: Vec<(TanhTerm, Vec<usize>)> = normal_terms
             .iter()
             .map(|(rating, ranks)| ((*rating).into(), ranks.clone()))
             .collect();
-
-        // Sort terms by rating to allow for subsampling within a range or ratings.
-        let mut idx_by_rating: Vec<usize> = (0..normal_terms.len()).collect();
-        idx_by_rating.sort_unstable_by(|&i, &j| {
-            let mu_i = &normal_terms[i].0.mu;
-            let mu_j = &normal_terms[j].0.mu;
-            mu_i.partial_cmp(mu_j).unwrap()
-        });
 
         // Store the maximum subsample we've seen so far, to avoid logging excessive warnings
         let idx_len_max = AtomicUsize::new(9999);
@@ -263,7 +271,7 @@ impl RatingSystem for EloMMR {
             };*/
             let player_mu = player.approx_posterior.mu;
             let idx_subsample =
-                Self::subsample(&idx_by_rating, &normal_terms, player_mu, self.subsample_size);
+                Self::subsample(&normal_terms, player_mu, self.subsample_size);
             // Log a warning if the subsample size is very large
             let idx_len_upper_bound = idx_subsample.size_hint().1.unwrap_or(usize::MAX);
             if idx_len_max.fetch_max(idx_len_upper_bound, Relaxed) < idx_len_upper_bound {

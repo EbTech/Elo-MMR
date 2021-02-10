@@ -60,7 +60,7 @@ fn main() {
     for beta in beta_range.clone() {
         for sig_limit in log_space(20., 0.75 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
-                let subsample_size = 500; // make the algorithm fast
+                let subsample_size = 100; // make the algorithm fast
                 let system = systems::EloMMR {
                     beta,
                     sig_limit,
