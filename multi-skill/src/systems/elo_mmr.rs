@@ -2,9 +2,11 @@
 use super::util::{
     solve_newton, standard_normal_cdf, standard_normal_pdf, Player, Rating, RatingSystem, TanhTerm,
 };
+use core::ops::Range;
 use rayon::prelude::*;
 use std::cmp::Ordering;
 use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
+use superslice::Ext;
 
 trait Term {
     fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64);
@@ -13,29 +15,27 @@ trait Term {
     fn evals(&self, x: f64, ranks: &[usize], my_rank: usize, split_ties: bool) -> (f64, f64) {
         if ranks.len() == 1 {
             // The unit-length case is very common, so we optimize it.
-            let (value, deriv) = self.eval(x, ranks[0].cmp(&my_rank), split_ties);
-            return (value, deriv);
+            return self.eval(x, ranks[0].cmp(&my_rank), split_ties);
         }
-        let (pref, suff, mut value, mut deriv) = match ranks.binary_search(&my_rank) {
-            Ok(pref) => {
-                let suff = ranks.len() - pref - 1;
-                let (e, ep) = self.eval(x, Ordering::Equal, split_ties);
-                (pref, suff, e, ep)
-            }
-            Err(pref) => {
-                let suff = ranks.len() - pref;
-                (pref, suff, 0., 0.)
-            }
-        };
-        if pref > 0 {
-            let (l, lp) = self.eval(x, Ordering::Less, split_ties);
-            value += pref as f64 * l;
-            deriv += pref as f64 * lp;
+        let Range { start, end } = ranks.equal_range(&my_rank);
+        let equal = end - start;
+        let greater = ranks.len() - end;
+        let mut value = 0.;
+        let mut deriv = 0.;
+        if start > 0 {
+            let (v, p) = self.eval(x, Ordering::Less, split_ties);
+            value += start as f64 * v;
+            deriv += start as f64 * p;
         }
-        if suff > 0 {
-            let (g, gp) = self.eval(x, Ordering::Greater, split_ties);
-            value += suff as f64 * g;
-            deriv += suff as f64 * gp;
+        if equal > 0 {
+            let (v, p) = self.eval(x, Ordering::Equal, split_ties);
+            value += equal as f64 * v;
+            deriv += equal as f64 * p;
+        }
+        if greater > 0 {
+            let (v, p) = self.eval(x, Ordering::Greater, split_ties);
+            value += greater as f64 * v;
+            deriv += greater as f64 * p;
         }
         (value, deriv)
     }
@@ -101,6 +101,10 @@ impl Term for TanhTerm {
 
 fn bucket(a: f64, width: f64) -> i32 {
     (a / width).round() as i32
+}
+
+fn same_bucket(a: f64, b: f64, width: f64) -> bool {
+    bucket(a, width) == bucket(b, width)
 }
 
 fn cmp_by_bucket(a: f64, b: f64, width: f64) -> Ordering {
@@ -245,12 +249,10 @@ impl RatingSystem for EloMMR {
         let mut normal_terms: Vec<(Rating, Vec<usize>)> = vec![];
         for (term, lo) in base_terms {
             if let Some((last_term, ranks)) = normal_terms.last_mut() {
-                let len = ranks.len() as f64;
-                if bucket(last_term.mu, self.subsample_bucket)
-                    == bucket(term.mu, self.subsample_bucket)
-                    && bucket(last_term.sig, self.subsample_bucket)
-                        == bucket(term.sig, self.subsample_bucket)
+                if same_bucket(last_term.mu, term.mu, self.subsample_bucket)
+                    && same_bucket(last_term.sig, term.sig, self.subsample_bucket)
                 {
+                    let len = ranks.len() as f64;
                     last_term.mu = (len * last_term.mu + term.mu) / (len + 1.);
                     last_term.sig = (len * last_term.sig + term.sig) / (len + 1.);
                     ranks.push(lo);

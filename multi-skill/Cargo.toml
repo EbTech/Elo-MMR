@@ -1,11 +1,11 @@
 [package]
 name = "multi-skill"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Aram Ebtekar <aramebtech@gmail.com>"]
 edition = "2018"
 
 description = "Skill estimation systems for multiplayer competitions"
-repository = "https://github.com/EbTech/EloR"
+repository = "https://github.com/EbTech/Elo-MMR"
 readme = "../README.md"
 keywords = ["skill", "rating", "estimation", "competition", "bayesian"]
 categories = ["algorithms", "mathematics", "game-development"]
@@ -21,6 +21,7 @@ overload = "0.1"
 float-cmp = "0.8"
 csv = "1.1"
 select = "0.6.0-alpha"
+superslice = "1.0"
 
 [[bin]]
 name = "rate"
