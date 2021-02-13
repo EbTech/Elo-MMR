@@ -15,7 +15,7 @@ int main() {
   // Store the players' priors
   unordered_map<string, Player*> ratings;  
 
-  string contest_dir = "../../cache/codeforces/";
+  string contest_dir = "../../../cache/codeforces/";
   const int max_contests = 150;
   double mu_noob = 1500, sig_noob = 300;
 
