@@ -22,6 +22,7 @@ float-cmp = "0.8"
 csv = "1.1"
 select = "0.6.0-alpha"
 superslice = "1.0"
+rug = "1.11"
 
 [[bin]]
 name = "rate"

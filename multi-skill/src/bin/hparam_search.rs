@@ -1,5 +1,3 @@
-extern crate multi_skill;
-
 use multi_skill::data_processing::get_dataset_by_name;
 use multi_skill::experiment_config::Experiment;
 use multi_skill::systems::{self, RatingSystem};

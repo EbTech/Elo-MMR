@@ -1,4 +1,6 @@
-use super::normal::{Gaussian, ONE, ZERO};
+use super::normal::Gaussian;
+use super::to_hp;
+use rug::{Assign, Float};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -23,13 +25,13 @@ pub struct ProdNode {
 
 #[derive(Clone)]
 pub struct LeqNode {
-    eps: f64,
+    eps: Float,
     edge: Rc<RefCell<(Message, Message)>>,
 }
 
 #[derive(Clone)]
 pub struct GreaterNode {
-    eps: f64,
+    eps: Float,
     edge: Rc<RefCell<(Message, Message)>>,
 }
 
@@ -43,7 +45,7 @@ impl TreeNode for ProdNode {
     fn infer(&mut self) {
         fn get_prefix_prods(from: &[Rc<RefCell<(Message, Message)>>]) -> Vec<Message> {
             let mut prefix_prods = Vec::with_capacity(from.len() + 1);
-            prefix_prods.push(ONE);
+            prefix_prods.push(Gaussian::one());
 
             for val in from {
                 let (ref val, _) = *val.borrow();
@@ -69,7 +71,8 @@ impl TreeNode for ProdNode {
 
 impl ValueNode for ProdNode {
     fn add_edge(&mut self) -> Weak<RefCell<(Message, Message)>> {
-        self.edges.push(Rc::new(RefCell::new((ONE, ZERO))));
+        self.edges
+            .push(Rc::new(RefCell::new((Gaussian::one(), Gaussian::zero()))));
         Rc::downgrade(&self.edges.last().unwrap())
     }
 }
@@ -92,7 +95,7 @@ impl TreeNode for LeqNode {
     fn infer(&mut self) {
         let ans;
         {
-            ans = RefCell::borrow(&self.edge).0.leq_eps(self.eps);
+            ans = RefCell::borrow(&self.edge).0.leq_eps(&self.eps);
         }
         RefCell::borrow_mut(&self.edge).1 = ans;
     }
@@ -105,10 +108,13 @@ impl ValueNode for LeqNode {
 }
 
 impl LeqNode {
-    pub fn new(eps: f64) -> LeqNode {
+    pub fn new<T>(eps: T) -> LeqNode
+    where
+        Float: Assign<T>,
+    {
         LeqNode {
-            eps,
-            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+            eps: to_hp(eps),
+            edge: Rc::new(RefCell::new((Gaussian::zero(), Gaussian::zero()))),
         }
     }
 }
@@ -117,7 +123,7 @@ impl TreeNode for GreaterNode {
     fn infer(&mut self) {
         let ans;
         {
-            ans = RefCell::borrow(&self.edge).0.greater_eps(self.eps);
+            ans = RefCell::borrow(&self.edge).0.greater_eps(&self.eps);
         }
         RefCell::borrow_mut(&self.edge).1 = ans;
     }
@@ -130,10 +136,13 @@ impl ValueNode for GreaterNode {
 }
 
 impl GreaterNode {
-    pub fn new(eps: f64) -> GreaterNode {
+    pub fn new<T>(eps: T) -> GreaterNode
+    where
+        Float: Assign<T>,
+    {
         GreaterNode {
-            eps,
-            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+            eps: to_hp(eps),
+            edge: Rc::new(RefCell::new((Gaussian::zero(), Gaussian::zero()))),
         }
     }
 }
@@ -159,7 +168,7 @@ impl TreeNode for SumNode {
     fn infer(&mut self) {
         fn get_prefix_sums(from: &[Weak<RefCell<(Message, Message)>>]) -> Vec<Message> {
             let mut prefix_sums = Vec::with_capacity(from.len() + 1);
-            prefix_sums.push(ZERO);
+            prefix_sums.push(Gaussian::zero());
 
             for val in from {
                 let val = val.upgrade().unwrap();
@@ -182,8 +191,7 @@ impl TreeNode for SumNode {
 
         for i in 0..self.sum_edges.len() {
             RefCell::borrow_mut(&self.sum_edges[i].upgrade().unwrap()).0 =
-                &RefCell::borrow(&self.out_edge.upgrade().unwrap()).1
-                    - &prefix_sums[i]
+                &(&RefCell::borrow(&self.out_edge.upgrade().unwrap()).1 - &prefix_sums[i])
                     - &suffix_sums[i + 1];
         }
     }

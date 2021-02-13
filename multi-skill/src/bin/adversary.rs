@@ -1,5 +1,3 @@
-extern crate multi_skill;
-
 use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file};
 use multi_skill::systems::{get_rating_system_by_name, simulate_contest, PlayersByName};
 

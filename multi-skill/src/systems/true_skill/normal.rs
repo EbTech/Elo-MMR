@@ -1,161 +1,133 @@
-extern crate overload;
+use super::to_hp;
+use rug::Float;
+use std::ops::{Add, Deref, Div, Mul, Sub};
 
-use overload::overload;
-use std::ops;
-
-use statrs::function::erf::erfc;
 use std::f64::consts::PI;
-use std::f64::INFINITY;
 
 #[derive(Clone, Debug)]
 pub struct Gaussian {
-    pub mu: f64,
-    pub sigma: f64,
+    pub mu: Float,
+    pub sigma: Float,
 }
 
-pub const ZERO: Gaussian = Gaussian { mu: 0., sigma: 0. };
-
-pub const ONE: Gaussian = Gaussian {
-    mu: 0.,
-    sigma: INFINITY,
-};
-
-overload!((a: ?Gaussian) + (b: ?Gaussian) -> Gaussian {
-    Gaussian {
-        mu: a.mu + b.mu,
-        sigma: a.sigma.hypot(b.sigma),
-    }
-});
-
-overload!((a: &mut Gaussian) += (b: ?Gaussian) {
-    a.mu += b.mu;
-    a.sigma = a.sigma.hypot(b.sigma);
-});
-
-overload!((a: ?Gaussian) - (b: ?Gaussian) -> Gaussian {
-    Gaussian {
-        mu: a.mu - b.mu,
-        sigma: a.sigma.hypot(b.sigma),
-    }
-});
-
-overload!((a: &mut Gaussian) -= (b: ?Gaussian) {
-    a.mu -= b.mu;
-    a.sigma = a.sigma.hypot(b.sigma);
-});
-
-overload!(-(a: &mut Gaussian) -> Gaussian {
-    Gaussian {
-        mu: -a.mu,
-        sigma: a.sigma,
-    }
-});
-
-overload!((a: ?Gaussian) * (b: ?f64) -> Gaussian {
-    Gaussian {
-        mu: a.mu * b,
-        sigma: a.sigma * b.abs(),
-    }
-});
-
-overload!((a: &mut Gaussian) *= (b: ?f64) {
-    a.mu *= b;
-    a.sigma *= b.abs();
-});
-
-overload!((a: ?Gaussian) / (b: ?f64) -> Gaussian {
-    Gaussian {
-        mu: a.mu / b,
-        sigma: a.sigma / b.abs(),
-    }
-});
-
-overload!((a: &mut Gaussian) /= (b: ?f64) {
-    a.mu /= b;
-    a.sigma /= b.abs();
-});
-
-overload!((a: ?Gaussian) * (b: ?Gaussian) -> Gaussian {
-    if a.sigma.is_infinite() {
-        return b.clone();
-    }
-    if b.sigma.is_infinite() {
-        return a.clone();
-    }
-
-    let ssigma1 = a.sigma.powi(2);
-    let ssigma2 = b.sigma.powi(2);
-    Gaussian {
-        mu: (a.mu * ssigma2 + b.mu * ssigma1) / (ssigma1 + ssigma2),
-        sigma: a.sigma * b.sigma / (ssigma1 + ssigma2).sqrt(),
-    }
-});
-
-overload!((a: &mut Gaussian) *= (b: ?Gaussian) {
-    *a = a.clone() * b;
-});
-
-overload!((a: ?Gaussian) / (b: ?Gaussian) -> Gaussian {
-    if b.sigma.is_infinite() {
-        return a.clone();
-    }
-    if a.sigma.is_infinite() {
-        return Gaussian {
-            mu: -b.mu,
-            sigma: b.sigma,
+impl Add<&Gaussian> for &Gaussian {
+    type Output = Gaussian;
+    fn add(self, rhs: &Gaussian) -> Gaussian {
+        Gaussian {
+            mu: to_hp(&self.mu + &rhs.mu),
+            sigma: to_hp(self.sigma.hypot_ref(&rhs.sigma)),
         }
     }
+}
 
-    let ssigma1 = a.sigma.powi(2);
-    let ssigma2 = b.sigma.powi(2);
-
-    Gaussian {
-        mu: (a.mu * ssigma2 - b.mu * ssigma1) / (ssigma2 - ssigma1).abs(),
-        sigma: a.sigma * b.sigma / (ssigma2 - ssigma1).abs().sqrt(),
+impl Sub<&Gaussian> for &Gaussian {
+    type Output = Gaussian;
+    fn sub(self, rhs: &Gaussian) -> Gaussian {
+        Gaussian {
+            mu: to_hp(&self.mu - &rhs.mu),
+            sigma: to_hp(self.sigma.hypot_ref(&rhs.sigma)),
+        }
     }
-});
-
-overload!((a: &mut Gaussian) /= (b: ?Gaussian) {
-    *a = a.clone() / b;
-});
-
-fn gauss_exponent(mu: f64, sigma: f64, t: f64) -> f64 {
-    (-((t - mu) / sigma).powi(2)).exp()
 }
 
-fn moment0(mu: f64, sigma: f64, t: f64) -> f64 {
-    sigma * PI.sqrt() / 2. * erfc((t - mu) / sigma)
+impl Mul<&Gaussian> for &Gaussian {
+    type Output = Gaussian;
+    fn mul(self, rhs: &Gaussian) -> Gaussian {
+        if self.sigma.is_infinite() {
+            return rhs.clone();
+        }
+        if rhs.sigma.is_infinite() {
+            return self.clone();
+        }
+
+        let ssigma1 = self.sigma.clone().square();
+        let ssigma2 = rhs.sigma.clone().square();
+        let ss_total = to_hp(&ssigma1 + &ssigma2);
+        Gaussian {
+            mu: (&self.mu * ssigma2 + &rhs.mu * ssigma1) / &ss_total,
+            sigma: &self.sigma / ss_total.sqrt() * &rhs.sigma,
+        }
+    }
 }
 
-fn moment1(mu: f64, sigma: f64, t: f64) -> f64 {
-    mu * moment0(0., sigma, t - mu) + sigma.powi(2) / 2. * gauss_exponent(mu, sigma, t)
+impl Div<&Gaussian> for &Gaussian {
+    type Output = Gaussian;
+    fn div(self, rhs: &Gaussian) -> Gaussian {
+        if rhs.sigma.is_infinite() {
+            return self.clone();
+        }
+        if self.sigma.is_infinite() {
+            return Gaussian {
+                mu: -rhs.mu.clone(),
+                sigma: rhs.sigma.clone(),
+            };
+        }
+
+        let ssigma1 = self.sigma.clone().square();
+        let ssigma2 = rhs.sigma.clone().square();
+        let ss_diff = to_hp(&ssigma2 - &ssigma1).abs();
+
+        Gaussian {
+            mu: (&self.mu * ssigma2 - &rhs.mu * ssigma1) / &ss_diff,
+            sigma: &self.sigma / ss_diff.sqrt() * &rhs.sigma,
+        }
+    }
 }
 
-fn moment2(mu: f64, sigma: f64, t: f64) -> f64 {
-    mu.powi(2) * moment0(0., sigma, t - mu)
-        + 2. * mu * moment1(0., sigma, t - mu)
-        + sigma.powi(2) / 4.
-            * (2. * gauss_exponent(mu, sigma, t) * (t - mu)
-                + sigma * PI.sqrt() * erfc((t - mu) / sigma))
+fn gauss_exponent(mu: &Float, sigma: &Float, t: &Float) -> Float {
+    let z = to_hp(t - mu) / sigma;
+    (-z.square()).exp()
+}
+
+fn moment0(mu: &Float, sigma: &Float, t: &Float) -> Float {
+    let z = to_hp(t - mu) / sigma;
+    z.erfc() * sigma * (PI.sqrt() / 2.)
+}
+
+fn moment1(mu: &Float, sigma: &Float, t: &Float) -> Float {
+    mu * moment0(&to_hp(0.), sigma, &to_hp(t - mu))
+        + sigma.clone().square() / 2. * gauss_exponent(mu, sigma, t)
+}
+
+fn moment2(mu: &Float, sigma: &Float, t: &Float) -> Float {
+    let t_minus_mu = to_hp(t - mu);
+    mu.clone().square() * moment0(&to_hp(0.), sigma, &t_minus_mu)
+        + moment1(&to_hp(0.), sigma, &t_minus_mu) * mu * 2.
+        + sigma.clone().square() / 4.
+            * (2. * gauss_exponent(mu, sigma, t) * &t_minus_mu
+                + to_hp(&t_minus_mu / sigma).erfc() * sigma * PI.sqrt())
 }
 
 impl Gaussian {
-    pub fn leq_eps(&self, eps: f64) -> Gaussian {
-        assert!(eps >= 0.);
-        assert!(!self.sigma.is_infinite());
-
-        let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
-
-        let mu =
-            1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
-        let mut sigma2 = 1. / alpha
-            * (moment2(self.mu, self.sigma, -eps) - moment2(self.mu, self.sigma, eps))
-            - mu.powi(2);
-        if sigma2 < 0. {
-            // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
+    pub fn zero() -> Self {
+        Self {
+            mu: to_hp(0.),
+            sigma: to_hp(0.),
         }
-        let sigma = sigma2.sqrt();
+    }
+
+    pub fn one() -> Self {
+        Self {
+            mu: to_hp(0.),
+            sigma: to_hp(std::f64::INFINITY),
+        }
+    }
+
+    pub fn leq_eps(&self, eps: &Float) -> Gaussian {
+        assert!(!eps.is_sign_negative());
+        assert!(!self.sigma.is_infinite());
+        let neg_eps = to_hp(-eps);
+
+        let alpha = moment0(&self.mu, &self.sigma, &neg_eps) - moment0(&self.mu, &self.sigma, &eps);
+
+        let mu = (moment1(&self.mu, &self.sigma, &neg_eps) - moment1(&self.mu, &self.sigma, &eps))
+            / &alpha;
+        let sigma2 = (moment2(&self.mu, &self.sigma, &neg_eps)
+            - moment2(&self.mu, &self.sigma, &eps))
+            / &alpha
+            - mu.clone().square();
+        // sigma2 can only be negative due to numerical errors
+        let sigma = sigma2.max(&to_hp(0.)).sqrt();
 
         assert!(
             !mu.is_nan() && !sigma.is_nan(),
@@ -163,35 +135,32 @@ impl Gaussian {
             self,
             eps,
             mu,
-            sigma2
+            sigma
         );
 
-        let ans = Gaussian { mu, sigma } / self;
+        let ans = &Gaussian { mu, sigma } / self;
 
-        assert!(ans.mu.abs() <= eps);
+        assert!(ans.mu.as_abs().deref() <= eps);
 
         ans
     }
 
-    pub fn greater_eps(&self, eps: f64) -> Gaussian {
-        assert!(eps >= 0.);
+    pub fn greater_eps(&self, eps: &Float) -> Gaussian {
+        assert!(!eps.is_sign_negative());
         assert!(!self.sigma.is_infinite());
 
-        let alpha = moment0(self.mu, self.sigma, eps);
+        let alpha = moment0(&self.mu, &self.sigma, &eps);
 
-        let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
-        let mut sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);
-        if sigma2 < 0. {
-            // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
-        }
-        let sigma = sigma2.sqrt();
+        let mu = moment1(&self.mu, &self.sigma, &eps) / &alpha;
+        let sigma2 = moment2(&self.mu, &self.sigma, &eps) / &alpha - mu.clone().square();
+        // sigma2 can only be negative due to numerical errors
+        let sigma = sigma2.max(&to_hp(0.)).sqrt();
 
         assert!(!mu.is_nan() && !sigma.is_nan(), "{:?}\teps {}", self, eps);
 
-        let ans = Gaussian { mu, sigma } / self;
+        let ans = &Gaussian { mu, sigma } / self;
 
-        assert!(ans.mu >= 2. * eps);
+        assert!(ans.mu >= to_hp(2. * eps));
 
         ans
     }

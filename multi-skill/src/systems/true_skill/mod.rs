@@ -5,6 +5,7 @@ use super::util::{Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
+use rug::{Assign, Float};
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -14,6 +15,14 @@ type TSPlayer<'a> = (&'a mut Player, Gaussian);
 type TSTeam<'a> = Vec<TSPlayer<'a>>;
 type TSContestPlace<'a> = Vec<TSTeam<'a>>;
 type TSContest<'a> = Vec<TSContestPlace<'a>>;
+
+const PRECISION: u32 = 53;
+fn to_hp<T>(val: T) -> Float
+where
+    Float: Assign<T>,
+{
+    Float::with_val(PRECISION, val)
+}
 
 // TrueSkillStPB rating system
 #[derive(Debug)]
@@ -91,9 +100,9 @@ fn infer_ld(ld: &mut Vec<impl TreeNode>, l: &mut Vec<impl TreeNode>) {
 fn check_convergence(
     a: &[Rc<RefCell<(TSMessage, TSMessage)>>],
     b: &[(TSMessage, TSMessage)],
-) -> f64 {
+) -> Float {
     if a.len() != b.len() {
-        return std::f64::INFINITY;
+        return to_hp(std::f64::INFINITY);
     }
 
     a.iter()
@@ -101,15 +110,15 @@ fn check_convergence(
         .zip(b.iter())
         .flat_map(|(ai, bi)| {
             vec![
-                ai.0.mu - bi.0.mu,
-                ai.0.sigma - bi.0.sigma,
-                ai.1.mu - bi.1.mu,
-                ai.1.sigma - bi.1.sigma,
+                to_hp(&ai.0.mu - &bi.0.mu),
+                to_hp(&ai.0.sigma - &bi.0.sigma),
+                to_hp(&ai.1.mu - &bi.1.mu),
+                to_hp(&ai.1.sigma - &bi.1.sigma),
             ]
         })
-        .map(f64::abs)
+        .map(Float::abs)
         .max_by(|x, y| x.partial_cmp(y).expect("Difference became NaN"))
-        .unwrap_or(0.)
+        .unwrap_or_else(|| to_hp(0.))
 }
 
 impl TrueSkillSPb {
@@ -150,8 +159,8 @@ impl TrueSkillSPb {
                     ]));
                     RefCell::borrow_mut(perf[i][j][k].get_edges_mut().last_mut().unwrap()).1 =
                         Gaussian {
-                            mu: 0.,
-                            sigma: sig_perf,
+                            mu: to_hp(0.),
+                            sigma: to_hp(sig_perf),
                         };
 
                     players.push((i, j, k, new_edge));
@@ -217,8 +226,8 @@ impl TrueSkillSPb {
             *gaussian = prior * performance;
             player.update_rating(
                 Rating {
-                    mu: gaussian.mu,
-                    sig: gaussian.sigma,
+                    mu: gaussian.mu.to_f64(),
+                    sig: gaussian.sigma.to_f64(),
                 },
                 0.,
             );
@@ -241,8 +250,8 @@ impl RatingSystem for TrueSkillSPb {
             }
             let noised = user.approx_posterior.with_noise(self.sig_drift);
             let gaussian = Gaussian {
-                mu: noised.mu,
-                sigma: noised.sig,
+                mu: to_hp(noised.mu),
+                sigma: to_hp(noised.sig),
             };
             contest.last_mut().unwrap().push(vec![(user, gaussian)]);
             prev = lo;

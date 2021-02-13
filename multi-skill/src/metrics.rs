@@ -1,5 +1,3 @@
-extern crate overload;
-
 use crate::systems::{get_participant_ratings, outcome_free, PlayersByName, Rating};
 use overload::overload;
 use std::fmt;

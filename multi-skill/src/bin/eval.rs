@@ -1,5 +1,3 @@
-extern crate multi_skill;
-extern crate rayon;
 use rayon::prelude::*;
 
 use multi_skill::experiment_config::Experiment;
