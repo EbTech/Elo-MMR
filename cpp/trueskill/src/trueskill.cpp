@@ -21,7 +21,6 @@ static double Vdraw(double t, double e) {
   return (pdf(-e - t) - pdf(e - t)) / (cdf(e - t) - cdf(-e - t));
 }
 
-#include <cassert>
 static double Wdraw(double t, double e) {
   double vdraw = Vdraw(t, e);
   double n = (vdraw * vdraw) + ((e - t) * pdf(e - t) + (e + t) * pdf(e + t));

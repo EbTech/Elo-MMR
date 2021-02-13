@@ -1,0 +1,19 @@
+# Ignore the build and lib dirs
+build
+lib/*
+# eclipse
+Debug/*
+.settings/*
+.cproject
+.project
+.pydevproject
+core
+
+*.log
+*.o
+
+# Ignore any executables
+bin/*
+
+# Ignore Mac specific files
+.DS_Store
