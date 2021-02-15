@@ -1,11 +1,12 @@
 # Elo-MMR: A Rating System for Massive Multiplayer Competitions
 
 [![Crates.io Version](https://img.shields.io/crates/v/multi-skill.svg)](https://crates.io/crates/multi-skill)
-[![Documentation](https://docs.rs/multi-skill/badge.svg)](https://docs.rs/multi-skill)<!--- [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/bevyengine/bevy/blob/master/LICENSE) -->
+[![Documentation](https://docs.rs/multi-skill/badge.svg)](https://docs.rs/multi-skill)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/EbTech/Elo-MMR/blob/master/LICENSE)
 [![Crates.io Downloads](https://img.shields.io/crates/d/multi-skill.svg)](https://crates.io/crates/multi-skill)
 [![Gitter](https://badges.gitter.im/multi-skill/community.svg)](https://gitter.im/multi-skill/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR.
+This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR. All under MIT license except for the contents of deprecated/cpp/trueskill.
 
 Rating systems estimate the skills of players who participate in a common activity. The Elo-MMR algorithm was designed for activities in which moderate to large numbers of players are ranked at competitive events, and results cannot be standardized across different events for any of the following reasons:
 
@@ -84,4 +85,4 @@ With this file format in mind, you can run your own contests as follows:
 
 ## Mathematical Details
 
-Please see the [full paper](https://arxiv.org/abs/2101.00400) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.
+Please see the [full paper](paper/EloR_updated.pdf) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.

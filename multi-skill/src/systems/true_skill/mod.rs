@@ -1,3 +1,4 @@
+//! Based on Nikita Gaevoy's implementation at https://github.com/nikgaevoy/SPbTrueSkill
 mod nodes;
 mod normal;
 
@@ -24,7 +25,7 @@ where
     Float::with_val(PRECISION, val)
 }
 
-// TrueSkillStPB rating system
+// TrueSkillStPb rating system
 #[derive(Debug)]
 pub struct TrueSkillSPb {
     // epsilon used for ties

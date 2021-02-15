@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 
 fn read_csv<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Vec<T>, csv::Error> {
-    Reader::from_path(&path)?.deserialize().collect()
+    Reader::from_path(path)?.deserialize().collect()
 }
 
 pub struct ImmutableSportDatabase {
