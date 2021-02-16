@@ -33,7 +33,7 @@ First, [install Rust](https://www.rust-lang.org/tools/install). From the `multi-
 cargo run --release --bin rate mmr codeforces
 ```
 
-UPDATE: it's now also possible to run the rating system from a config file. Here's an example:
+UPDATE: it's now also possible to run the rating system from a config file. Here's an example: (this config file is out of date, we'll update it shortly.)
 ```
 cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
 ```
@@ -42,7 +42,7 @@ cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
 
 `cargo run` compiles and runs a Rust project.
 
-`--release` creates a release build, which takes longer to compile but executes faster than a debug build.
+`--release` creates a release build, which takes longer to compile but executes faster than a dev build.
 
 `--bin rate` selects the entry-point `multi-skill/src/bin/rate.rs`.
 

@@ -2,7 +2,7 @@
 
 Make sure that the `path_to_data` directory specified in [configuration/base.yml](configuration/base.yml) contains `all_players.csv` as well as the files `players/{handle}.csv`. After [installing Rust](https://www.rust-lang.org/tools/install), build and run the program with:
 ```
-cargo run
+cargo run --release
 ```
 
 Now you can access the API from another terminal or application. Examples:
