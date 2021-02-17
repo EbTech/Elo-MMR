@@ -1,6 +1,6 @@
 use crate::configuration::Settings;
 use crate::immut_database::ImmutableSportDatabase;
-use crate::routes::{health_check, request_player, request_top};
+use crate::routes::{health_check, request_count, request_player, request_top};
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use std::net::TcpListener;
@@ -49,6 +49,7 @@ pub fn run(
             .wrap(TracingLogger)
             .route("/health_check", web::get().to(health_check))
             .route("/top", web::post().to(request_top))
+            .route("/count", web::post().to(request_count))
             .route("/player", web::post().to(request_player))
             .app_data(database_ptr.clone())
     })

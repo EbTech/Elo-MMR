@@ -1,4 +1,4 @@
-use crate::domain::PlayerEvent;
+use crate::domain::HistoryPoint;
 use crate::domain::UserName;
 use crate::immut_database::ImmutableSportDatabase;
 use actix_web::{web, HttpResponse};
@@ -37,7 +37,7 @@ pub async fn request_player(
 pub async fn player_from_database(
     handle: &UserName,
     database: &ImmutableSportDatabase,
-) -> Result<Vec<PlayerEvent>, String> {
+) -> Result<Vec<HistoryPoint>, String> {
     // We swap in more user-friendly error messages.
     // TODO: involves file I/O, so should probably be made async.
     database.player_history(handle).map_err(|e| {

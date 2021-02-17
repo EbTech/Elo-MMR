@@ -1,5 +1,5 @@
 use crate::helpers::TestApp;
-use worldrank_api::domain::PlayerEvent;
+use worldrank_api::domain::HistoryPoint;
 
 #[actix_rt::test]
 async fn player_returns_a_200_for_valid_form_data() {
@@ -13,7 +13,7 @@ async fn player_returns_a_200_for_valid_form_data() {
     // Assert
     assert_eq!(200, response.status().as_u16());
 
-    let history: Vec<PlayerEvent> = response.json().await.expect("Failed to parse as JSON");
+    let history: Vec<HistoryPoint> = response.json().await.expect("Failed to parse as JSON");
     assert!(!history.is_empty());
 }
 

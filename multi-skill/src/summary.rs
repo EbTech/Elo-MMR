@@ -20,7 +20,7 @@ pub struct GlobalSummary {
 #[derive(Serialize, Deserialize)]
 pub struct PlayerSummary {
     rank: Option<usize>,
-    display_rating: i32,
+    pub display_rating: i32,
     max_rating: i32,
     cur_sigma: i32,
     num_contests: usize,

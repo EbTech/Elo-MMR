@@ -12,7 +12,8 @@ path = "src/main.rs"
 name = "worldrank-api"
 
 [dependencies]
-multi-skill = "0.1.2"
+multi-skill = { path = "../multi-skill" }
+
 serde = { version = "1.0", features = ["derive"]}
 sqlx = { version = "0.5.1", default-features = false, features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate", "offline"] }
 config = "0.10.1"
@@ -30,6 +31,7 @@ tracing-actix-web = "0.3.0-beta.2"
 serde-aux = "2.1"
 unicode-segmentation = "1.7"
 csv = "1.1"
+superslice = "1.0"
 
 [dev-dependencies]
 claim = "0.5.0"

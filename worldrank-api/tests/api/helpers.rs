@@ -59,6 +59,16 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn post_count(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/count", &self.address))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn post_player(&self, body: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/player", &self.address))

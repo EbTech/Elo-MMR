@@ -349,6 +349,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "az"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d84e1d907bfc5795a6addb95ef8666141ee73c8f2f5250ff2a46bf4e4f4aec8a"
+
+[[package]]
 name = "base-x"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1023,6 +1029,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmp-mpfr-sys"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6e8813402282ac06d031b2b036998940ddcffa3100c722663cd8a1ac98b0bd8"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1475,14 +1491,13 @@ dependencies = [
 [[package]]
 name = "multi-skill"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fae78dbc42bc2fd3d2000a96a82987bb22632f414828facfd393407589f0bfd2"
 dependencies = [
  "csv",
  "float-cmp",
  "overload",
  "rayon",
  "reqwest",
+ "rug",
  "select",
  "serde 1.0.123",
  "serde_json",
@@ -2114,6 +2129,17 @@ dependencies = [
  "untrusted",
  "web-sys",
  "winapi",
+]
+
+[[package]]
+name = "rug"
+version = "1.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e538d00da450a8e48aac7e6322e67b2dc86ec71a1feeac0e3954c4f07f01bc45"
+dependencies = [
+ "az",
+ "gmp-mpfr-sys",
+ "libc",
 ]
 
 [[package]]
@@ -3277,6 +3303,7 @@ dependencies = [
  "serde-aux",
  "serde_json",
  "sqlx",
+ "superslice",
  "tokio",
  "tracing",
  "tracing-actix-web",
