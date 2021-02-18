@@ -1,42 +1,70 @@
 
-\section{Bayesian Model}
+\section{A Bayesian Model for Massive Competitions}
+\label{sec:bayes_model}
+% The method is best-suited for competitions in which the most pertinent information is round rankings. Note that, in the programming contest setting, this means we discard specific information about player scores, which are difficult to model and depend heavily on the specifics of the problem set. This method would be ill-suited to model, for instance, track races, where a runner's absolute time is more informative than relative rankings. On the other hand, it may be very well-suited to obstacle-course races, if each round consists of novel obstacles that make the absolute times hard to interpret.
 
-Now we describe the setting formally. A series of competitive \textbf{rounds}, indexed by $t=1,2,3,\ldots$, take place sequentially in time. The participants of a round $t$ are a subset of all the \textbf{players}, which are indexed by $i$. At time $t$, player $i$ has latent \textbf{skill} $s_{i,t}$, which we seek to estimate from a history of observable \textbf{evidence} $e_1,\ldots,e_t$ produced by the rounds $1,\ldots,t$.
+We now describe the setting formally, denoting random variables by capital letters. A series of competitive \textbf{rounds}, indexed by $t=1,2,3,\ldots$, take place sequentially in time. Each round has a set of participating \textbf{players} $\cP_t$, which may in general overlap between rounds. A player's \textbf{skill} is likely to change with time, so we represent the skill of player $i$ at time $t$ by a real random variable $S_{i,t}$.
 
-In Bayesian fashion, we start with a prior belief distribution on $s_{i,t}$ immediately preceding round $t$, taking into account all of the rounds $1,2,\ldots,t-1$. Our main task is to combine the prior belief with the evidence $e_t$ to obtain a posterior belief. This will serve as the basis for a post-round \textbf{rating}, defined to be the \textbf{maximum a posteriori} (MAP) estimate of $s_{i,t}$. That is,
+In round $t$, each player $i\in \cP_t$ competes at some \textbf{performance} level $P_{i,t}$, typically close to their current skill $S_{i,t}$. The deviations $\{P_{i,t}-S_{i,t}\}_{i\in\cP_t}$ are assumed to be i.i.d. and independent of $\{S_{i,t}\}_{i\in\cP_t}$.
 
+Performances are not observed directly; instead, a ranking gives the relative order among all performances $\{P_{i,t}\}_{i\in\cP_t}$. In particular, ties are modelled to occur when performances are exactly equal, a zero-probability event when their distributions are continuous.\footnote{
+%If $e$ contains ties, then $(E_t = e)$ has probability zero in our model. 
+The relevant limiting procedure is to treat performances within $\epsilon$-width buckets as ties, and letting $\epsilon\rightarrow 0$. This technicality appears in the proof of \Cref{thm:uniq-max}.} This ranking constitutes the observational \textbf{evidence} $E_t$ for our Bayesian updates. The rating system seeks to estimate the skill $S_{i,t}$ of every player at the present time $t$, given the historical round rankings $E_{\le t} := \{ E_1,\ldots,E_t \}$.
+
+We overload the notation $\Pr$ for both probabilities and probability densities: the latter interpretation applies to zero-probability events, such as in $\Pr(S_{i,t} = s)$. We also use colons as shorthand for collections of variables differing only in a subscript: for instance, $P_{:,t}:=\{P_{i,t}\}_{i\in\cP_t}$. The joint distribution described by our Bayesian model factorizes as follows:
+\begin{align}
+    &\Pr(S_{:,:}, P_{:,:}, E_:) \label{eq:model}
+    \\&= \prod_i \Pr(S_{i,0})
+    \prod_{i,t} \Pr(S_{i,t}\mid S_{i,t-1})
+    \prod_{i,t} \Pr(P_{i,t}\mid S_{i,t})
+    \prod_t \Pr(E_t\mid P_{:,t}), \nonumber
+\end{align}
+\vspace{-1.5em}
 \begin{align*}
-r_{i,t} &= \arg\max_{s_{i,t}} f(s_{i,t} \mid e_1,\ldots,e_t) \\
-&= \arg\max_{s_{i,t}} f(s_{i,t} \mid e_1,\ldots,e_{t-1}) \Pr(e_t \mid s_{i,t})
+    \text{where } \Pr(S_{i,0}) &\text{ is the initial skill prior,}
+    \\\Pr(S_{i,t}\mid S_{i,t-1}) &\text{ is the skill evolution model (\Cref{sec:skill-drift}),}
+    \\\Pr(P_{i,t}\mid S_{i,t}) &\text{ is the performance model, and}
+    \\\Pr(E_t\mid P_{:,t}) &\text{ is the evidence model.}
 \end{align*}
+For the first three factors, we will specify log-concave distributions (see \Cref{def:log-concave}). The evidence model, on the other hand, is a deterministic indicator. It equals one when $E_t$ is consistent with the relative ordering among $\{P_{i,t}\}_{i\in\cP_t}$, and zero otherwise.
 
-where $f(s_{i,t} \mid e_1,\ldots,e_t)$ is the probability density function (p.d.f.) corresponding to our posterior belief on player $i$'s latent skill given the history of evidence. Here we used Bayes' rule to write the posterior p.d.f. as proportional to the product of the prior p.d.f. and the evidence probability.
+Finally, our model assumes that the number of participants $|\cP_t|$ is large. %(in practice, in the tens to thousands).
+The main idea behind our algorithm is that, in sufficiently massive competitions, from the evidence $E_t$ we can infer very precise estimates for $\{P_{i,t}\}_{i\in\cP_t}$. Hence, we can treat these performances as if they were observed directly.
+%\begin{theorem}
+%Consider a round $t$ with player $i$ having performance $P_{i,t}$, and a set of participants $\cP_t$ drawn from the same distribution as player $i$. Suppose are prior believe on $P_{i,t}$ is continuous and has positive density at its true value. Then with probability 1, in the limit $|\cP_t|\rightarrow \infty$, the posterior belief on $P_{i, t}$ conditioned on $E_t$ concentrates around its true value. Furthermore,
+%\[\lim_{|\cP_t|\rightarrow\infty} \Pr(S_{i,t}=s \mid P_{i,<t},\,E_t) = \Pr(S_{i,t} = s \mid P_{i, \leq t}). \]
+%\end{theorem}
+%\begin{proof}
 
-Let's simplify the notation. Since the pre-round evidence $e_1,\ldots,e_{t-1}$ is common to both the prior and posterior beliefs, we treat them as understood and explicitly write only the new evidence $e_t$. This leaves $t$ as the only round subscript, so we omit that as well. With these changes, the post-round rating can be re-written more simply as
+That is, suppose we have the skill prior at round $t$:
+\begin{equation}
+\label{eq:pi-s}
+\pi_{i,t}(s) := \Pr(S_{i,t} = s \mid P_{i,<t}).
+\end{equation}
 
-\[r_i = \arg\max_{s_i} f(s_i \mid e) = \arg\max_{s_i} f(s_i) \Pr(e \mid s_i)\]
-
-We assume the evidence $e$ is produced from each round in the following generative fashion: each participant randomly draws their performance $p_i$ in the round independently from a logistic distribution centered at $s_i$, with a variance $\gamma_i^2$ that may depend on characteristics of the round $t$ (whose subscript we continue to omit) and player $i$.
-
-While the variables $s_i$ and $p_i$ are hidden, we assume that player $i$ outranks player $j$ (written $i \succ j$) in the round if, and only if, $p_i > p_j$, and that we observe the complete relative rankings. In other words, the observable evidence $e$ consists of a total order on the set of participants.
-
-Due to this important modeling assumption, the method is best-suited for competitions in which the most pertinent information is round rankings. Note that, in the programming contest setting, this means we discard specific information about player scores, which are difficult to model and depend heavily on the specifics of the problem set. This method would be ill-suited to model, for instance, track races, where a runner's absolute time is more informative than relative rankings. On the other hand, it may be very well-suited to obstacle-course races, if each round consists of novel obstacles that make the absolute times hard to interpret.
-
-Strictly speaking, ties have probability zero of occurring in our model. Assuming that ties are relatively infrequent in programming contests, they can be handled with a special modification that we'll describe later, essentially treating them as half a win and half a loss.
-
-\begin{center} \includegraphics[scale=0.35]{images/HMMlabeled.png} \end{center}
-
-In order to absorb $e$ into our posterior, a few approximations are in order. First, we assume the number of participants is so large that we are able to compute the performances exactly. Mathematically, this means $\Pr(e \mid p_i)$ is proportional to a delta ``function" concentrated at the correct value of $p_i$. Hence, using Bayes' rule again,
-
+Now, we observe $E_t$. By \Cref{eq:model}, it is conditionally independent of $S_{i,t}$, given $P_{i,\le t}$. By the law of total probability,
 \begin{align*}
-f(s_i\mid e)
-&\propto f(s_i)\Pr(e\mid s_i)
-\\&= f(s_i)\int \Pr(e\mid p_i)f(p_i\mid s_i)\,dp_i
-\\&\propto f(s_i)f(p_i\mid s_i)
+&\Pr(S_{i,t}=s \mid P_{i,<t},\,E_t)
+\\&= \int \Pr(S_{i,t}=s \mid P_{i,<t},\,P_{i,t}=p) \Pr(P_{i,t}=p \mid P_{i,<t},\,E_t) \, \mathrm{d}p
+\\&\rightarrow \Pr(S_{i,t}=s \mid P_{i,\le t}) \quad\text{almost surely as }|\mathcal P_t|\rightarrow\infty.
 \end{align*}
+The integral is intractable in general, since the performance posterior $\Pr(P_{i,t}=p \mid P_{i,<t},\,E_t)$ depends not only on player $i$, but also on our belief regarding the skills of all $j\in\cP_t$. However, in the limit of infinite participants, Doob's consistency theorem~\cite{F63} implies that it concentrates at the true value $P_{i,t}$. Since our posteriors are continuous, the convergence holds for all $s$ simultaneously.
+%\end{proof}
 
-where the constants of proportionality depend on $e$ but not on $s_i$.
+Indeed, we don't even need the full evidence $E_t$. Let $E^L_{i,t} = \{j\in\cP:P_{j,t}>P_{i,t}\}$ be the set of players against whom $i$ lost, and $E^W_{i,t} = \{j\in\cP:P_{j,t}<P_{i,t}\}$ be the set of players against whom $i$ won. That is, we only see who wins, draws, and loses against $i$. $P_{i,t}$ remains identifiable using only $(E^L_{i,t}, E^W_{i,t})$, which will be more convenient for our purposes.
 
-This suggests a natural two-phase update algorithm for each player $i$. In phase one, we estimate the MAP of $p_i$ given $e$. This estimate has very low error in the limit of very many participants, so we can take the MAP of $p_i$ to be its true value. In phase two, we update the posterior according to the above expression, and compute the new rating $r_i$ as the MAP of $s_i$ given $e$.
+Passing to the limit in which $P_{i,\le t}$ is identified serves to justify several common simplifications made by total-order rating systems. Firstly, since $P_{i,\le t}$ is a sufficient statistic for predicting $S_{i,t}$, it may be said that $(E^L_{i,\le t}, E^W_{i,\le t})$ are ``almost sufficient'' for $S_{i,t}$: any additional information, such as from domain-specific scoring systems, becomes redundant for the purposes of skill estimation. Secondly, conditioned on $P_{:,\le t}$, the posterior skills $S_{:,t}$ are independent of one another. As a result, there are no inter-player correlations to model, and a player's posterior is unaffected by rounds in which they are not a participant. Finally, if we've truly identified $P_{i,t}$, then rounds later than $t$ should not prompt revisions in our estimate for $P_{i,t}$. This obviates the need for expensive whole-history update procedures~\cite{DHMG07,WHR}, for the purposes of present skill estimation.\footnote{As opposed to \emph{historical} skill estimation, which is concerned with $P(S_{i,t} \mid P_{i,\le t'})$ for $t'>t$. Whole-history methods can take advantage of future information.}
 
-Note that, since the $p_i$ are assumed to be computed exactly, there is never a reason to retroactively update past estimates of performance. It follows that a round's non-participating players have posterior skill distribution identical to their prior; in particular, their ratings do not change.
+Finally, a word on the rate of convergence. Suppose we want our estimate to be within $\epsilon$ of $P_{i,t}$, with probability at least $1-\delta$. By asymptotic normality of the posterior~\cite{F63}, it suffices to have $O(\frac 1{\epsilon^2}\log \frac 1\delta)$ participants.
+
+When the initial prior, performance model, and evolution model are all Gaussian, treating $P_{i,t}$ as certain is the \emph{only} simplifying approximation we will make; that is, in the limit $|\cP_t|\rightarrow\infty$, our method performs \emph{exact} inference on \Cref{eq:model}. In the following sections, we focus some attention on generalizing the performance model to non-Gaussian log-concave families, parametrized by location and scale. We will use the logistic distribution as a running example and see that it induces robustness; however, our framework is agnostic to the specific distributions used.%For non-Gaussian performance models, we will make a few additional approximations, but we resist the temptation to approximate the posteriors by something compact. 
+
+The prior \textbf{rating} $\mu^\pi_{i,t}$ and posterior rating $\mu_{i,t}$ of player $i$ at round $t$ should be statistics that summarize the player's prior and posterior skill distribution, respectively. We'll use the mode: thus, $\mu_{i,t}$ is the maximum a posteriori (MAP) estimate, obtained by setting $s$ to maximize the posterior $\Pr(S_{i,t}=s \mid P_{i,\le t})$. By Bayes' rule,
+\begin{align}
+\label{eq:new-obj}
+\mu_{i,t}^\pi &:= \argmax_{s} \pi_{i,t}(s), \nonumber
+\\\mu_{i,t} &:= \argmax_{s} \pi_{i,t}(s) \Pr(P_{i,t} \mid S_{i,t}=s).
+\end{align}
+
+This objective suggests a two-phase algorithm to update each player $i\in\cP_t$ in response to the results of round $t$. In phase one, we estimate $P_{i,t}$ from $(E^L_{i,t}, E^W_{i,t})$. By Doob's consistency theorem, our estimate is extremely precise when $|\cP_t|$ is large, so we assume it to be exact. In phase two, we update our posterior for $S_{i,t}$ and the rating $\mu_{i,t}$ according to \Cref{eq:new-obj}.
+

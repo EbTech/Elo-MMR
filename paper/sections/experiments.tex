@@ -1,0 +1,120 @@
+\section{Experiments}
+\label{sec:experiments}
+In this section, we compare various rating systems on real-world datasets, mined from several sources that will be described in \Cref{sec:datasets}. The metrics are runtime and predictive accuracy, as described in \Cref{sec:metrics}. Implementations of all rating systems, dataset mining, and additional processing used in our experiments can be found at {\tt\url{https://github.com/EbTech/Elo-MMR}}.
+
+We compare Elo-MM$\chi$ and Elo-MMR($\rho$) against the industry-tested rating systems of Codeforces and Topcoder. For a fairer comparison, we hand-coded efficient versions of all four algorithms in the safe subset of Rust, parellelized using the Rayon crate; as such, the Rust compiler verifies that they contain no data races~\cite{stone2017rayon}. Our implementation of Elo-MMR($\rho$) makes use of the optimizations in \Cref{sec:runtime}, bounding both the number of sampled opponents and the history length by 500. In addition, we test the improved TrueSkill algorithm of \cite{NS10}, basing our code on an open-source implementation of the same algorithm. The inherent seqentiality of its message-passing procedure prevented us from parallelizing it. All experiments were run on a 2.0 GHz 24-core Skylake machine with 24 GB of memory.
+
+\paragraph{Hyperparameter search}
+To ensure fair comparisons, we ran a separate grid search for each triple of algorithm, dataset, and metric, over all of the algorithm's hyperparameters. The hyperparameter set that performed best on the first 10\% of the dataset, was then used to test the algorithm on the remaining 90\% of the dataset. 
+
+%We find that our rating performs slightly better than all competitors in terms of predictive power. In terms of computational time however, we show that Elo-MMR is up to an order of magnitude faster than Codeforces.
+
+\subsection{Datasets}
+\label{sec:datasets}
+
+\begin{table}[t]
+\begin{tabular}{l|l|l}
+\hline
+\textbf{Dataset} & \textbf{\# contests} & \textbf{avg. \# participants / contest} \\ \hline
+Codeforces       & 1087                & 2999                                     \\ %\hline
+Topcoder         & 2023                & 403                                   \\ %\hline
+Reddit           & 1000                & 20                                       \\
+%\hline
+Synthetic        & 50                  & 2500     \\ \hline
+\end{tabular}
+    \caption{Summary of test datasets.}
+    \label{tab:dataset-summary}
+    \vspace{-1.2em}
+\end{table}
+
+Due to the scarcity of public domain datasets for rating systems, we mined three datasets to analyze the effectiveness of our system. The datasets were mined using data from each source website's inception up to October 9th, 2020. We also created a synthetic dataset to test our system's performance when the data generating process matches our theoretical model. Summary statistics of the datasets are presented in \Cref{tab:dataset-summary}.
+
+\paragraph{Codeforces contest history}
+This dataset contains the current entire history of rated contests ever run on codeforces.com, the dominant platform for online programming competitions. The Codeforces platform has over 850K users, over 300K of whom are rated, and has hosted over 1000 contests to date. Each contest has a couple thousand participants on average. A typical contest takes 2 to 3 hours and contains 5 to 8 problems. Players are ranked by total points, with more points typically awarded for tougher problems and for early solves. They may also attempt to ``hack'' one another's submissions for bonus points, identifying test cases that break their solutions. %The sheer number of highly motivated participants in these competitions, as well as their very accessible data API, made it the top choice for our explorations.
+\looseness=-1
+
+\paragraph{Topcoder contest history}
+This dataset contains the current entire history of algorithm contests ever run on the topcoder.com. Topcoder is a predecessor to Codeforces, with over 1.4 million total users and a long history as a pioneering platform for programming contests. It hosts a variety of contest types, including over 2000 algorithm contests to date. The scoring system is similar to Codeforces, but its rounds are shorter: typically 75 minutes with 3 problems.
+
+\paragraph{SubredditSimulator threads}
+This dataset contains data scraped from the current top-1000 most upvoted threads on the website {\tt\url{reddit.com/r/SubredditSimulator/}}. Reddit is a social news aggregation website with over 300 million users. The site itself is broken down into sub-sites called subreddits. Users then post and comment to the subreddits, where the posts and comments receive votes from other users. In the subreddit SubredditSimulator, users are language generation bots trained on text from other subreddits. Automated posts are made by these bots to SubredditSimulator every 3 minutes, and real users of Reddit vote on the best bot. Each post (and its associated comments) can thus be interpreted as a round of competition between the bots who commented. 
+
+\paragraph{Synthetic data}
+This dataset contains 10K players, with skills and performances generated according to the Gaussian generative model in \Cref{sec:bayes_model}. Players' initial skills are drawn i.i.d. with mean $1500$ and variance $350^2$. Players compete in all rounds, and are ranked according to independent performances with variance $200^2$. Between rounds, we add i.i.d. Gaussian increments with variance $35^2$ to each of their skills.
+% Uh is this the logistic or the Gaussian model??????
+
+\subsection{Evaluation metrics}
+\label{sec:metrics}
+To compare the different algorithms, we define two measures of predictive accuracy. Each metric will be defined on individual contestants in each round, and then averaged:
+\[\mathrm{\bf aggregate(metric)} := \frac{\sum_t \sum_{i\in\mathcal P_t} \mathrm{\bf metric}(i,t)}{\sum_t |\mathcal P_t|}.\]
+
+\paragraph{Pair inversion metric~\cite{HMG06}}
+Our first metric computes the fraction of opponents against whom our ratings predict the correct pairwise result, defined as the higher-rated player either winning or tying: 
+\[\mathrm{\bf pair\_inversion}(i,t) := \frac{\text{\# correctly predicted matchups}}{|\mathcal P_t|-1} \times 100\%.\]
+This metric was used in the original evaluation of TrueSkill~\cite{HMG06}.
+
+\paragraph{Rank deviation}
+Our second metric compares the rankings with the total ordering that would be obtained by sorting players according to their prior rating. The penalty is proportional to how much these ranks differ for player $i$:
+\[\mathrm{\bf rank\_deviation}(i,t) := \frac{|\text{actual rank} - \text{predicted rank}|}{|\mathcal P_t|-1} \times 100\%.\]
+In the event of ties, among the ranks within the tied range, we use the one that comes closest to the rating-based prediction.
+
+% \paragraph{Entropy-based metric}
+% For this metric, we evaluate the interpretability of the system ratings. As specified in \Cref{sec:bayes_model}, we assume player performances follow a Bradley-Terry model\paul{add BT and thurstone to this section}. In particular, we assume the probability of participants $i$ beating $j$ in a round $R$ is predicted by the simple formula \[\Pr[i \succ j] = \frac{1}{1 + 10^{\frac{\mu_i - \mu_j}{400}}}.\]
+% As previously stated, this formula is assumed by the classic Elo rating system as well as the Codeforces rating system~\cite{...}, with the main benefit being that players can easily interpret the meaning of their ratings. To measure the interpretability, we measure the distance between the win distribution implied by the rating system and the actual win distribution. One way to do this is to measure the cross-entropy (which is equal to the KL-divergence up to an additive constant) via the follow formula:
+% \[\mathrm{entropy} = -\frac{1}{\text{\# total pairs}} \sum_{\substack{i,j \in R \\ i \succ j}} \log \frac{1}{1 + 10^{\frac{\mu_i - \mu_j}{400}}}.\]
+
+\subsection{Empirical results}
+\begin{table*}
+\begin{tabular}{l|ll|ll|ll|ll|ll}
+ \hline
+\multirow{2}{*}{\textbf{Dataset}} &
+  \multicolumn{2}{l|}{\textbf{Codeforces}} &
+  \multicolumn{2}{l|}{\textbf{Topcoder}} &
+  \multicolumn{2}{l|}{\textbf{TrueSkill}} &
+  \multicolumn{2}{l|}{\textbf{Elo-MM$\boldsymbol\chi$}} & 
+  \multicolumn{2}{l}{\textbf{Elo-MMR($\boldsymbol\rho$)}} \\ \cline{2-11}
+&
+  pair inv. &
+  rank dev. &
+  pair inv. &
+  rank dev. &
+  pair inv. &
+  rank dev. &
+  pair inv. &
+  rank dev. &
+  pair inv. &
+  rank dev. \\ \hline
+Codeforces & 78.3\% & 14.9\% & 78.5\% & 15.1\% & 61.7\% & 25.4\% & 78.5\% & 14.8\% & {\bf 78.6}\% & {\bf 14.7}\% \\ %\hline
+Topcoder  & 72.6\%     & 18.5\%     & 72.3\% & 18.7\%  & 68.7\% & 20.9\% & 73.0\% & 18.3\% & {\bf 73.1}\% & {\bf 18.2}\% \\ %\hline
+Reddit     & 61.5\%     & 27.3\%     & 61.4\% & 27.4\% & 61.5\% & {\bf 27.2}\% & 61.6\% & 27.3\% & {\bf 61.6\%} & 27.3\% \\ %\hline
+Synthetic  & {\bf 81.7\%}     & 12.9\%     & {\bf 81.7}\% & {\bf 12.8}\% & 81.3\% & 13.1\% & {\bf 81.7}\% & {\bf 12.8}\% & {\bf 81.7\%} & {\bf 12.8\%} \\ \hline
+\end{tabular}
+\caption{Performance of each rating system on the pairwise inversion and rank deviation metrics. Bolded entries denote the best performances (highest pair inv. or lowest rank dev.) on each metric and dataset.}
+\label{tbl:metric-results}
+\vspace{-1.2em}
+\end{table*}
+
+\begin{table}
+\begin{tabular}{l|lllll}
+\hline
+\textbf{Dataset} & \textbf{CF} & \textbf{TC} & \textbf{TS} & \textbf{Elo-MM$\boldsymbol\chi$} & \textbf{Elo-MMR($\boldsymbol\rho$)} \\ \hline
+Codeforces & 212.9 & 72.5 & 67.2 & {\bf 31.4} & 35.4\\
+Topcoder   & 9.60 & {\bf 4.25} & 16.8 & 7.00 & 7.52\\
+Reddit     & 1.19  & 1.14 & {\bf 0.44} & 1.14 & 1.42 \\
+Synthetic  & 3.26  & 1.00 & 2.93 & {\bf 0.81} & 0.85 \\ \hline
+\end{tabular}
+\caption{Total compute time over entire dataset, in seconds.}
+\label{tbl:time-results}
+\vspace{-1.2em}
+\end{table}
+
+Recall that Elo-MM$\chi$ has a Gaussian performance model, matching the modeling assumptions of Topcoder and TrueSkill. Elo-MMR($\rho$), on the other hand, has a logistic performance model, matching the modeling assumptions of Codeforces and Glicko. While $\rho$ was included in the hyperparameter search, in practice we found that all values between $0$ and $1$ produce very similar results.
+
+To ensure that errors due to the unknown skills of new players don't dominate our metrics, we excluded players who had competed in less than 5 total contests. In most of the datasets, this reduced the performance of our method relative to the others, as our method seems to converge more accurately. Despite this, we see in \Cref{tbl:metric-results} that both versions of Elo-MMR outperform the other rating systems in both the pairwise inversion metric and the ranking deviation metric.
+\looseness=-1
+
+We highlight a few key observations. First, significant performance gains are observed on the Codeforces and Topcoder datasets, despite these platforms' rating systems having been designed specifically for their needs. Our gains are smallest on the synthetic dataset, for which all algorithms perform similarly. This might be in part due to the close correspondence between the generative process and the assumptions of these rating systems. Furthermore, the synthetic players compete in all rounds, enabling the system to converge to near-optimal ratings for every player. Finally, the improved TrueSkill performed well below our expectations, despite our best efforts to improve it. We suspect that the message-passing numerics break down in contests with a large number of individual participants. The difficulties persisted in all TrueSkill implementations that we tried, including on Microsoft's popular {\tt Infer.NET} framework~\cite{InferNET18}. To our knowledge, we are the first to present experiments with TrueSkill on contests where the number of participants is in the hundreds or thousands. In preliminary experiments, TrueSkill and Elo-MMR score about equally when the number of ranks is less than about 60.
+
+Now, we turn our attention to \Cref{tbl:time-results}, which showcases the computational efficiency of Elo-MMR. On smaller datasets, it performs comparably to the Codeforces and Topcoder algorithms. However, the latter suffer from a quadratic time dependency on the number of contestants; as a result, Elo-MMR outperforms them by almost an order of magnitude on the larger Codeforces dataset.
+
+Finally, in comparisons between the two Elo-MMR variants, we note that while Elo-MMR($\rho$) is more accurate, Elo-MM$\chi$ is always faster. This has to do with the skill drift modeling described in \Cref{sec:skill-drift}, as every update in Elo-MMR($\rho$) must process $O(\log\frac 1\epsilon)$ terms of a player's competition history.

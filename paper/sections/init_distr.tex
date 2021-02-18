@@ -1,0 +1,7 @@
+%\subsection{Initial Skill Distributions}
+
+%\paul{Does our system preserve the mean rating of the population?}
+
+%\aram{No it doesn't. Should this section be here? The newbie prior is not the only thing subject to hyperparameter search.}
+
+%In our two-phase algorithm, skill distributions can be updated from round to round via \Cref{alg:update}. However, new players to the rating system must be initialized with an initial skill distribution. In practice, any initial distribution converges after the player participates in a few rounds. Thus, one approach is to seed the rating system with an initial pool of players from which an initial skill distribution can be estimated after a few rounds of play. Another approach is a simple hyper-parameter search over the initial skill distribution that optimizes for the prediction accuracy. In our experiments, we take the latter approach.

@@ -1,53 +1,91 @@
+\subsection{Performance estimation}
+\label{sec:performance}
 
-\section{Performance Estimation}
+In this section, we describe the first phase of Elo-MMR. For notational convenience, we assume all probability expressions to be conditioned on the \textbf{prior context} $P_{i,< t}$, and omit the subscript $t$.
 
-Since our assumptions imply the posterior on $p_i$ to be narrowly concentrated, the MAP estimate is as good as any. Thus, we seek to maximize
-
-\[f(p_i\mid e) \propto f(p_i) \Pr(e\mid p_i)\]
-
-In the prior distribution, $p_i = s_i + (p_i-s_i)$ is a sum of two independent random variables. $s_i$ has the prior distribution, whose mode is the pre-round rating $r'_i$; let $\sigma_i^2$ be its variance. The other term $p_i-s_i$ is a zero-centered logistic random variable with variance $\gamma_i^2$.
-
-The sum of two normal random variables is another normal variable whose mean is the sum of the component means. Inspired by this fact, we make another approximation: although neither $s_i$ nor $p_i-s_i$ are normal, we treat their sum $p_i$ as a logistic random variable centered at $r'_i$. By independence of its two components, $p_i$ has variance $\delta_i^2 = \gamma_i^2 + \sigma_i^2$.
-
-We'll adopt the convention that any symbol that represents a standard deviation is multiplied by $\frac{\sqrt{12}}{\pi}\approx 1.1$ when drawn with an upper-bar. For example, $\bar\delta_i = \frac{\sqrt{12}}{\pi} \delta_i$. In terms of $\bar\delta_i$, the logistic p.d.f. takes a convenient form:
-
-\[
-f(p_i)
-\approx \frac { 2e^{2(p_i-r'_i)/\bar\delta_i} } { \bar\delta_i\left( 1 + e^{2(p_i-r'_i)/\bar\delta_i} \right)^2}
-= \frac { 1 } { 2\bar\delta_i \cosh^2\frac{p_i-r'_i}{\bar\delta_i} }
-\]
-
-Since we are working in the limit of a large number of players, we have sufficient evidence to determine $p_i$ even after ignoring relations like $j \succ k$ which don't include $i$. Thus, we can imagine $e$ to be the evidence consisting solely of, for each $j\ne i$, whether $j \succ i$ or $j \prec i$. Taking $p_i$ as fixed in the following probability expressions, using the logistic cumulative density function (c.d.f.), and ignoring constants of proportionality that depend on $e$ but not on $p_i$:
-
+Our prior belief on each player's skill $S_i$ implies a prior distribution on $P_i$. Let's denote its probability density function (pdf) by
+\begin{equation}
+\label{eq:perf-prior} 
+f_i(p) := \Pr(P_i = p) = \int \pi_i(s) \Pr(P_i = p \mid S_i=s) \,\mathrm{d}s,
+\end{equation}
+where $\pi_i(s)$ was defined in \Cref{eq:pi-s}. Let
+\[F_i(p) := \Pr(P_i\le p) = \int_{-\infty}^p f_i(x) \,\dx,\]
+be the corresponding cumulative distribution function (cdf). For the purpose of analysis, we'll also define the following ``loss'', ``draw'', and ``victory'' functions:
 \begin{align*}
-\Pr(e\mid p_i)
-&= \prod_{j \succ i} \Pr(p_j > p_i) \prod_{j \prec i} \Pr(p_j < p_i)
-\\&\approx \prod_{j \succ i} \frac {1} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \prod_{j \prec i} \frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}}
-\\&\propto \frac {e^{2p_i\sum_{j\prec i}1/\bar\delta_j}} {\prod_{j\neq i} 1 + e^{2(p_i-r'_j)/\bar\delta_j}}
+l_i(p) &:= \ddp\ln(1-F_i(p)) = \frac{-f_i(p)}{1 - F_i(p)},
+\\d_i(p) &:= \ddp\ln f_i(p) = \frac{f'_i(p)}{f_i(p)},
+\\v_i(p) &:= \ddp\ln F_i(p) = \frac{f_i(p)}{F_i(p)}.
 \end{align*}
 
-Taking logarithms, there exist constants $C$ and $C'$ such that
+Evidently, $l_i(p) < 0 < v_i(p)$. Now we define what it means for the deviation $P_i - S_i$ to be log-concave.
+\begin{definition}
+\label{def:log-concave}
+An absolutely continuous random variable on a convex domain is \textbf{log-concave} if its probability density function $f$ is positive on its domain and satisfies
+\[f(\theta x + (1-\theta) y) > f(x)^\theta f(y)^{1-\theta},\;\forall\theta\in(0,1),x\neq y.\]
+\end{definition}
 
+Log-concave distributions appear widely, and include the Gaussian and logistic distributions used in Glicko, TrueSkill, and many others. We'll see inductively that our prior $\pi_i$ is log-concave at every round. Since log-concave densities are closed under convolution~\cite{concave}, the independent sum $P_i=S_i+(P_i-S_i)$ is also log-concave. Log-concavity is made very convenient by the following lemma, proved in the extended version of this paper:
+\begin{lemma}
+\label{lem:decrease}
+If $f_i$ is continuously differentiable and log-concave, then the functions $l_i,d_i,v_i$ are continuous, strictly decreasing, and
+\[l_i(p) < d_i(p) < v_i(p) \text{ for all }p.\]
+\end{lemma}
+
+For the remainder of this section, we fix the analysis with respect to some player $i$. As argued in \Cref{sec:bayes_model}, $P_i$ concentrates very narrowly in the posterior. Hence, we can estimate $P_i$ by its MAP, choosing $p$ so as to maximize:
+\[\Pr(P_i=p\mid E^L_i,E^W_i) \propto f_i(p) \Pr(E^L_i,E^W_i\mid P_i=p).\]
+
+Define $j\succ i$, $j\prec i$, $j\sim i$ as shorthand for $j\in E^L_i$, $j\in E^W_i$, $j\in \mathcal P\setminus (E^L_i\cup E^W_i)$ (that is, $P_j>P_i$, $P_j<P_i$, $P_j=P_i$), respectively. The following theorem yields our MAP estimate:
+\begin{theorem}
+\label{thm:uniq-max}
+Suppose that for all $j$, $f_j$ is continuously differentiable and log-concave. Then the unique maximizer of $\Pr(P_i=p\mid E^L_i,E^W_i)$ is given by the unique zero of
+\[Q_i(p) := \sum_{j \succ i} l_j(p) + \sum_{j \sim i} d_j(p) + \sum_{j \prec i} v_j(p).\]
+\end{theorem}
+The proof appears in the extended version of this paper. Intuitively, we're saying that the performance is the balance point between appropriately weighted wins, draws, and losses. Let's look at two specializations of our general model, to serve as running examples in this paper.
+
+\paragraph{Gaussian performance model}
+If both $S_j$ and $P_j-S_j$ are assumed to be Gaussian with known means and variances, then their independent sum $P_j$ will also be a known Gaussian. It is analytic and log-concave, so \Cref{thm:uniq-max} applies.
+
+We substitute the well-known Gaussian pdf and cdf for $f_j$ and $F_j$, respectively. A simple binary search, or faster numerical techniques such as the Illinois algorithm or Newton's method, can be employed to solve for the unique zero of $Q_i$.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.05\columnwidth]{images/l2-lr-plot.eps}
+    \caption{$L_2$ versus $L_R$ for typical values (left). Gaussian versus logistic probability density functions (right).}
+    \label{fig:l2-lr-plot}
+\end{figure}
+
+\paragraph{Logistic performance model}
+Now we assume the performance deviation $P_j-S_j$ has a logistic distribution with mean 0 and variance $\beta^2$. In general, the rating system administrator is free to set $\beta$ differently for each contest. Since shorter contests tend to be more variable, one reasonable choice might be to make $1/\beta^2$ proportional to the contest duration.
+
+Given the mean and variance of the skill prior, the independent sum $P_j = S_j + (P_j-S_j)$ would have the same mean, and a variance that's increased by $\beta^2$. Unfortunately, we'll see that the logistic performance model implies a form of skill prior from which it's tough to extract a mean and variance. Even if we could, the sum does not yield a simple distribution.
+
+For experienced players, we expect $S_j$ to contribute much less variance than $P_j-S_j$; thus, in our heuristic approximation, we take $P_j$ to have the same form of distribution as the latter. That is, we take $P_j$ to be logistic, centered at the prior rating $\mu^\pi_j = \argmax \pi_j$, with variance $\delta_j^2 = \sigma_j^2 + \beta^2$, where $\sigma_j$ will be given by \Cref{eq:variance}. This distribution is analytic and log-concave, so the same methods based on \Cref{thm:uniq-max} apply. 
+Define the scale parameter $\bar\delta_j := \frac{\sqrt{3}}{\pi} \delta_j$. A logistic distribution with variance $\delta_j^2$ has cdf and pdf:
 \begin{align*}
-C + \ln f(p_i\mid e)
-&= C' + \ln f(p_i) + \ln \Pr(e\mid p_i)
-\\&\approx \frac{2}{\bar\delta_i} (p_i-r'_i) - 2\ln\left(1 + e^{2(p_i-r'_i)/\bar\delta_i} \right) + 2p_i\sum_{j\prec i} \frac{1}{\bar\delta_j} - \sum_{j\neq i} \ln\left(1 + e^{2(p_i-r'_j)/\bar\delta_j}\right)
+F_j(x) &= \frac { 1 } { 1 + e^{-(x-\mu^\pi_j)/\bar\delta_j} }
+= \frac 12 \left(1 + \tanh\frac{x-\mu^\pi_j}{2\bar\delta_j} \right),
+\\f_j(x) &= \frac { e^{(x-\mu^\pi_j)/\bar\delta_j} } { \bar\delta_j\left( 1 + e^{(x-\mu^\pi_j)/\bar\delta_j} \right)^2}
+= \frac { 1 } { 4\bar\delta_j} \sech^2\frac{x-\mu^\pi_j}{2\bar\delta_j}.
 \end{align*}
 
-To maximize this expression, differentiate it w.r.t. $p_i$ and set the result to zero:
+The logistic distribution satisfies two very convenient relations:
 \begin{align*}
-0 &= \frac{2}{\bar\delta_i}\left(1 - \frac {2e^{2(p_i-r'_i)/\bar\delta_i}} {1 + e^{2(p_i-r'_i)/\bar\delta_i}} \right)
-+ \sum_{j\neq i}\frac{2}{\bar\delta_j}\left(\mathbb{I}(j\prec i) - \frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
-\\&= \sum_{j\preceq i}\frac{2}{\bar\delta_j}\left(\frac {1} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
-- \sum_{j\succeq i}\frac{2}{\bar\delta_j}\left(\frac {e^{2(p_i-r'_j)/\bar\delta_j}} {1 + e^{2(p_i-r'_j)/\bar\delta_j}} \right)
-\\&= -\left( \sum_{j\preceq i}\frac{1}{\bar\delta_j}\left( \tanh\frac {p_i - r'_j} {\bar\delta_j} - 1 \right)
-+ \sum_{j\succeq i}\frac{1}{\bar\delta_j}\left( \tanh\frac {p_i - r'_j} {\bar\delta_j} + 1 \right) \right)
+F'_j(x) = f_j(x) &= F_j(x) (1 - F_j(x)) / \bar\delta_j,
+\\f'_j(x) &= f_j(x) (1 - 2F_j(x)) / \bar\delta_j,
 \end{align*}
+from which it follows that
+\[d_j(p)
+= \frac{1 - 2F_j(p)}{\bar\delta}
+= \frac{-F_j(p)}{\bar\delta} + \frac{1 - F_j(p)}{\bar\delta}
+= l_j(p) + v_j(p).\]
 
-By monotonicity of the $\tanh$ function, we can solve for $p_i$ by a simple binary search. If faster convergence is desired, Newton's method can be used: since $\frac{d}{dx}\tanh(x) = 1 - \tanh^2(x)$, a Newton step is very efficient, requiring no more hyperbolic function evaluations than a binary search step.
+In other words, a tie counts as the sum of a win and a loss. This can be compared to the approach (used in Elo, Glicko, BAR, Topcoder, and Codeforces) of treating each tie as half a win plus half a loss.\footnote{Elo-MMR, too, can be modified to split ties into half win plus half loss. It's easy to check that \Cref{lem:decrease} still holds if $d_j(p)$ is replaced by
+$w_l l_j(p) + w_v v_j(p)$
+for some $w_l,w_v\in [0,1]$ with $|w_l-w_v|<1$.
+In particular, we can set $w_l=w_v=0.5$. The results in \Cref{sec:properties} won't be altered by this change.}
 
-On the second line, the terms in parentheses can be thought of as a measure of surprise at the outcomes between $i$ and $j$: they are the probability of the outcomes opposite to what actually occurred, when the performance of player $i$ is fixed to $p_i$. In addition to the actual outcomes which come from $e$, the prior hallucinates two regularizing outcomes: one in which player $i$ wins against itself, and one in which player $i$ loses against itself. This regularization prevents the first- and last-place players from achieving $p_i = \pm\infty$. By choosing $p_i$ such that the sum equals zero, we are effectively saying that the total surprise from wins should equal the total surprise from losses.
+Finally, putting everything together:
+\[Q_i(p) = \sum_{j \succeq i} l_j(p) + \sum_{j \preceq i} v_j(p)
+= \sum_{j \succeq i} \frac{-F_j(p)}{\bar\delta_j} + \sum_{j \preceq i} \frac{1 - F_j(p)}{\bar\delta_j}.\]
+Our estimate for $P_i$ is the zero of this expression. The terms on the right correspond to probabilities of winning and losing against each player $j$, weighted by $1/\bar\delta_j$. Accordingly, we can interpret $\sum_{j\in \cP} (1-F_j(p))/\bar\delta_j$ as a weighted expected rank of a player whose performance is $p$. Similar to the performance computations in Codeforces and Topcoder, $P_i$ can thus be viewed as the performance level at which one's expected rank would equal $i$'s actual rank.
 
-Here's another intuitive interpretation: if the $\delta_j$s are all equal, this amounts to finding the performance level $p_i$ at which one's expected rank would equal player $i$'s actual rank, after accounting for the regularizing clones of player $i$. With unequal $\delta_j$s, this interpretation can be extended to a weighted ranking in which player $j$ counts $\frac{1}{\delta_j}$ times.
-
-Now we see an easy way to handle ties: simply treat them as half a win and half a loss. Since the above expression subtracts 1 for each win and adds 1 for each loss, averaging the two yields an offset of 0 for ties. It's a hack, but an elegant one!

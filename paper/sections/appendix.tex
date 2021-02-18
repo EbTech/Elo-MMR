@@ -1,0 +1,92 @@
+\section*{Appendix}
+\begingroup
+\def\thetheorem{\ref{lem:decrease}}
+\begin{lemma}
+If $f_i$ is continuously differentiable and log-concave, then the functions $l_i,d_i,v_i$ are continuous, strictly decreasing, and
+\[l_i(p) < d_i(p) < v_i(p) \text{ for all }p.\]
+\end{lemma}
+\addtocounter{theorem}{-1}
+\endgroup
+\begin{proof}
+Continuity of $F_i,f_i,f'_i$ implies that of $l_i,d_i,v_i$. It's known~\cite{concave} that log-concavity of $f_i$ implies log-concavity of both $F_i$ and $1-F_i$. As a result, $l_i$, $d_i$, and $v_i$ are derivatives of strictly concave functions; therefore, they are strictly decreasing. In particular, each of
+
+\[v'_i(p) = \frac{f'_i(p)}{F_i(p)} - \frac{f_i(p)^2}{F_i(p)^2},\quad
+l'_i(p) = \frac{-f'_i(p)}{1-F_i(p)} - \frac{f_i(p)^2}{(1-F_i(p))^2},\]
+
+are negative for all $p$, so we conclude that
+
+\begin{align*}
+d_i(p) - v_i(p)
+= \frac{f'_i(p)}{f_i(p)} - \frac{f_i(p)}{F_i(p)}
+&= \frac{F_i(p)}{f_i(p)} v'_i(p)
+< 0,
+\\l_i(p) - d_i(p)
+= -\frac{f'_i(p)}{f_i(p)} -\frac{f_i(p)}{1-F_i(p)}
+&= \frac{1-F_i(p)}{f_i(p)} l'_i(p)
+< 0.
+\end{align*}
+
+\end{proof}
+
+\iffalse
+
+\begingroup
+\def\thetheorem{\ref{thm:uniq-max}}
+\begin{theorem}
+Suppose that for all $j$, $f_j$ is continuously differentiable and log-concave. Then the unique maximizer of $\Pr(P_i=p\mid E^L_i,E^W_i)$ is given by the unique zero of
+\[Q_i(p) = \sum_{j \succ i} l_j(p) + \sum_{j \sim i} d_j(p) + \sum_{j \prec i} v_j(p).\]
+\end{theorem}
+\addtocounter{theorem}{-1}
+\endgroup
+
+\begin{proof}
+First, we rank the players by their buckets according to $\floor{P_j/\epsilon}$, and take the limiting probabilities as $\epsilon\rightarrow 0$:
+\begin{align*}
+    \Pr(\floor{\frac{P_j}\epsilon} > \floor{\frac{p}\epsilon})
+    &= \Pr(p_j \ge \epsilon\floor{\frac{p}\epsilon} + \epsilon)
+    \\&= 1 - F_j(\epsilon\floor{\frac{p}\epsilon} + \epsilon)
+    \rightarrow 1 - F_j(p),
+    \\\Pr(\floor{\frac{P_j}\epsilon} < \floor{\frac{p}\epsilon})
+    &= \Pr(p_j < \epsilon\floor{\frac{p}\epsilon})
+    \\&= F_j(\epsilon\floor{\frac{p}\epsilon})
+    \rightarrow F_j(p),
+    \\\frac 1\epsilon \Pr(\floor{\frac{P_j}\epsilon} = \floor{\frac{p}\epsilon})
+    &= \frac 1\epsilon \Pr(\epsilon\floor{\frac{p}\epsilon} \le P_j < \epsilon\floor{\frac{p}\epsilon} + \epsilon)
+    \\&= \frac 1\epsilon\left( F_j(\epsilon\floor{\frac{p}\epsilon} + \epsilon) - F_j(\epsilon\floor{\frac{p}\epsilon}) \right)
+    \rightarrow f_j(p).
+\end{align*}
+
+Let $L_{jp}^\epsilon$, $W_{jp}^\epsilon$, and $D_{jp}^\epsilon$ be shorthand for the events $\floor{\frac{P_j}\epsilon} > \floor{\frac{p}\epsilon}$, $\floor{\frac{P_j}\epsilon} < \floor{\frac{p}\epsilon}$, and $\floor{\frac{P_j}\epsilon} = \floor{\frac{p}\epsilon}$. respectively. These correspond to a player who performs at $p$ losing, winning, and drawing against $j$, respectively, when outcomes are determined by $\epsilon$-buckets. Then,
+\begin{align*}
+\Pr(E^W_i,E^L_i\mid P_i=p)
+&= \lim_{\epsilon\rightarrow 0}
+\prod_{j \succ i} \Pr(L_{jp}^\epsilon)
+\prod_{j \prec i} \Pr(W_{jp}^\epsilon)
+\prod_{j \sim i, j\ne i} \frac{\Pr(D_{jp}^\epsilon)}\epsilon
+\\&= \prod_{j \succ i} (1 - F_j(p)) \prod_{j \prec i} F_j(p) \prod_{j \sim i, j\ne i} f_j(p),
+\\\Pr(P_i=p \mid E^L_i,E^W_i)
+&\propto f_i(p) \Pr(E^L_i,E^W_i\mid P_i=p)
+\\&= \prod_{j \succ i} (1 - F_j(p)) \prod_{j \prec i} F_j(p) \prod_{j \sim i} f_j(p),
+\\\ddp\ln \Pr(P_i=p \mid E^L_i,& E^W_i) = \sum_{j \succ i} l_j(p) + \sum_{j \prec i} v_j(p) + \sum_{j \sim i} d_j(p) = Q_i(p).
+\end{align*}
+
+Since \Cref{lem:decrease} tells us that $Q_i$ is strictly decreasing, it only remains to show that it has a zero. If the zero exists, it must be unique and it will be the unique maximum of $\Pr(P_i=p \mid E^L_i,E^W_i)$.
+
+To start, we want to prove the existence of $p^*$ such that $Q_i(p^*) < 0$. Note that it's not possible to have $f'_j(p) \ge 0$ for all $p$, as in that case the density would integrate to either zero or infinity. Thus, for each $j$ such that $j\sim i$, we can choose $p_j$ such that $f'_j(p_j) < 0$, and so $d_j(p_j) < 0$. Let $\alpha = -\sum_{j\sim i} d_j(p_j) > 0$.
+
+Let $n = |\{j:\,j \prec i\}|$. For each $j$ such that $j \prec i$, since $\lim_{p\rightarrow\infty}v_j(p) = 0/1 = 0$, we can choose $p_j$ such that $v_j(p_j) < \alpha/n$. Let $p^* = \max_{j\preceq i} p_j$. Then,
+\[
+\sum_{j \succ i} l_j(p^*) \le 0, \quad \sum_{j \sim i} d_j(p^*) \le -\alpha, \quad \sum_{j \prec i} v_j(p^*) < \alpha.
+\]
+
+Therefore,
+\begin{align*}
+Q_i(p^*)
+&= \sum_{j \succ i} l_j(p^*) + \sum_{j \sim i} d_j(p^*) + \sum_{j \prec i} v_j(p^*)
+\\&< 0 - \alpha + \alpha = 0.
+\end{align*}
+
+By a symmetric argument, there also exists some $q^*$ for which $Q_i(q^*) > 0$. By the intermediate value theorem with $Q_i$ continuous, there exists $p\in (q^*,p^*)$ such that $Q_i(p) = 0$, as desired.
+\looseness=-1
+\end{proof}
+\fi

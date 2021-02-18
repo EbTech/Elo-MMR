@@ -2388,7 +2388,7 @@ FUNCTION { misc }
   output.bibitem
   format.authors "author" output.check
   author format.key output            % added
-  output.year.check                   % added
+  %output.year.check                   % added
   title howpublished new.block.checkb
   format.title output
   new.block

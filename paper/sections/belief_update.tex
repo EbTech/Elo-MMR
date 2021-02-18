@@ -1,47 +1,52 @@
+\subsection{Belief update}
+\label{sec:belief}
 
+Having estimated $P_{i,t}$ in the first phase, the second phase is rather simple. Ignoring normalizing constants, \Cref{eq:new-obj} tells us that the pdf of the skill posterior can be obtained as the pointwise product of the pdfs of the skill prior and the performance model. When both factors are differentiable and log-concave, then so is their product. Its maximum is the new rating $\mu_{i,t}$; let's see how to compute it for the same two specializations of our model.
 
-\section{Belief Update}
+\paragraph{Gaussian performance model}
+When the skill prior and performance model are Gaussian with known means and variances, multiplying their pdfs yields another known Gaussian. Hence, the posterior is compactly represented by its mean $\mu_{i,t}$, which coincides with the MAP and rating; and its variance $\sigma_{i,t}^2$, which is our \textbf{uncertainty} regarding the player's skill.
 
-With $p_i$ in hand, we are ready for the second phase of the update! Recall that we seek to maximize
+\paragraph{Logistic performance model}
+When the performance model is non-Gaussian, the multiplication does not simplify so easily. By \Cref{eq:new-obj}, each round contributes an additional factor to the belief distribution. In general, we allow it to consist of a collection of simple log-concave factors, one for each round in which player $i$ has participated. Denote the participation history by
+\[\cH_{i,t} := \{k\in\{1,\ldots,t\}:i\in\mathcal P_k\}.\]
 
-\[f(s_i\mid e) \propto f(s_i)f(p_i\mid s_i)\]
+Since each player can be considered in isolation, we'll omit the subscript $i$. Specializing to the logistic setting, each $k\in\cH_t$ contributes a logistic factor to the posterior, with mean $p_k$ and variance $\beta_k^2$. We still use a Gaussian initial prior, with mean and variance denoted by $p_0$ and $\beta_0^2$, respectively. Postponing the discussion of skill evolution to \Cref{sec:skill-drift}, for the moment we assume that $S_k=S_0$ for all $k$. The posterior pdf, up to normalization, is then
+\begin{align}
+&\pi_0(s) \prod_{k\in\cH_t} \Pr(P_k=p_k \mid S_k=s) \nonumber
+\\&\propto \exp\left( -\frac{(s-p_0)^2}{2\beta_0^2} \right) \label{eq:posterior}
+\prod_{k\in\cH_t} \sech^{2}\left( \frac\pi{\sqrt{12}} \frac{s-p_k} {\beta_k} \right).
+\end{align}
 
-Ignoring for now the distinction between the posterior at round $t-1$ and the prior at round $t$ (we'll come back to this in the next section), we see that each round multiplies our belief p.d.f. by a logistic factor and a normalizing constant. Thus, our belief will always consist of a product of p.d.f.s.
+Maximizing the posterior density amounts to minimizing its negative logarithm. Up to a constant offset, this is given by
+\begin{align*}
+L(s) &:= L_2\left(\frac{s-p_0}{\beta_0}\right)
++ \sum_{k\in\cH_t} L_R\left(\frac{s-p_k}{\beta_k}\right),
+\\\text{where }L_2(x) &:= \frac 12 x^2\text{ and }
+L_R(x) := 2\ln\left(\cosh \frac{\pi x}{\sqrt{12}}\right).
+\end{align*}
+\begin{equation}
+\label{eq:loss}
+\text{Thus, }L'(s) = \frac{s-p_0}{\beta_0^2} + \sum_{k\in\cH_t} \frac{\pi}{\beta_k\sqrt{3}} \tanh \frac{(s-p_k)\pi}{\beta_k\sqrt{12}}.
+\end{equation}
 
-Let's be a tad more general here and allow the belief to be any normalized product of normal and logistic p.d.f.s. The normal p.d.f.s can be composed into a single normal with mean and variance $(\mu_0, \tau_0^2)$. Let $R_i$ be the set of rounds in which player $i$ has participated, each contributing a logistic factor with parameters $(\mu_k, \tau_k^2)$ for $k\in R_i\cap \{1,\ldots,t\}$. Naturally, the new factor from round $t$ will have $\mu_t = p_{i,t}$ and $\tau_t = \gamma_{i,t}$. The other factors also satisfy $\mu_k = p_{i,k}$ but, as we'll see in the next section, $\tau_k$ increases with time and will exceed $\gamma_{i,k}$ in general. Again defining $\bar\tau_k = \frac{\sqrt{12}}{\pi} \tau_k$,
+$L'$ is continuous and strictly increasing in $s$, so its zero is unique: it is the MAP $\mu_t$. Similar to what we did in the first phase, we can solve for $\mu_t$ with binary search or other root-solving methods.
 
-\[
-f(s_i\mid e)
-\propto e^{-(s_i-\mu_0)^2/\tau_0^2} \prod_{k\ge 1} \frac { 1 } { \cosh^2\frac{s_i-\mu_k} {\bar\tau_k} }
-\]
+We pause to make an important observation. From \Cref{eq:loss}, the rating carries a rather intuitive interpretation: Gaussian factors in $L$ become $L_2$ penalty terms, whereas logistic factors take on a more interesting form as $L_R$ terms. From \Cref{fig:l2-lr-plot}, we see that the $L_R$ term behaves quadratically near the origin, but linearly at the extremities, effectively interpolating between $L_2$ and $L_1$ over a scale of magnitude $\beta_k$ 
+%\aram{cite literature to justify this claim, and the next one? It would take more space to derive it ourselves}.
 
-Hence, there exists a constant $C$ such that
+It is well-known that minimizing a sum of $L_2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L_1$ terms pushes the argument towards a weighted median. With $L_R$ terms, the net effect is that $\mu_t$ acts like a robust average of the historical performances $p_k$. Specifically, one can check that
+\[\mu_t = \frac{\sum_k w_k p_k}{\sum_k w_k}, \text{ where } w_0 := \frac{1}{\beta_0^2} \text{ and }\]
+\begin{equation}
+\label{eq:average}
+w_k := \frac{\pi}{(\mu_t-p_k)\beta_k\sqrt{3}}\tanh\frac{(\mu_t-p_k)\pi}{\beta_k\sqrt{12}} \text{ for }k\in\cH_t.
+\end{equation}
 
-\[C - \frac 1 2 \ln f(s_i \mid e) = \frac{(s_i-\mu_0)^2}{2\tau_0^2} + \sum_{k\ge 1} \ln\left( \cosh\frac{s_i-\mu_k}{\bar\tau_k} \right)\]
+$w_k$ is close to $1/\beta_k^2$ for typical performances, but can be up to $\pi^2/6$ times more as $|\mu_t-p_k| \rightarrow 0$, or vanish as $|\mu_t-p_k| \rightarrow\infty$. This feature is due to the thicker tails of the logistic distribution, as compared to the Gaussian, resulting in an algorithm that resists drastic rating changes in the presence of a few unusually good or bad performances. We'll formally state this \emph{robustness} property in \Cref{thm:robust}.
 
-Maximizing $f(s_i\mid e)$ amounts to minimizing this expression, so let's differentiate it w.r.t. $s_i$ and set the result to zero:
+%Empirically, contest performances have indeed been seen to have thick tails, more like the logistic than the Gaussian (TODO citation).
 
-\[
-0 = \frac{s_i-\mu_0}{\tau_0^2} + \sum_{k\ge 1} \frac{1}{\bar\tau_k} \tanh \frac {s_i-\mu_k} {\bar\tau_k}
-\]
-
-Similar to the performance computation in the previous section, here we have a monotonic function of $s_i$. To compute the post-round rating $r_i = \arg\max_{s_i} f(s_i \mid e)$, we may use binary search or Newton's method.
-
-This time, the intuitive interpretation comes from the minimization objective that we differentiated. It has one term corresponding to each p.d.f. factor. The normal p.d.f. becomes a familiar $L^2$ penalty that pushes $s_i$ towards $\mu_0$. The logistic p.d.f.s are more interesting: they too become penalties that push $s_i$ towards $\mu_k$; however, instead of a simple squared error, each of these terms is a logarithm of a hyperbolic cosine!
-
-At small scales (that is, when $|s_i-\mu_k| \ll \tau_k$), it acts like an $L^2$ penalty. However, at large scales (when $|s_i-\mu_k| \gg \tau_k$), it acts like an $L^1$ penalty! It's well-known that minimizing a sum of $L^2$ terms pushes the argument towards a weighted mean, while minimizing a sum of $L^1$ terms pushes the argument towards a weighted median.
-
-The net result of these penalties is that $r_i$ acts like a mean of the historical performances $\mu_k = p_{i,k}$: it's easily checked that
-
-\[r_i = \frac{\sum_k w_k\mu_k}{\sum_k w_k} \text{ where } w_0 = \frac{1}{\tau_0^2} \text{ and }
-w_k = \frac{1}{\bar\tau_k(r_i-\mu_k)}\tanh\frac{r_i-\mu_k}{\bar\tau_k} \text{ for }k\ge 1.\]
-
-$w_k$ is close to $1/\bar\tau_k^2$ for typical performances but vanishes for extreme outliers, making our rating algorithm robust to performances that are far below or above the usual. This robustness is due to the thicker tails of the logistic distribution, compared to the normal. Empirically, contest performances have indeed been seen to have thick tails, more like the logistic than the normal (TODO citation).
-
-Note that when the weights are fixed, as in the $L^2$ case, it's possible to compute the posterior rating as a function of only the prior rating, prior weight, and the current round's performance and weight. This is no longer possible when using $L^1$ or $\ln\cosh$ penalties. Naively, it appears this method must remember the entire history of past performances: certainly, the latest rating alone is insufficient.
-
-Luckily, it's possible to sustain negligible loss of precision while retaining only a bounded history length per player, thus keeping the time and memory overhead to within a constant factor. The exact means by which this is achieved depends on the noising method used, a matter we'll discuss later. For now, note that the $\tanh$ function behaves like the identity in the limit of large $\tau_k$. Hence, logistic factors with sufficiently large $\tau_k$ will come to resemble normal factors, which combine nicely.
-
-As a final matter, we estimate the variance $\sigma_i^2$ of the posterior distribution on $s_i$. While this is intractable for general products of p.d.f.s, we take advantage of our observation that logistic factors behave in the limit like normal factors. Thus, we make an approximation based on a formula that holds for products of normal p.d.f.s:
-
-\[\frac{1}{\bar\sigma_i^2} = \frac{1}{\tau_0^2} + \sum_k \frac{1}{\bar\tau_k^2}\]
+\paragraph{Estimating skill uncertainty} While there is no easy way to compute the variance of a posterior in the form of \Cref{eq:posterior}, it will be useful to have some estimate $\sigma_t^2$ of uncertainty. There is a simple formula in the case where all factors are Gaussian. Since moment-matched logistic and normal distributions are relatively close (c.f. \Cref{fig:l2-lr-plot}), we apply the same formula:
+\begin{equation}
+\label{eq:variance}
+\frac{1}{\sigma_t^2} := \sum_{k\in\{0\}\cup\cH_t}\frac{1}{\beta_k^2}.
+\end{equation}

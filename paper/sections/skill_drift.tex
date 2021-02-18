@@ -1,0 +1,141 @@
+\section{Skill evolution over time}
+\label{sec:skill-drift}
+%This is an important component in applications, as players often train and improve between rounds.\footnote{This skill drift is modelled by almost all of the systems described in the introduction.} The time-varying skill is typically modelled by Gaussian noise, as we describe in \Cref{sec:skill-drift}.
+
+Factors such as training and resting will change a player's skill over time. If we model skill as a static variable, our system will eventually grow so confident in its estimate that it will refuse to admit substantial changes. To remedy this, we introduce a skill evolution model, so that in general $S_t \neq S_{t'}$ for $t \neq t'$. Now rather than simply being equal to the previous round's posterior, the skill prior at round $t$ is given by
+\begin{equation}
+\label{eq:drift}
+\pi_t(s) = \int \Pr(S_t = s \mid S_{t-1} = x) \Pr(S_{t-1} = x \mid P_{<t}) \,\dx.
+\end{equation}
+
+The factors in the integrand are the skill evolution model and the previous round's posterior, respectively. Following other Bayesian rating systems (e.g., Glicko, Glicko-2, and TrueSkill~\cite{G99, G12, HMG06}), we model the skill diffusions $S_t-S_{t-1}$ as independent zero-mean Gaussians. That is, $\Pr(S_t \mid S_{t-1}=x)$ is a Gaussian with mean $x$ and some variance $\gamma_t^2$. The Glicko system sets $\gamma_t^2$ proportionally to the time elapsed since the last update, corresponding to a continuous Brownian motion. Codeforces and Topcoder simply set $\gamma_t$ to a constant when a player participates, and zero otherwise, corresponding to changes that are in proportion to how often the player competes. Now we are ready to complete the two specializations of our rating system.
+
+\paragraph{Gaussian performance model}
+If both the prior and performance distributions at round $t-1$ are Gaussian, then the posterior is also Gaussian. Adding an independent Gaussian diffusion to our posterior on $S_{t-1}$ yields a Gaussian prior on $S_t$. By induction, the skill belief distribution forever remains Gaussian. This Gaussian specialization of the Elo-MMR framework lacks the R for robustness (see \Cref{thm:robust}), so we call it Elo-MM$\chi$.
+
+\paragraph{Logistic performance model}
+After a player's first contest round, the posterior in \Cref{eq:posterior} becomes non-Gaussian, rendering the integral in \Cref{eq:drift} intractable.
+
+A very simple approach would be to replace the full posterior in \Cref{eq:posterior} by a Gaussian approximation with mean $\mu_t$ (equal to the posterior MAP) and variance $\sigma_t^2$ (given by \Cref{eq:variance}). As in the previous case, applying diffusions in the Gaussian setting is a simple matter of adding means and variances.
+
+With this approximation, no memory is kept of the individual performances $P_t$. Priors are simply Gaussian, while posterior densities are the product of two factors: the Gaussian prior, and a logistic factor corresponding to the latest performance. To ensure robustness (see \Cref{sec:robust}), $\mu_t$ is computed as the argmax of this posterior \emph{before} replacement by its Gaussian approximation. We call the rating system that takes this approach Elo-MMR($\infty$).
+
+As the name implies, it turns out to be a special case of Elo-MMR($\rho$). In the general setting with $\rho \in [0,\infty)$, we keep the full posterior from \Cref{eq:posterior}. Since we cannot tractably compute the effect of a Gaussian diffusion, we seek a heuristic derivation of the next round's prior, retaining a form similar to \Cref{eq:posterior} while satisfying many of the same properties as the intended diffusion.
+
+\subsection{Desirable properties of a ``pseudodiffusion''}
+\label{sec:desirable-props}
+We begin by listing some properties that our skill evolution algorithm, henceforth called a ``pseudodiffusion'', should satisfy. The first two properties are natural:
+\begin{itemize}[leftmargin=*]
+\item \emph{Incentive-compatibility.} First and foremost, the pseudodiffusion must not break the incentive-compatibility of our rating system. That is, a rating-maximizing player should never be motivated to lose on purpose. (\Cref{thm:mono}).
+\item \emph{Rating preservation.} The pseudodiffusion must not alter the $\argmax$ of the belief density. That is, the rating of a player should not change: $\mu^\pi_t = \mu_{t-1}$.
+\end{itemize}
+In addition, we borrow four properties of Gaussian diffusions:
+\begin{itemize}[leftmargin=*]
+\item \emph{Correct magnitude.} Pseudodiffusion with parameter $\gamma^2$ must increase the skill uncertainty, as measured by \Cref{eq:variance}, by $\gamma^2$.
+\item \emph{Composability.} Two pseudodiffusions applied in sequence, first with parameter $\gamma_1^2$ and then with $\gamma_2^2$, must have the same effect as a single pseudodiffusion with parameter $\gamma_1^2 + \gamma_2^2$.
+\item \emph{Zero diffusion.} In the limit as $\gamma \rightarrow 0$, the effect of pseudodiffusion must vanish, i.e., not alter the belief distribution.
+\item \emph{Zero uncertainty.} In the limit as $\sigma_{t-1}\rightarrow 0$ (i.e., when the previous rating $\mu_{t-1}$ is a perfect estimate of $S_{t-1}$), our belief on $S_t$ must become Gaussian with mean $\mu_{t-1}$ and variance $\gamma^2$. Finer-grained information regarding the prior history $P_{\le t}$ must be erased.
+\end{itemize}
+In particular, Elo-MMR($\infty$) fails the \emph{zero diffusion} property because it simplifies the belief distribution, even when $\gamma=0$. In the proof of \Cref{thm:diffuse-prop}, we'll see that Elo-MMR($0$) fails the \emph{zero uncertainty} property. Thus, it is in fact necessary to have $\rho$ strictly positive and finite. In \Cref{sec:robust}, we'll come to interpret $\rho$ as a kind of inverse momentum.
+
+\subsection{A heuristic pseudodiffusion algorithm}
+\label{sec:pseudodiffusion}
+Each factor in the posterior (see \Cref{eq:posterior}) has a parameter $\beta_k$. Define a factor's \textbf{weight} to be $w_k := 1/\beta_k^2$, which by \Cref{eq:variance} contributes to the \textbf{total weight} $\sum_k w_k=1/\sigma_t^2$. Here, unlike in \Cref{eq:average}, $w_k$ does not depend on $|\mu_t-p_k|$.
+
+The approximation step of Elo-MMR($\infty$) replaces all the logistic factors by a single Gaussian whose variance is chosen to ensure that the total weight is preserved. In addition, its mean is chosen to preserve the player's rating, given by the unique zero of \Cref{eq:loss}. Finally, the diffusion step of Elo-MMR($\infty$) increases the Gaussian's variance, and hence the player's skill uncertainty, by $\gamma_t^2$; this corresponds to a decay in the weight.
+
+To generalize the idea, we interleave the two steps in a continuous manner. The approximation step becomes a \textbf{transfer step}: rather than replace the logistic factors outright, we take away the same fraction from each of their weights, and \emph{place the sum of removed weights onto a new Gaussian factor}. In order for this operation to preserve ratings, the new factor must be centered at $\mu_{t-1}$. Since Gaussian pdfs compose, the prior Gaussian factor can be combined with the new one. The diffusion step becomes a \textbf{decay step}, reducing each factor's weight by the same fraction, chosen such that the overall uncertainty is increased by $\gamma_t^2$.
+
+To make the idea precise, we generalize the posterior from \Cref{eq:posterior} with fractional \textbf{multiplicities} $\omega_k$; the $k$'th factor is raised to the power $\omega_k$. As a result, \Cref{eq:loss,eq:variance} become:
+%initially set to $1$ for each $k\in\{0\}\cup\cH_t$. 
+%The $k$'th factor is raised to the power $\omega_k$; in \Cref{eq:loss,eq:variance}, the corresponding term is multiplied by $\omega_k$.
+
+\begin{align}
+\label{eq:multiplicities}
+L'(s) &= \frac{\omega_0(s-p_0)}{\beta_0^2} + \sum_{k\in\cH_t} \frac{\omega_k\pi}{\beta_k\sqrt{3}} \tanh \frac{(s-p_k)\pi}{\beta_k\sqrt{12}},\nonumber
+\\\frac{1}{\sigma_t^2} &:= \sum_{k\in\{0\}\cup\cH_t}w_k,\quad\text{where }w_k := \frac{\omega_k}{\beta_k^2}.
+\end{align}
+
+For $\rho\in [0,\infty]$, the Elo-MMR($\rho$) algorithm continuously and simultaneously performs transfer and decay, with transfer proceeding at $\rho$ times the rate of decay. Holding $\beta_k$ fixed, changes to $\omega_k$ can be described in terms of changes to $w_k$:
+\begin{align*}
+\dot w_0 &= -r(t)w_0 + \rho r(t) \sum_{k\in\cH_t} w_k,
+\\\dot w_k &= -(1+\rho)r(t)w_k \quad\text{for }k\in\cH_t,
+\end{align*}
+where the arbitrary decay rate $r(t)$ can be eliminated by a change of variable $\mathrm{d}\tau = r(t)\dt$. After some time $\Delta\tau$, the total weight will have decayed by a factor $\kappa := e^{-\Delta\tau}$, resulting in the new weights:
+\begin{align*}
+w_0^{new} &= \kappa w_0 + \left(\kappa-\kappa^{1+\rho}\right)\sum_{k\in\cH_t} w_k,
+\\w_k^{new} &= \kappa^{1+\rho}w_k \quad\text{for }k\in\cH_t.
+\end{align*}
+In order for the uncertainty to increase from $\sigma_{t-1}^2$ to $\sigma_{t-1}^2+\gamma_t^2$, we must solve $\kappa/\sigma_{t-1}^2 = 1/(\sigma_{t-1}^2+\gamma_t^2)$ for the decay factor:
+\[\kappa_t = \left(1 + \frac{\gamma_t^2}{\sigma_{t-1}^2}\right)^{-1}.\]
+
+\setlength{\floatsep}{0pt}
+\setlength{\textfloatsep}{1em}
+\begin{algorithm}[t]
+\caption{Elo-MMR($\rho,\beta, \gamma$)}
+\label{alg:main}
+\begin{algorithmic}
+\FORALL{rounds $t$}
+\FORALL{players $i\in\mathcal P_t$ in parallel}
+\IF{$i$ has never competed before}
+\STATE {$\mu_i, \sigma_i \gets \mu_{newcomer}, \sigma_{newcomer}$}
+\STATE {$p_i, w_i \gets [\mu_i], [1/\sigma_i^2]$}
+\ENDIF
+%\STATE $\gamma \gets$ systemspecified()
+\STATE diffuse($i,\gamma,\rho$)
+\STATE $\mu^\pi_i, \delta_i \gets \mu_i,\sqrt{\sigma_i^2 + \beta^2}$
+%\STATE Make $\mu^\pi_i,\delta_i$ accessible to all threads in the next loop
+\ENDFOR
+%\STATE $E \gets$ getevidence()
+\FORALL{$i\in\mathcal P_t$ in parallel}
+\STATE update($i,E_t,\beta$)
+\ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+\begin{algorithm}[t]
+\caption{diffuse($i,\gamma,\rho$)}
+\label{alg:diffuse}
+\begin{algorithmic}
+\STATE $\kappa \gets (1+\gamma^2/\sigma_i^2)^{-1}$
+\STATE $w_G, w_L \gets \kappa^\rho w_{i,0}, (1-\kappa^\rho) \sum_{k\geq 0} w_{i,k}$
+\STATE $p_{i,0} \gets (w_G p_{i,0} + w_L \mu_i) / (w_G+w_L)$
+\STATE $w_{i,0} \gets \kappa (w_G+w_L)$
+\FORALL{$k > 0$}
+\STATE $w_{i,k} \gets \kappa^{1+\rho}w_{i,k}$
+\ENDFOR
+\STATE $\sigma_i \gets \sigma_i / \sqrt\kappa$
+\end{algorithmic}
+\end{algorithm}
+\begin{algorithm}[t]
+\caption{update($i,E,\beta$)}
+\label{alg:update}
+\begin{algorithmic}
+\STATE $p \gets \mathrm{zero}_x\left(\sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} + 1 \right)\right)$
+\STATE $p_i$.push($p$)
+\STATE $w_i$.push($1/\beta^2$)
+\STATE $\mu_i \gets \mathrm{zero}_x\left(w_{i,0}(x-p_{i,0}) + \sum_{k>0} \frac{w_{i,k}\beta^2}{\bar\beta} \tanh \frac {x-p_{i,k}} {2\bar\beta}\right)$
+\end{algorithmic}
+\end{algorithm}
+
+\Cref{alg:main} details the full Elo-MMR($\rho$) rating system. The main loop runs whenever a round of competition takes place. First, new players are initialized with a Gaussian prior. Then, changes in player skill are modeled by \Cref{alg:diffuse}; note how the Gaussian prior is updated into a weighted combination with the newly created factor. Given the round rankings $E_t$, the first phase of \Cref{alg:update} solves an equation to estimate $P_t$. Finally, the second phase solves another equation for the rating $\mu_t$. 
+
+The hyperparameters $\rho,\beta,\gamma$ are domain-dependent, and can be set by standard hyperparameter search techniques. For convenience, we assume $\beta$ and $\gamma$ are fixed and use the shorthand $\bar\beta_k := \frac{\sqrt{3}}{\pi} \beta_k$. Whereas our exposition used global round indices, here a subscript $k$ corresponds to the $k$'th round in player $i$'s participation history.
+
+\begin{theorem}
+\label{thm:diffuse-prop}
+\Cref{alg:diffuse} with $\rho\in(0,\infty)$ meets all of the properties listed in \Cref{sec:desirable-props}.
+\end{theorem}
+
+\begin{proof}
+We go through each of the six properties in order.
+\begin{itemize}[leftmargin=*]
+    \item \emph{Incentive-compatibility.} This property will be stated in \Cref{thm:mono}. To ensure that its proof carries through, the relevant facts to note here are that the pseudodiffusion algorithm ignores the performances $p_k$, and centers the transferred Gaussian weight at the rating $\mu_{t-1}$, which is trivially monotonic in $\mu_{t-1}$.
+    \item \emph{Rating preservation.} Recall that the rating is the unique zero of $L'$ in \Cref{eq:multiplicities}. To see that this zero is preserved, note that the decay and transfer operations multiply $L'$ by constants ($\kappa_t$ and $\kappa_t^\rho$, respectively), before adding the new Gaussian term, whose contribution to $L'$ is zero at its center.
+    \item \emph{Correct magnitude.} Follows from our derivation for $\kappa_t$.
+    \item \emph{Composability.} Follows from \emph{correct magnitude} and the fact that every pseudodiffusion follows the same differential equations.
+    \item \emph{Zero diffusion.} As $\gamma\rightarrow 0$, $\kappa_t\rightarrow 1$. Provided that $\rho<\infty$, we also have $\kappa_t^\rho\rightarrow 1$. Hence, for all $k\in\{0\}\cup\cH_t$, $w_k^{new} \rightarrow w_k$.
+    \item \emph{Zero uncertainty.} As $\sigma_{t-1}\rightarrow 0$, $\kappa_t\rightarrow 0$. The total weight decays from $1/\sigma_{t-1}^2$ to $\gamma^2$. Provided that $\rho > 0$, we also have $\kappa_t^\rho\rightarrow 0$, so these weights transfer in their entirety, leaving behind a Gaussian with mean $\mu_{t-1}$, variance $\gamma^2$, and no additional history. \qedhere
+\end{itemize}
+\end{proof}
+

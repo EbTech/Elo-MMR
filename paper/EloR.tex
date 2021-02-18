@@ -1,41 +1,220 @@
-\documentclass[sigconf, anonymous, review]{acmart}
+\documentclass[sigconf,screen]{acmart}
+\pdfoutput=1
+
+% %%%%%%%%%%%%%%%%%%%%%%%%
+% %Hack to remove some irrelevant copyright info.
+% \settopmatter{printacmref=false} % Removes citation information below abstract
+% \renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+% \pagestyle{plain} % removes running headers
+
+% \setlength{\headheight}{27pt} 
+% \setlength{\footskip}{14pt}
+
+% \makeatletter
+% \renewcommand\@formatdoi[1]{\ignorespaces}
+% \makeatother
+% %%%%%%%%%%%%%%%%%%%%%%%%
 
 \usepackage{natbib}
 \usepackage{algorithm}
-\usepackage{algorithmic}
+\usepackage[noend]{algorithmic}
 \usepackage{amsmath}
 \usepackage{geometry}
 \usepackage{verbatim}
 \usepackage{tabularx}
 \usepackage{graphicx}
-\usepackage{amsfonts} % just for the indicator variable \mathbb{I}
+\usepackage{amsfonts}
+\usepackage{cleveref}
+\usepackage{multirow}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+%\usepackage[
+% subtle
+ %moderate
+%]{savetrees}
+%\usepackage{blindtext}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=orange,
+}
+\urlstyle{same}
+\usepackage{flushend}
 
-\title{Elo-R Competition Rating System}
+%\usepackage{biblatex}
+%\DeclareMathSizes{10}{9}{6}{5}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{condition}{Condition}[section]
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\INPUT}{\item[{\bf Input:}]}
+\newcommand{\OUTPUT}{\item[{\bf Output:}]}
+
+\newcommand{\partdiff}[2]{\frac{\partial {#1}}{\partial {#2}}}
+\newcommand{\secdiff}[2]{\frac{\partial^2 {#1}}{\partial {#2}^2}}
+\newcommand{\mixdiff}[3]{\frac{\partial^2 {#1}}{{\partial {#2}}{\partial {#3}}}}
+\newcommand{\iprod}[2]{\left\langle {#1}, 
+{#2} \right \rangle}
+\newcommand{\etal}{et al.\ }
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+\newcommand{\bigfloor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\bigceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\E}{\mathbf{E}}
+\newcommand{\Var}{\mathbf{Var}}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\rank}{\mathrm{rank}}
+\newcommand{\tr}[1]{\mathrm{Tr}\left( #1 \right)}
+
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\cE}{{\mathcal{E}}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cH}{{\mathcal{H}}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\cB}{\mathcal{B}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\cZ}{\mathcal{Z}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\RR}{{\mathbb R}}
+\newcommand{\ZZ}{{\mathbb Z}}
+\newcommand{\NN}{{\mathbb N}}
+\newcommand{\id}[1]{\mathbbm{1}_{#1}}
+
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\xdot}{\dot \vx}
+\newcommand{\ydot}{\dot \vy}
+\newcommand{\dt}{\mathrm{d}t}
+\newcommand{\dx}{\mathrm{d}x}
+\newcommand{\dF}{\mathrm{d}F}
+\newcommand{\ddp}{\frac{\mathrm{d}}{\mathrm{d}p}}
+
+%\newcommand{\qed}{\hfill{\rule{2mm}{2mm}}}
+
+\def\b1{{\bf 1}}
+\def\be{{\bf e}}
+\def\ba{{\bf a}}
+\def\bg{{\bf g}}
+\def\bX{{\bf X}}
+\def\bb{{\bf b}}
+\def\bc{{\bf c}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bv{{\bf v}}
+\def\bV{{\bf V}}
+\def\bw{{\bf w}}
+\def\bz{{\bf z}}
+\def\tx{\tilde{\bf x}}
+
+\newcommand{\paul}[1]{{\color{blue} [[PAUL: #1]]}}
+\newcommand{\aram}[1]{{\color{violet} [[ARAM: #1]]}}
+\DeclareMathOperator\sech{sech}
+\DeclareMathOperator\erf{erf}
+
+\title{Elo-MMR: A Rating System for Massive Multiplayer Competitions}
+
+%\title{An Elo-like System for Massive Multiplayer Competitions}
+
 \author{Aram Ebtekar}
-\date{December 2015 (revised on May 29, 2020)}
+\affiliation{%
+  %unaffiliated: \institution{University of British Columbia}
+  \city{Vancouver}
+  \state{BC}
+  \country{Canada}
+}
+\email{aramebtech@gmail.com}
+
+\author{Paul Liu}
+\affiliation{%
+  \institution{Stanford University}
+  \city{Stanford}
+  \state{CA}
+  \country{USA}
+}
+\email{paul.liu@stanford.edu}
+
+\copyrightyear{2021}
+\acmYear{2021}
+\setcopyright{iw3c2w3}
+\acmConference[WWW '21]{Proceedings of the Web Conference 2021}{April 19--23, 2021}{Ljubljana, Slovenia}
+\acmBooktitle{Proceedings of the Web Conference 2021 (WWW '21), April 19--23, 2021, Ljubljana, Slovenia}
+\acmPrice{}
+\acmDOI{10.1145/3442381.3450091}
+\acmISBN{978-1-4503-8312-7/21/04}
+
+\settopmatter{printacmref=true}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002951.10003317.10003338.10003343</concept_id>
+<concept_desc>Information systems~Learning to rank</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257.10010293.10010300</concept_id>
+<concept_desc>Computing methodologies~Learning in probabilistic graphical models</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Information systems~Learning to rank}
+\ccsdesc[500]{Computing me-thodologies~Learning in probabilistic graphical models}
+
+\keywords{rating system, skill estimation, mechanism design, competition, bayesian inference, robust, incentive-compatible, elo, glicko, trueskill}
 
 \begin{document}
+
+%\everypar{\looseness=-1}
+\linepenalty=200
 
 \input{sections/abstract}
 
 \maketitle
+% \pagestyle{plain}
 
 \input{sections/intro}
 \input{sections/model}
-\input{sections/performance}
-\input{sections/belief_update}
-\input{sections/priors}
-
-\pagebreak
-
+\section{Skill estimation in two phases}
+\label{sec:main-alg}
+    \input{sections/performance}
+    \input{sections/belief_update}
+    \input{sections/init_distr}
+\input{sections/skill_drift}
 \input{sections/properties}
+\input{sections/experiments}
 \input{sections/conclusions}
 
 % IMPORTANT: This conference is double blind, which (aside from anonymous authors) means that we cannot post links to our git or have acknowledgements.
 
-%\section*{Acknowledgements}
-%
-%I'm grateful to Daniel Sleator and Dougal Sutherland for discussions that contributed to the inspiration and preparation of this work. In addition, I'd like to thank Mike Mirzayanov for providing a useful case study by publishing the Codeforces rating algorithm.
+\section*{Acknowledgements}
+The authors are indebted to Daniel Sleator and Danica J. Sutherland for initial discussions that helped inspire this work, and to Nikita Gaevoy for the open-source improved TrueSkill upon which our implementation is based. Experiments in this paper are funded by a Google Cloud Research Grant. The second author is supported by a VMWare Fellowship and the Natural Sciences and Engineering Research Council of Canada.
+
+\balance
+
+%\appendix
+% \input{sections/appendix}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{EloR}
