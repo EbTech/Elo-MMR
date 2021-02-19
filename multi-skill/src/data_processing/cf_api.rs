@@ -2,22 +2,21 @@ use super::Contest;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::convert::TryFrom;
+use std::convert::{TryFrom, TryInto};
 
 /// General response from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp
-#[allow(non_snake_case)]
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "status")]
+#[serde(rename_all = "UPPERCASE", tag = "status")]
 enum CFResponse<T> {
-    OK { result: T },
-    FAILED { comment: String },
+    Ok { result: T },
+    Failed { comment: String },
 }
 
 /// A RatingChange object from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp/objects#RatingChange
-#[serde(rename_all = "camelCase")]
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct CFRatingChange {
     contest_id: usize,
     contest_name: String,
@@ -121,9 +120,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     }
 }
 
-/// Retrieve a contest with a particular ID. If there's a cached entry with the same name in the
-/// json/ directly, that will be used. This way, you can process your own custom contests.
-/// If there is no cached entry, this function will attempt to retrieve one from Codeforces.
+/// Retrieves the Codeforces contest with the given ID, or panics if the API call fails.
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
     let response = client
@@ -136,9 +133,9 @@ pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
     match packet {
-        CFResponse::OK { result } => {
-            TryFrom::try_from(result).expect("Failed to parse JSON response as a valid Contest")
-        }
-        CFResponse::FAILED { comment } => panic!(comment),
+        CFResponse::Ok { result } => result
+            .try_into()
+            .expect("Failed to parse JSON response as a valid Contest"),
+        CFResponse::Failed { comment } => panic!(comment),
     }
 }

@@ -281,10 +281,10 @@ pub fn solve_newton((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> (f64, f64))
         let extrapolate = guess - sum / sum_prime;
         if extrapolate < guess {
             hi = guess;
-            guess = extrapolate.max(0.75 * lo + 0.25 * hi).min(hi);
+            guess = extrapolate.clamp(0.75 * lo + 0.25 * hi, hi);
         } else {
             lo = guess;
-            guess = extrapolate.max(lo).min(0.25 * lo + 0.75 * hi);
+            guess = extrapolate.clamp(lo, 0.25 * lo + 0.75 * hi);
         }
         if lo >= guess || guess >= hi {
             if sum.abs() > 1e-10 {
@@ -368,7 +368,13 @@ pub fn simulate_contest(
         .standings
         .iter()
         // TODO TEAMS: if individual, get guard to that, else get guard to its team
-        .map(|&(ref handle, _, _)| players.get(handle).expect("Duplicate handles").borrow_mut())
+        .map(|&(ref handle, _, _)| {
+            players
+                .get(handle)
+                .expect("Uninitialized handle")
+                .try_borrow_mut()
+                .expect("Duplicate handle")
+        })
         .collect();
 
     // Update player metadata and get &mut references to all requested players

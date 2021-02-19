@@ -90,7 +90,7 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSu
 
     let mut sum_error = 0.;
     for (i, &(_, lo, hi)) in standings_by_rating.iter().enumerate() {
-        let closest_to_i = i.max(lo).min(hi);
+        let closest_to_i = i.clamp(lo, hi);
         sum_error += (i as f64 - closest_to_i as f64).abs();
     }
 
