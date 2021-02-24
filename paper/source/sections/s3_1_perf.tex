@@ -80,8 +80,8 @@ from which it follows that
 = l_j(p) + v_j(p).\]
 
 In other words, a tie counts as the sum of a win and a loss. This can be compared to the approach (used in Elo, Glicko, BAR, Topcoder, and Codeforces) of treating each tie as half a win plus half a loss.\footnote{Elo-MMR, too, can be modified to split ties into half win plus half loss. It's easy to check that \Cref{lem:decrease} still holds if $d_j(p)$ is replaced by
-$w_l l_j(p) + w_v v_j(p)$
-for some $w_l,w_v\in [0,1]$ with $|w_l-w_v|<1$.
+$w_l l_j(p) + w_v v_j(p)$,
+provided that $w_l,w_v\in [0,1]$ and $|w_l-w_v|<1$.
 In particular, we can set $w_l=w_v=0.5$. The results in \Cref{sec:properties} won't be altered by this change.}
 
 Finally, putting everything together:

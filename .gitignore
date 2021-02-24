@@ -2,7 +2,10 @@ cache/
 target/
 __pycache__/
 .ipynb_checkpoints/
-ratings_output.txt
+GeneratedSource/
+bin/
+obj/
+data/output/
 *.html
 *.aux
 *.blg

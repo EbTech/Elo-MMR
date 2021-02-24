@@ -8,7 +8,7 @@ Factors such as training and resting will change a player's skill over time. If 
 \pi_t(s) = \int \Pr(S_t = s \mid S_{t-1} = x) \Pr(S_{t-1} = x \mid P_{<t}) \,\dx.
 \end{equation}
 
-The factors in the integrand are the skill evolution model and the previous round's posterior, respectively. Following other Bayesian rating systems (e.g., Glicko, Glicko-2, and TrueSkill~\cite{G99, G12, HMG06}), we model the skill diffusions $S_t-S_{t-1}$ as independent zero-mean Gaussians. That is, $\Pr(S_t \mid S_{t-1}=x)$ is a Gaussian with mean $x$ and some variance $\gamma_t^2$. The Glicko system sets $\gamma_t^2$ proportionally to the time elapsed since the last update, corresponding to a continuous Brownian motion. Codeforces and Topcoder simply set $\gamma_t$ to a constant when a player participates, and zero otherwise, corresponding to changes that are in proportion to how often the player competes. Now we are ready to complete the two specializations of our rating system.
+The factors in the integrand are the skill evolution model and the previous round's posterior, respectively. Following other Bayesian rating systems (e.g., Glicko, Glicko-2, and TrueSkill~\cite{G99, G12, HMG06}), we model the skill changes $S_t-S_{t-1}$ as independent zero-mean Gaussians. That is, $\Pr(S_t \mid S_{t-1}=x)$ is a Gaussian with mean $x$ and some variance $\gamma_t^2$. The Glicko system sets $\gamma_t^2$ proportionally to the time elapsed since the last update, corresponding to a continuous Brownian motion. Codeforces and Topcoder simply set $\gamma_t$ to a constant when a player participates, and zero otherwise, corresponding to changes that are in proportion to how often the player competes. Now we are ready to complete the two specializations of our rating system.
 
 \paragraph{Gaussian performance model}
 If both the prior and performance distributions at round $t-1$ are Gaussian, then the posterior is also Gaussian. Adding an independent Gaussian diffusion to our posterior on $S_{t-1}$ yields a Gaussian prior on $S_t$. By induction, the skill belief distribution forever remains Gaussian. This Gaussian specialization of the Elo-MMR framework lacks the R for robustness (see \Cref{thm:robust}), so we call it Elo-MM$\chi$.
@@ -72,29 +72,30 @@ In order for the uncertainty to increase from $\sigma_{t-1}^2$ to $\sigma_{t-1}^
 \setlength{\floatsep}{0pt}
 \setlength{\textfloatsep}{1em}
 \begin{algorithm}[t]
-\caption{Elo-MMR($\rho,\beta, \gamma$)}
+\caption{Elo-MMR($\rho,\beta, \gamma, \mu_{init}, \sigma_{init}$)}
 \label{alg:main}
 \begin{algorithmic}
 \FORALL{rounds $t$}
-\FORALL{players $i\in\mathcal P_t$ in parallel}
+\STATE $\mathcal P, \preceq, \succeq\; \gets$ outcome of round $t$
+\FORALL{players $i\in\mathcal P$ in parallel}
 \IF{$i$ has never competed before}
-\STATE {$\mu_i, \sigma_i \gets \mu_{newcomer}, \sigma_{newcomer}$}
+\STATE {$\mu_i, \sigma_i \gets \mu_{init}, \sigma_{init}$}
 \STATE {$p_i, w_i \gets [\mu_i], [1/\sigma_i^2]$}
 \ENDIF
 %\STATE $\gamma \gets$ systemspecified()
-\STATE diffuse($i,\gamma,\rho$)
+\STATE diffuse($i$)
 \STATE $\mu^\pi_i, \delta_i \gets \mu_i,\sqrt{\sigma_i^2 + \beta^2}$
 %\STATE Make $\mu^\pi_i,\delta_i$ accessible to all threads in the next loop
 \ENDFOR
 %\STATE $E \gets$ getevidence()
-\FORALL{$i\in\mathcal P_t$ in parallel}
-\STATE update($i,E_t,\beta$)
+\FORALL{players $i\in\mathcal P$ in parallel}
+\STATE update($i$)
 \ENDFOR
 \ENDFOR
 \end{algorithmic}
 \end{algorithm}
 \begin{algorithm}[t]
-\caption{diffuse($i,\gamma,\rho$)}
+\caption{diffuse($i$)}
 \label{alg:diffuse}
 \begin{algorithmic}
 \STATE $\kappa \gets (1+\gamma^2/\sigma_i^2)^{-1}$
@@ -108,19 +109,19 @@ In order for the uncertainty to increase from $\sigma_{t-1}^2$ to $\sigma_{t-1}^
 \end{algorithmic}
 \end{algorithm}
 \begin{algorithm}[t]
-\caption{update($i,E,\beta$)}
+\caption{update($i$)}
 \label{alg:update}
 \begin{algorithmic}
-\STATE $p \gets \mathrm{zero}_x\left(\sum_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} - 1 \right) + \sum_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} + 1 \right)\right)$
+\STATE ${p \gets \mathop{\text{zero of}}\limits_{x \in \RR} \, \sum\limits_{j\preceq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} - 1 \right) + \sum\limits_{j\succeq i}\frac{1}{\delta_j}\left( \tanh\frac {x - \mu^\pi_j} {2\bar\delta_j} + 1 \right)}$
 \STATE $p_i$.push($p$)
 \STATE $w_i$.push($1/\beta^2$)
-\STATE $\mu_i \gets \mathrm{zero}_x\left(w_{i,0}(x-p_{i,0}) + \sum_{k>0} \frac{w_{i,k}\beta^2}{\bar\beta} \tanh \frac {x-p_{i,k}} {2\bar\beta}\right)$
+\STATE $\mu_i \gets \mathop{\text{zero of}}\limits_{x \in \RR} \; w_{i,0}(x-p_{i,0}) + \sum\limits_{k>0} \frac{w_{i,k}\beta^2}{\bar\beta} \tanh \frac {x-p_{i,k}} {2\bar\beta}$
 \end{algorithmic}
 \end{algorithm}
 
-\Cref{alg:main} details the full Elo-MMR($\rho$) rating system. The main loop runs whenever a round of competition takes place. First, new players are initialized with a Gaussian prior. Then, changes in player skill are modeled by \Cref{alg:diffuse}; note how the Gaussian prior is updated into a weighted combination with the newly created factor. Given the round rankings $E_t$, the first phase of \Cref{alg:update} solves an equation to estimate $P_t$. Finally, the second phase solves another equation for the rating $\mu_t$. 
+\Cref{alg:main} details the full Elo-MMR($\rho$) rating system. Each round of competition yields a set of participants $\mathcal P$, along with their rank-ordering. New players are initialized with a Gaussian prior. Changes in player skill are modeled by \Cref{alg:diffuse}; note how the updated Gaussian term blends its old value with the new Gaussian term created by the transfer process. The first phase of \Cref{alg:update} estimates $P_t$ as the zero of a function of $x$. Finally, the second phase computes $\mu_t$ as the zero of another function. 
 
-The hyperparameters $\rho,\beta,\gamma$ are domain-dependent, and can be set by standard hyperparameter search techniques. For convenience, we assume $\beta$ and $\gamma$ are fixed and use the shorthand $\bar\beta_k := \frac{\sqrt{3}}{\pi} \beta_k$. Whereas our exposition used global round indices, here a subscript $k$ corresponds to the $k$'th round in player $i$'s participation history.
+The hyperparameters $\rho,\beta,\gamma$ are domain-dependent, and can be set by standard hyperparameter search techniques. The system's invariance to translation and scale allows $\mu_{init},\sigma_{init}$ to be set arbitrarily; a common choice is $1500,350$~\cite{G12}. For convenience, we assume $\beta$ and $\gamma$ are fixed and use the shorthand $\bar\beta_k := \frac{\sqrt{3}}{\pi} \beta_k$. Whereas our exposition used global round indices, here a subscript $k$ corresponds to the $k$'th round in player $i$'s participation history.
 
 \begin{theorem}
 \label{thm:diffuse-prop}

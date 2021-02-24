@@ -36,7 +36,7 @@ This strategy mirrors the Glicko-2 exploit documented in~\cite{pokemongo}, and d
 
 Recall that a key purpose of modeling volatility in Topcoder and Glicko-2 was to boost rating changes for inconsistent players. Remarkably, Elo-MMR achieves the same effect: we'll see in \Cref{sec:robust} that, for $\rho\in [0,\infty)$, Elo-MMR($\rho$) also boosts changes to inconsistent players. And yet, we'll now prove that no strategic incentive for purposely losing exists in \emph{any} version of Elo-MMR.
 
-To this end, we need a few lemmas. Recall that, for the purposes of the algorithm, the performance $p_i$ is defined to be the unique zero of the function $Q_i(p) := \sum_{j \succ i} l_j(p) + \sum_{j \sim i} d_j(p) + \sum_{j \prec i} v_j(p)$, whose terms $l_i,d_i,v_i$ are contributed by opponents against whom $i$ lost, drew, or won, respectively. Wins (losses) are always positive (negative) contributions to a player's performance score:
+To this end, we need a few lemmas. Recall that, for the purposes of the algorithm, the performance $p_i$ is defined to be the unique zero of the function $Q_i(p) := \sum_{j \succ i} l_j(p) + \sum_{j \sim i} d_j(p) + \sum_{j \prec i} v_j(p)$, whose terms $l_j,d_j,v_j$ are contributed by opponents against whom $i$ lost, drew, or won, respectively. Wins (losses) are always positive (negative) contributions to a player's performance score:
 \begin{lemma}
 \label{lem:mono-term}
 Adding a win term to $Q_i(\cdot)$, or replacing a tie term by a win term, always increases its zero. Conversely, adding a loss term, or replacing a tie term by a loss term, always decreases it.
@@ -146,7 +146,7 @@ Then, for $\Delta_\pm \in \{\Delta_+, \Delta_-\}$,
 \end{theorem}
 
 \begin{proof}
-Using the fact that $0 < \frac{d}{dx}\tanh(x) \le 1$, differentiating $L'$ in \Cref{eq:multiplicities} yields
+The limits exist, by monotonicity. Using the fact that $0 < \frac{d}{dx}\tanh(x) \le 1$, differentiating $L'$ in \Cref{eq:multiplicities} yields
 \[\forall s\in\mathbb R,\; w_0 \le L''(s)
 \le w_0 + \frac{\pi^2}{6}\sum_{k\in\cH_{t-1}}w_k.\]
 

@@ -85,4 +85,4 @@ With this file format in mind, you can run your own contests as follows:
 
 ## Mathematical Details
 
-Please see the [full paper](paper/EloR_updated.pdf) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.
+Please see the [full paper](paper/EloMMR.pdf) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.
