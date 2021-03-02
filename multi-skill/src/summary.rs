@@ -121,11 +121,13 @@ pub fn print_ratings(
     //       Somehow make the distribution aware of titles so we can keep printing titles.
     let (summary, rating_data) = make_leaderboard(players, rated_since);
 
-    println!("Mean rating.mu = {}", summary.mean_rating);
+    tracing::info!("Mean rating.mu = {}", summary.mean_rating);
     for i in (0..NUM_TITLES).rev() {
-        println!(
+        tracing::info!(
             "{} {} x{:6}",
-            TITLE_BOUND[i], TITLE[i], summary.title_count[i]
+            TITLE_BOUND[i],
+            TITLE[i],
+            summary.title_count[i]
         );
     }
 

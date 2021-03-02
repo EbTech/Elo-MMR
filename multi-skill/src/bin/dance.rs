@@ -76,7 +76,7 @@ fn get_range(page: &Document, property_name: &str) -> RangeInclusive<usize> {
 }
 
 fn process_heat(client: &Client, heat_page: Document) {
-    println!("EXTRACTED {:?}", heat_page);
+    tracing::info!("EXTRACTED {:?}", heat_page);
     /* TODO:
         Each table on a heat's page, EXCEPT for the "Summary" table (when it exists), belongs
         to a different round, and should be made into its own Contest object. You'll have to
@@ -90,6 +90,8 @@ fn process_heat(client: &Client, heat_page: Document) {
 }
 
 fn main() {
+    tracing_subscriber::fmt::init();
+
     let client = Client::new();
     let root_req = client.get(ROOT_URL);
     let root_page = request(root_req).expect("Failed HTTP status");
@@ -110,18 +112,21 @@ fn main() {
                 let comp_req = client.post(&comp_url).form(&event_filter);
                 match request(comp_req) {
                     Ok(comp_page) => {
-                        println!("{:2}/{} Processing {}", inmonth, inyear, comp_url);
+                        tracing::info!("{:2}/{} Processing {}", inmonth, inyear, comp_url);
                         for heat_url in get_urls(&comp_page).skip(1) {
                             //let heat_page = request(client.get(&heat_url)).expect("Failed status");
                             //process_heat(&client, heat_page);
                             num_heats += 1;
                         }
-                        println!("Success! Processed {} heats so far.", num_heats);
+                        tracing::info!("Success! Processed {} heats so far.", num_heats);
                     }
                     Err(status) => {
-                        eprintln!(
-                            "{:2}/{} WARNING missing data: {} at {}",
-                            inmonth, inyear, status, comp_url,
+                        tracing::warn!(
+                            "{:2}/{} missing data: {} at {}",
+                            inmonth,
+                            inyear,
+                            status,
+                            comp_url,
                         );
                     }
                 }

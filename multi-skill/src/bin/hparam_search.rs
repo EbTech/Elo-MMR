@@ -1,4 +1,4 @@
-use multi_skill::data_processing::get_dataset_by_name;
+use multi_skill::data_processing::{get_dataset_by_name, subrange};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::systems::{self, RatingSystem};
 use rayon::prelude::*;
@@ -18,9 +18,11 @@ fn log_space(
 }
 
 fn main() {
+    tracing_subscriber::fmt::init();
+
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 2 {
-        eprintln!("Usage: {} dataset_name", args[0]);
+        tracing::error!("Usage: {} dataset_name", args[0]);
         return;
     }
 
@@ -108,15 +110,26 @@ fn main() {
     systems.into_par_iter().for_each(|system| {
         // We're repeatedly loading the same dataset's metadata but this is cheap anyway
         let dataset = get_dataset_by_name(&args[1]).unwrap();
-        let max_contests = dataset.len() / 10;
+        let dataset_len = dataset.len();
+        let train_set_len = dataset_len / 10;
+        let dataset = Box::new(subrange(dataset, ..train_set_len));
 
         let experiment = Experiment {
-            max_contests,
             mu_noob: 1500.,
             sig_noob: 350.,
             system,
             dataset,
         };
-        experiment.eval(0, "");
+        let results = experiment.eval(0);
+
+        let horizontal = "============================================================";
+        tracing::info!(
+            "{:?}: {}, {}s, {} contests\n{}",
+            experiment.system,
+            results.avg_perf,
+            results.secs_elapsed,
+            dataset_len,
+            horizontal
+        );
     });
 }

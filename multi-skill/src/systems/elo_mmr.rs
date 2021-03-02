@@ -8,6 +8,9 @@ use std::cmp::Ordering;
 use std::sync::atomic::{AtomicUsize, Ordering::Relaxed};
 use superslice::Ext;
 
+type SmallVec = smallvec::SmallVec<[usize; 1]>;
+//type SmallVec = Vec<usize>;
+
 trait Term {
     fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64);
     // my_rank is assumed to be a non-empty, sorted slice.
@@ -188,7 +191,7 @@ impl EloMMR {
     }
 
     fn subsample(
-        terms: &[(Rating, Vec<usize>)],
+        terms: &[(Rating, SmallVec)],
         rating: f64,
         num_samples: usize,
         subsample_bucket: f64,
@@ -246,7 +249,7 @@ impl RatingSystem for EloMMR {
                 .then_with(|| cmp_by_bucket(a.0.sig, b.0.sig, self.subsample_bucket))
                 .then_with(|| a.1.cmp(&b.1))
         });
-        let mut normal_terms: Vec<(Rating, Vec<usize>)> = vec![];
+        let mut normal_terms: Vec<(Rating, SmallVec)> = vec![];
         for (term, lo) in base_terms {
             if let Some((last_term, ranks)) = normal_terms.last_mut() {
                 if same_bucket(last_term.mu, term.mu, self.subsample_bucket)
@@ -259,11 +262,12 @@ impl RatingSystem for EloMMR {
                     continue;
                 }
             }
-            normal_terms.push((term, vec![lo]));
+            normal_terms.push((term, smallvec::smallvec![lo]));
+            //normal_terms.push((term, vec![lo]));
         }
 
         // Create the equivalent logistic terms.
-        let tanh_terms: Vec<(TanhTerm, Vec<usize>)> = normal_terms
+        let tanh_terms: Vec<(TanhTerm, SmallVec)> = normal_terms
             .iter()
             .map(|(rating, ranks)| ((*rating).into(), ranks.clone()))
             .collect();
@@ -274,13 +278,17 @@ impl RatingSystem for EloMMR {
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, my_rank, _)| {
             let player_mu = player.approx_posterior.mu;
-            let idx_subsample =
-                Self::subsample(&normal_terms, player_mu, self.subsample_size, self.subsample_bucket);
+            let idx_subsample = Self::subsample(
+                &normal_terms,
+                player_mu,
+                self.subsample_size,
+                self.subsample_bucket,
+            );
             // Log a warning if the subsample size is very large
             let idx_len_upper_bound = idx_subsample.size_hint().1.unwrap_or(usize::MAX);
             if idx_len_max.fetch_max(idx_len_upper_bound, Relaxed) < idx_len_upper_bound {
-                eprintln!(
-                    "WARNING: subsampling {} opponents might be slow; consider decreasing subsample_size.",
+                tracing::warn!(
+                    "Subsampling {} opponents might be slow; consider decreasing subsample_size.",
                     idx_len_upper_bound
                 );
             }
@@ -288,8 +296,7 @@ impl RatingSystem for EloMMR {
 
             match self.variant {
                 EloMMRVariant::Gaussian => {
-                    let idx_subsample = idx_subsample
-                        .map(|i| &normal_terms[i]);
+                    let idx_subsample = idx_subsample.map(|i| &normal_terms[i]);
                     let f = |x| {
                         idx_subsample
                             .clone()
@@ -305,8 +312,7 @@ impl RatingSystem for EloMMR {
                     });
                 }
                 EloMMRVariant::Logistic(_) => {
-                    let idx_subsample = idx_subsample
-                        .map(|i| &tanh_terms[i]);
+                    let idx_subsample = idx_subsample.map(|i| &tanh_terms[i]);
                     let f = |x| {
                         idx_subsample
                             .clone()

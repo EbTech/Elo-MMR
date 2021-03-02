@@ -1,10 +1,10 @@
-use crate::data_processing::{get_dataset_by_name, Contest, Dataset};
+use crate::data_processing::{get_dataset_by_name, subrange, Contest, Dataset};
 use crate::systems::{
-    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, RatingSystem, TopcoderSys,
-    TrueSkillSPb, BAR,
+    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, PlayersByName, RatingSystem,
+    TopcoderSys, TrueSkillSPb, BAR,
 };
 
-use crate::metrics::compute_metrics_custom;
+use crate::metrics::{compute_metrics_custom, PerformanceReport};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
@@ -35,7 +35,6 @@ pub struct ExperimentConfig {
 }
 
 pub struct Experiment {
-    pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
 
@@ -52,8 +51,10 @@ impl Experiment {
     }
 
     pub fn from_config(params: ExperimentConfig) -> Self {
-        println!("Loading rating system:\n{:#?}", params);
+        tracing::info!("Loading rating system:\n{:?}", params);
         let dataset = get_dataset_by_name(&params.contest_source).unwrap();
+        let dataset_len = dataset.len().min(params.max_contests);
+        let dataset = Box::new(subrange(dataset, ..dataset_len));
 
         let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
             "glicko" => Box::new(Glicko {
@@ -100,7 +101,6 @@ impl Experiment {
         };
 
         Self {
-            max_contests: params.max_contests,
             mu_noob: params.mu_noob,
             sig_noob: params.sig_noob,
             system,
@@ -108,13 +108,13 @@ impl Experiment {
         }
     }
 
-    pub fn eval(self, mut num_rounds_postpone_eval: usize, tag: &str) {
+    pub fn eval(&self, mut num_rounds_postpone_eval: usize) -> ExperimentResults {
         let mut players = HashMap::new();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
 
         // Run the contest histories and measure
         let now = std::time::Instant::now();
-        for (index, contest) in self.dataset.iter().enumerate().take(self.max_contests) {
+        for (index, contest) in self.dataset.iter().enumerate() {
             // Evaludate the non-training set; predictions should not use the contest
             // that they're predicting, so this step precedes simulation
             if num_rounds_postpone_eval > 0 {
@@ -122,6 +122,13 @@ impl Experiment {
             } else {
                 avg_perf += compute_metrics_custom(&mut players, &contest.standings);
             }
+            tracing::debug!(
+                "Processing\n{:6} contestants in{:5}th contest with wt={}: {}",
+                contest.standings.len(),
+                index,
+                contest.weight,
+                contest.name
+            );
 
             // Now run the actual rating update
             simulate_contest(
@@ -135,11 +142,16 @@ impl Experiment {
         }
         let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
 
-        let horizontal = "============================================================";
-        let output = format!(
-            "{} {:?}: {}, {}s\n{}",
-            tag, self.system, avg_perf, secs_elapsed, horizontal
-        );
-        println!("{}", output);
+        ExperimentResults {
+            players,
+            avg_perf,
+            secs_elapsed,
+        }
     }
+}
+
+pub struct ExperimentResults {
+    pub players: PlayersByName,
+    pub avg_perf: PerformanceReport,
+    pub secs_elapsed: f64,
 }

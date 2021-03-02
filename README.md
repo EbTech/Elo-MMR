@@ -30,15 +30,17 @@ Note: in theory, Elo-MMR can be applied in team competitions as well, but additi
 
 First, [install Rust](https://www.rust-lang.org/tools/install). From the `multi-skill/` directory, run the command
 ```
-cargo run --release --bin rate mmr codeforces
+RUST_LOG=debug cargo run --release --bin rate mmr codeforces
 ```
 
 UPDATE: it's now also possible to run the rating system from a config file. Here's an example: (this config file is out of date, we'll update it shortly.)
 ```
-cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
+RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
 ```
 
 ### What does this command mean?
+
+`RUST_LOG=debug` prints additional information to the terminal during execution.
 
 `cargo run` compiles and runs a Rust project.
 

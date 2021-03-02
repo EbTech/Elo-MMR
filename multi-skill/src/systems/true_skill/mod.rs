@@ -211,7 +211,7 @@ impl TrueSkillSPb {
             infer1(&mut tul);
         }
 
-        //eprintln!("Rounds until convergence: {}", rounds);
+        //tracing::trace!("Rounds until convergence: {}", rounds);
 
         infer2(&mut t);
         infer1(&mut pt);

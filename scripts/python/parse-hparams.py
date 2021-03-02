@@ -57,7 +57,7 @@ if __name__ == "__main__":
     contest_source = args.dataset
     max_contests = 2000
     mu_noob = 1500
-    sig_noob = 300
+    sig_noob = 350
 
     # Write output directory
     output_dir = f"./{args.output_dir}/{contest_source}"

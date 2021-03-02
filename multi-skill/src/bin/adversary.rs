@@ -14,6 +14,8 @@ use multi_skill::systems::{get_rating_system_by_name, simulate_contest, PlayersB
 
 /// Simulates the entire history of Codeforces
 fn main() {
+    tracing_subscriber::fmt::init();
+
     // Parse the method we're applying the adversarial strategy on
     let args: Vec<String> = std::env::args().collect();
     let sys_name = args.get(1).map(|s| s.as_str()).unwrap_or("mmr");
@@ -43,7 +45,7 @@ fn main() {
         let mut custom_players = PlayersByName::new();
 
         for (index, mut contest) in dataset.iter().enumerate().take(max_contests) {
-            println!(
+            tracing::info!(
                 "Processing{:6} contestants in{:5}th contest with wt={}: {}",
                 contest.standings.len(),
                 index,

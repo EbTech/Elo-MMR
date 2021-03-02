@@ -1,81 +1,80 @@
-use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file, ContestSummary};
+use multi_skill::data_processing::{
+    get_dataset_by_name, subrange, write_slice_to_file, ContestSummary,
+};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
-use multi_skill::systems::{get_rating_system_by_name, simulate_contest};
-use std::collections::HashMap;
+use multi_skill::systems::get_rating_system_by_name;
 
 fn get_experiment_from_args(args: &[String]) -> Experiment {
-    if args[1] == "file:" {
-        return Experiment::from_file(&args[2]);
-    }
+    let system = &args[1];
+    let name = &args[2];
 
-    let system = get_rating_system_by_name(&args[1]).unwrap();
-    let dataset = get_dataset_by_name(&args[2]).unwrap();
-    let max_contests = args
-        .get(3)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(usize::MAX);
+    if system == "file:" {
+        Experiment::from_file(name)
+    } else {
+        let system = get_rating_system_by_name(system).unwrap();
+        let mut dataset = get_dataset_by_name(name).unwrap();
+        if let Some(num_contests) = args.get(3).and_then(|s| s.parse().ok()) {
+            dataset = Box::new(subrange(dataset, 0..num_contests));
+        }
 
-    Experiment {
-        max_contests,
-        mu_noob: 1500.,
-        sig_noob: 350.,
-        system,
-        dataset,
+        Experiment {
+            mu_noob: 1500.,
+            sig_noob: 350.,
+            system,
+            dataset,
+        }
     }
 }
 
 /// Simulates the entire history of Codeforces
 fn main() {
+    tracing_subscriber::fmt::init();
+
     // Parse arguments, prepare rating system and datasets
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 && args.len() != 4 {
-        eprintln!("Usage: {} system_name dataset_name [num_contests]", args[0]);
+        tracing::error!("Usage: {} system_name dataset_name [num_contests]", args[0]);
         return;
     }
     let ex = get_experiment_from_args(&args);
 
     // Simulate the contests and rating updates
-    let mut players = HashMap::new();
-    let mut summaries = Vec::with_capacity(ex.dataset.len().min(ex.max_contests));
-    let mut last_contest_time = 0;
-    for (index, contest) in ex.dataset.iter().enumerate().take(ex.max_contests) {
-        println!(
-            "Processing{:6} contestants in{:5}th contest with wt={}: {}",
-            contest.standings.len(),
-            index,
-            contest.weight,
-            contest.name
-        );
-        simulate_contest(
-            &mut players,
-            &contest,
-            &*ex.system,
-            ex.mu_noob,
-            ex.sig_noob,
-            index,
-        );
-        summaries.push(ContestSummary::new(&contest));
-        last_contest_time = contest.time_seconds;
-    }
-    let six_months_ago = last_contest_time.saturating_sub(183 * 86_400);
+    let summaries: Vec<_> = ex
+        .dataset
+        .iter()
+        .map(|contest| ContestSummary::new(&contest))
+        .collect();
+    let dataset_len = ex.dataset.len();
+    let results = ex.eval(dataset_len);
+    tracing::info!(
+        "{:?}\nFinished in {} seconds.",
+        ex.system,
+        results.secs_elapsed,
+    );
+
+    let six_months_ago = summaries
+        .last()
+        .unwrap()
+        .time_seconds
+        .saturating_sub(183 * 86_400);
     let dir = std::path::PathBuf::from("../data/output");
     std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
 
     // Print contest histories of top players to data/output/players/{handle}.csv
-    for (handle, player) in &players {
+    for (handle, player) in &results.players {
         let player = player.borrow();
-        // let last_event = player.event_history.last().expect("Empty history");
 
-        // if last_event.display_rating >= 2700 && player.update_time > six_months_ago
-        if true {
+        let last_event = player.event_history.last().expect("Empty history");
+        if last_event.rating_mu >= 2700 && player.update_time > six_months_ago {
+            //if true {
             let player_file = dir.join(format!("players/{}.csv", handle));
             write_slice_to_file(&player.event_history, &player_file);
         }
     }
 
     // Print ratings list to data/codeforces/CFratings.txt
-    print_ratings(&players, six_months_ago, &dir);
+    print_ratings(&results.players, six_months_ago, &dir);
 
     // Write contest summaries to data/codeforces/summaries.csv
     let summary_file = dir.join("all_contests.csv");

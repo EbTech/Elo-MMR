@@ -1,7 +1,7 @@
 mod cf_api;
 mod dataset;
 
-pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset};
+pub use dataset::{get_dataset_from_disk, subrange, CachedDataset, ClosureDataset, Dataset};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -121,8 +121,8 @@ pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
         _ => Err("Invalid or missing filename extension"),
     };
     match write_res {
-        Ok(()) => println!("Successfully wrote to {:?}", path),
-        Err(msg) => eprintln!("WARNING: failed write to {:?} because {}", path, msg),
+        Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
+        Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
     };
 }
 

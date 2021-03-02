@@ -1,4 +1,5 @@
 use serde::{de::DeserializeOwned, Serialize};
+use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
 
 /// Generic `Dataset` trait, modeled after PyTorch's `utils.data.Dataset`.
@@ -10,6 +11,11 @@ pub trait Dataset {
     fn len(&self) -> usize;
     /// Get the `index`'th element, where `0 <= index < len()`
     fn get(&self, index: usize) -> Self::Item;
+
+    /// Whether this `Dataset` is empty.
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
     /// Modifies the dataset to check a cache directory before reading.
     /// If the cache entry is present, it's used instead of the underlying `get()`.
@@ -131,7 +137,7 @@ where
 
                 // Write the contest to the cache
                 super::write_to_json(&contest, &cache_file).expect("Failed to write to cache");
-                println!("Codeforces contest successfully cached at {:?}", cache_file);
+                tracing::info!("Codeforces contest successfully cached at {:?}", cache_file);
 
                 contest
             }
@@ -150,13 +156,35 @@ pub fn get_dataset_from_disk<T: Serialize + DeserializeOwned>(
         .unwrap_or_else(|_| panic!("There's no dataset at {:?}", dataset_dir))
         .filter(|file| file.as_ref().unwrap().path().extension() == ext)
         .count();
-    println!("Found {} JSON files at {:?}", length, dataset_dir);
+    tracing::info!("Found {} JSON files at {:?}", length, dataset_dir);
 
     // Every entry should already be in the directory; if not, we should panic
     ClosureDataset::new(length, |i| {
         panic!("Expected to find contest {} in the cache, but didn't", i)
     })
     .cached(dataset_dir)
+}
+
+/// Truncate a dataset to a given range
+pub fn subrange<T>(
+    dataset: impl Dataset<Item = T>,
+    range: impl RangeBounds<usize>,
+) -> impl Dataset<Item = T> {
+    let start = match range.start_bound() {
+        Bound::Included(&i) => i,
+        Bound::Excluded(&i) => i + 1,
+        Bound::Unbounded => 0,
+    };
+    let end = match range.end_bound() {
+        Bound::Included(&i) => i + 1,
+        Bound::Excluded(&i) => i,
+        Bound::Unbounded => dataset.len(),
+    };
+    assert!(start <= end);
+    assert!(end <= dataset.len());
+    let len = end - start;
+
+    ClosureDataset::new(len, move |i| dataset.get(start + i))
 }
 
 #[cfg(test)]

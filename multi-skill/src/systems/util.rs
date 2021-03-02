@@ -288,9 +288,11 @@ pub fn solve_newton((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> (f64, f64))
         }
         if lo >= guess || guess >= hi {
             if sum.abs() > 1e-10 {
-                eprintln!(
-                    "WARNING: POSSIBLE FAILURE TO CONVERGE @ {}: s={}, s'={}",
-                    guess, sum, sum_prime
+                tracing::warn!(
+                    "Possible failure to converge @ {}: s={}, s'={}",
+                    guess,
+                    sum,
+                    sum_prime
                 );
             }
             return guess;
@@ -342,8 +344,8 @@ pub fn simulate_contest(
     contest_index: usize,
 ) {
     if outcome_free(&contest.standings) {
-        eprintln!(
-            "WARNING: ignoring contest {} because all players tied",
+        tracing::warn!(
+            "Ignoring contest {} because all players tied",
             contest_index
         );
         return;

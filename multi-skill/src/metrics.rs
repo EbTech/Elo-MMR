@@ -130,7 +130,7 @@ pub fn compute_metrics_custom(
     let experienced = get_participant_ratings(players, contest_standings, 5);
     let top100 = top_k(&everyone, 100);
 
-    let mut metrics_wt_sum = vec![
+    let metrics_wt_sum = vec![
         pairwise_metric(&everyone),
         pairwise_metric(&experienced),
         pairwise_metric(top100),
@@ -138,10 +138,6 @@ pub fn compute_metrics_custom(
         percentile_distance_metric(&experienced),
         percentile_distance_metric(top100),
     ];
-    for scale in (200..=600).step_by(50) {
-        // In post-processing, only the best of these values should be kept, along with its scale
-        metrics_wt_sum.push(cross_entropy_metric(&experienced, scale as f64));
-    }
 
     PerformanceReport { metrics_wt_sum }
 }
