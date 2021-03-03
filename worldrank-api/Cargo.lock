@@ -1501,8 +1501,11 @@ dependencies = [
  "select",
  "serde 1.0.123",
  "serde_json",
+ "smallvec",
  "statrs",
  "superslice",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -2914,6 +2917,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-appender"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9965507e507f12c8901432a33e31131222abac31edd90cabbcf85cf544b7127a"
+dependencies = [
+ "chrono",
+ "crossbeam-channel",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tracing-attributes"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3307,6 +3321,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-actix-web",
+ "tracing-appender",
  "tracing-bunyan-formatter",
  "tracing-futures",
  "tracing-log",
