@@ -56,28 +56,49 @@ pub fn top_k(standings: &ParticipantRatings, k: usize) -> &ParticipantRatings {
     &standings[0..idx_first_ge_k]
 }
 
+fn inversions_by_mergesort(standings: &mut ParticipantRatings) -> usize {
+    let len = standings.len();
+    if len < 2 {
+        return 0;
+    }
+
+    let (left, right) = standings.split_at_mut(len / 2);
+    let (mut l_idx, mut r_idx) = (0, 0);
+    let mut merged = Vec::with_capacity(len);
+    let mut invs = inversions_by_mergesort(left) + inversions_by_mergesort(right);
+    while l_idx < left.len() && r_idx < right.len() {
+        if left[l_idx].0.mu >= right[r_idx].0.mu {
+            merged.push(left[l_idx]);
+            l_idx += 1;
+        } else {
+            merged.push(right[r_idx]);
+            r_idx += 1;
+            invs += left.len() - l_idx;
+        }
+    }
+    merged.extend(&left[l_idx..]);
+    merged.extend(&right[r_idx..]);
+    standings.copy_from_slice(&merged);
+    invs
+}
+
 pub fn pairwise_metric(standings: &ParticipantRatings) -> WeightAndSum {
     if outcome_free(standings) {
         return (0., 0.);
     }
-    // Compute topk (frac. of inverted pairs) metric
-    let mut correct_pairs = 0.;
-    let mut total_pairs = 0.;
-    for &(loser_rating, loser_lo, _) in standings {
-        for &(winner_rating, winner_lo, _) in standings {
-            if winner_lo >= loser_lo as usize {
-                break;
-            }
-            if winner_rating.mu > loser_rating.mu {
-                correct_pairs += 2.;
-            }
-            total_pairs += 2.;
+
+    // Pre-sort ties to count their predictions as correct
+    let mut standings_by_rating = standings.to_vec();
+    for i in 0..standings.len() {
+        if i == standings[i].1 {
+            let j = standings[i].2;
+            standings_by_rating[i..=j].sort_by(|a, b| b.0.mu.partial_cmp(&a.0.mu).unwrap());
         }
     }
 
+    let invs = inversions_by_mergesort(&mut standings_by_rating) as f64;
     let n = standings.len() as f64;
-    let tied_pairs = n * (n - 1.) - total_pairs;
-    (n, 100. * (correct_pairs + tied_pairs) / (n - 1.))
+    (n, 100. * (n - invs * 2. / (n - 1.)))
 }
 
 pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSum {
@@ -85,7 +106,7 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSu
         return (0., 0.);
     }
     // Compute avg percentile distance metric
-    let mut standings_by_rating = Vec::from(standings);
+    let mut standings_by_rating = standings.to_vec();
     standings_by_rating.sort_by(|a, b| b.0.mu.partial_cmp(&a.0.mu).unwrap());
 
     let mut sum_error = 0.;
@@ -98,6 +119,7 @@ pub fn percentile_distance_metric(standings: &ParticipantRatings) -> WeightAndSu
     (n, 100. * sum_error / (n - 1.))
 }
 
+/// Warning: this is very slow to compute
 pub fn cross_entropy_metric(standings: &ParticipantRatings, scale: f64) -> WeightAndSum {
     if outcome_free(standings) {
         return (0., 0.);
