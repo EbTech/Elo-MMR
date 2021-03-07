@@ -19,7 +19,6 @@ fn summarize(dataset: &dyn Dataset<Item = Contest>) -> (Vec<ContestSummary>, Vec
     (summaries, sorted_names)
 }
 
-/// Sorts all players in descending order of how many contests they participated in
 fn main() {
     tracing_subscriber::fmt::init();
 
@@ -38,11 +37,11 @@ fn main() {
 
     let dir = std::path::PathBuf::from("../data/output");
 
-    // Write contest summaries to data/codeforces/summaries.csv
+    // Write contest summaries to data/output/all_contests.csv
     let summary_file = dir.join("all_contests.csv");
     write_slice_to_file(&summaries, &summary_file);
 
-    // Write contest summaries to data/codeforces/summaries.csv
-    let experienced_players_file = dir.join("experienced_players.csv");
+    // Sort players in descending order of experience in data/output/names_by_experience.csv
+    let experienced_players_file = dir.join("names_by_experience.csv");
     write_slice_to_file(&sorted_names, &experienced_players_file);
 }

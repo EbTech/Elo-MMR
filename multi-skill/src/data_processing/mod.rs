@@ -1,7 +1,8 @@
 mod cf_api;
 mod dataset;
 
-pub use dataset::{get_dataset_from_disk, subrange, CachedDataset, ClosureDataset, Dataset};
+pub use dataset::{get_dataset_from_disk, map, subrange, CachedDataset, ClosureDataset, Dataset};
+use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -62,9 +63,10 @@ impl Contest {
         Some(contestant)
     }
 
-    /// Remove all contestants for whom keep returns false.
-    pub fn filter_by_handle(&mut self, keep: impl Fn(&str) -> bool) {
-        self.standings.retain(|(handle, _, _)| keep(handle));
+    /// Assuming `self.standings` is a subset of a valid standings list,
+    /// corrects the `lo` and `hi` values to make the new list valid
+    fn fix_lo_hi(&mut self) {
+        self.standings.sort_unstable_by_key(|(_, lo, _)| *lo);
         let len = self.standings.len();
         let mut lo = 0;
         while lo < len {
@@ -79,6 +81,41 @@ impl Contest {
             lo = hi + 1;
         }
     }
+
+    fn clone_with_standings(&self, standings: Vec<(String, usize, usize)>) -> Self {
+        let mut contest = Self {
+            name: self.name.clone(),
+            url: self.url.clone(),
+            weight: self.weight,
+            time_seconds: self.time_seconds,
+            standings,
+        };
+        contest.fix_lo_hi();
+        contest
+    }
+
+    /// Split into random disjoint contests, each with at most n participants
+    pub fn random_split<R: ?Sized + rand::Rng>(
+        mut self,
+        n: usize,
+        rng: &mut R,
+    ) -> impl Iterator<Item = Contest> {
+        self.standings.shuffle(rng);
+        let split_standings: Vec<_> = self.standings.chunks(n).map(<[_]>::to_vec).collect();
+        split_standings
+            .into_iter()
+            .map(move |chunk| self.clone_with_standings(chunk))
+    }
+    /*TODO use it like this:
+    use rand::SeedableRng;
+    use rand::rngs::StdRng;
+
+    let mut rng = StdRng::seed_from_u64(1337);
+    for expn in 1..15 {
+        let n = 1 << expn;
+        let split_dataset = dataset.iter().flat_map(|contest| contest.random_split(n, &mut rng));
+    }
+    */
 
     /// Add a contestant with the given handle in last place.
     pub fn push_contestant(&mut self, handle: impl Into<String>) {

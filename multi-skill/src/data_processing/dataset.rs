@@ -187,6 +187,11 @@ pub fn subrange<T>(
     ClosureDataset::new(len, move |i| dataset.get(start + i))
 }
 
+/// Element-wise transform
+pub fn map<T, U>(dataset: impl Dataset<Item = T>, f: impl Fn(T) -> U) -> impl Dataset<Item = U> {
+    ClosureDataset::new(dataset.len(), move |i| f(dataset.get(i)))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
