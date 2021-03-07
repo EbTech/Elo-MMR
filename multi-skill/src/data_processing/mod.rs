@@ -42,13 +42,9 @@ impl Contest {
         }
     }
 
+    /// Returns the contestant's position, if they participated.
     pub fn find_contestant(&mut self, handle: &str) -> Option<usize> {
         self.standings.iter().position(|x| x.0 == handle)
-    }
-
-    /// Detect if a given contestant exists
-    pub fn has_contestant(&mut self, handle: &str) -> bool {
-        self.find_contestant(handle).is_some()
     }
 
     /// Remove a contestant with the given handle, and return it if it exists.
@@ -64,6 +60,24 @@ impl Contest {
             }
         }
         Some(contestant)
+    }
+
+    /// Remove all contestants for whom keep returns false.
+    pub fn filter_by_handle(&mut self, keep: impl Fn(&str) -> bool) {
+        self.standings.retain(|(handle, _, _)| keep(handle));
+        let len = self.standings.len();
+        let mut lo = 0;
+        while lo < len {
+            let mut hi = lo;
+            while hi + 1 < len && self.standings[lo].1 == self.standings[hi + 1].1 {
+                hi += 1;
+            }
+            for (_, st_lo, st_hi) in &mut self.standings[lo..=hi] {
+                *st_lo = lo;
+                *st_hi = hi;
+            }
+            lo = hi + 1;
+        }
     }
 
     /// Add a contestant with the given handle in last place.

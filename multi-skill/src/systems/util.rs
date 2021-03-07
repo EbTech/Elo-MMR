@@ -370,7 +370,7 @@ pub fn simulate_contest(
         .standings
         .iter()
         // TODO TEAMS: if individual, get guard to that, else get guard to its team
-        .map(|&(ref handle, _, _)| {
+        .map(|(handle, _, _)| {
             players
                 .get(handle)
                 .expect("Uninitialized handle")

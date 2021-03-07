@@ -1,6 +1,4 @@
-use multi_skill::data_processing::{
-    get_dataset_by_name, subrange, write_slice_to_file, ContestSummary,
-};
+use multi_skill::data_processing::{get_dataset_by_name, subrange, write_slice_to_file};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::get_rating_system_by_name;
@@ -40,11 +38,6 @@ fn main() {
     let ex = get_experiment_from_args(&args);
 
     // Simulate the contests and rating updates
-    let summaries: Vec<_> = ex
-        .dataset
-        .iter()
-        .map(|contest| ContestSummary::new(&contest))
-        .collect();
     let dataset_len = ex.dataset.len();
     let results = ex.eval(dataset_len);
     tracing::info!(
@@ -53,9 +46,9 @@ fn main() {
         results.secs_elapsed,
     );
 
-    let six_months_ago = summaries
-        .last()
-        .unwrap()
+    let six_months_ago = ex
+        .dataset
+        .get(dataset_len - 1)
         .time_seconds
         .saturating_sub(183 * 86_400);
     let dir = std::path::PathBuf::from("../data/output");
@@ -75,8 +68,4 @@ fn main() {
 
     // Print ratings list to data/codeforces/CFratings.txt
     print_ratings(&results.players, six_months_ago, &dir);
-
-    // Write contest summaries to data/codeforces/summaries.csv
-    let summary_file = dir.join("all_contests.csv");
-    write_slice_to_file(&summaries, &summary_file);
 }

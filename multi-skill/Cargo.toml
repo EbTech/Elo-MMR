@@ -41,3 +41,6 @@ name = "dance"
 
 [[bin]]
 name = "adversary"
+
+[[bin]]
+name = "summarize_dataset"

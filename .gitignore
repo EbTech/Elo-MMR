@@ -3,7 +3,7 @@ target/
 __pycache__/
 .ipynb_checkpoints/
 GeneratedSource/
-bin/
+infernet/bin/
 obj/
 data/output/
 *.html
