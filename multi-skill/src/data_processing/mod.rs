@@ -106,16 +106,6 @@ impl Contest {
             .into_iter()
             .map(move |chunk| self.clone_with_standings(chunk))
     }
-    /*TODO use it like this:
-    use rand::SeedableRng;
-    use rand::rngs::StdRng;
-
-    let mut rng = StdRng::seed_from_u64(1337);
-    for expn in 1..15 {
-        let n = 1 << expn;
-        let split_dataset = dataset.iter().flat_map(|contest| contest.random_split(n, &mut rng));
-    }
-    */
 
     /// Add a contestant with the given handle in last place.
     pub fn push_contestant(&mut self, handle: impl Into<String>) {

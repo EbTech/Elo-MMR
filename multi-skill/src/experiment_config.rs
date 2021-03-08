@@ -5,6 +5,8 @@ use crate::systems::{
 };
 
 use crate::metrics::{compute_metrics_custom, PerformanceReport};
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
@@ -108,20 +110,19 @@ impl Experiment {
         }
     }
 
-    pub fn eval(&self, mut num_rounds_postpone_eval: usize) -> ExperimentResults {
+    pub fn eval(&self, num_rounds_postpone_eval: usize) -> ExperimentResults {
         let mut players = HashMap::new();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
 
         // Run the contest histories and measure
         let now = std::time::Instant::now();
         for (index, contest) in self.dataset.iter().enumerate() {
-            // Evaludate the non-training set; predictions should not use the contest
+            // Evaluate the non-training set; predictions should not use the contest
             // that they're predicting, so this step precedes simulation
-            if num_rounds_postpone_eval > 0 {
-                num_rounds_postpone_eval -= 1;
-            } else {
+            if index >= num_rounds_postpone_eval {
                 avg_perf += compute_metrics_custom(&mut players, &contest.standings);
             }
+
             tracing::debug!(
                 "Processing\n{:6} contestants in{:5}th contest with wt={}: {}",
                 contest.standings.len(),
@@ -139,6 +140,54 @@ impl Experiment {
                 self.sig_noob,
                 index,
             );
+        }
+        let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
+
+        ExperimentResults {
+            players,
+            avg_perf,
+            secs_elapsed,
+        }
+    }
+
+    pub fn eval_split(
+        &self,
+        num_rounds_postpone_eval: usize,
+        max_participants: usize,
+        rng_seed: u64,
+    ) -> ExperimentResults {
+        let mut players = HashMap::new();
+        let mut avg_perf = compute_metrics_custom(&mut players, &[]);
+
+        let mut rng = StdRng::seed_from_u64(rng_seed);
+        let now = std::time::Instant::now();
+        // Alternatively: .iter().flat_map(|contest| contest.random_split(n, &mut rng))
+        // The reason we don't do this is that we want the original train-test split's index.
+        for (index, contest) in self.dataset.iter().enumerate() {
+            let split_contests = contest.random_split(max_participants, &mut rng);
+            tracing::debug!(
+                "Split{:5}th contest into{:6} subcontests",
+                index,
+                split_contests.size_hint().0
+            );
+
+            for subcontest in split_contests {
+                // Evaluate the non-training set; predictions should not use the contest
+                // that they're predicting, so this step precedes simulation
+                if index >= num_rounds_postpone_eval {
+                    avg_perf += compute_metrics_custom(&mut players, &subcontest.standings);
+                }
+
+                // Now run the actual rating update
+                simulate_contest(
+                    &mut players,
+                    &subcontest,
+                    &*self.system,
+                    self.mu_noob,
+                    self.sig_noob,
+                    index,
+                );
+            }
         }
         let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
 

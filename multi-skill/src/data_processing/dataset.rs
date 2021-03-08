@@ -45,6 +45,35 @@ pub trait Dataset {
     fn iter(&self) -> Box<dyn Iterator<Item = Self::Item> + '_> {
         Box::new((0..self.len()).map(move |i| self.get(i)))
     }
+
+    fn into_iter(self) -> IntoIter<Self>
+    where
+        Self: Sized,
+    {
+        IntoIter {
+            dataset: self,
+            index: 0,
+        }
+    }
+}
+
+pub struct IntoIter<D: Dataset> {
+    dataset: D,
+    index: usize,
+}
+
+impl<D: Dataset> Iterator for IntoIter<D> {
+    type Item = D::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.dataset.len() {
+            let val = self.dataset.get(self.index);
+            self.index += 1;
+            Some(val)
+        } else {
+            None
+        }
+    }
 }
 
 /// A slice can act as an in-memory `Dataset`.
