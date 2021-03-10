@@ -58,9 +58,9 @@ fn main() {
     for (handle, player) in &results.players {
         let player = player.borrow();
 
-        let last_event = player.event_history.last().expect("Empty history");
-        if last_event.rating_mu >= 2700 && player.update_time > six_months_ago {
-            //if true {
+        //let last_event = player.event_history.last().expect("Empty history");
+        //if last_event.rating_mu >= 2700 && player.update_time > six_months_ago {
+        if true {
             let player_file = dir.join(format!("players/{}.csv", handle));
             write_slice_to_file(&player.event_history, &player_file);
         }
