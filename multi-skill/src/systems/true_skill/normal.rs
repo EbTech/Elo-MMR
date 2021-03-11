@@ -120,22 +120,31 @@ impl Gaussian {
 
         let alpha = moment0(&self.mu, &self.sigma, &neg_eps) - moment0(&self.mu, &self.sigma, &eps);
 
-        let mu = (moment1(&self.mu, &self.sigma, &neg_eps) - moment1(&self.mu, &self.sigma, &eps))
+        let mut mu = (moment1(&self.mu, &self.sigma, &neg_eps) - moment1(&self.mu, &self.sigma, &eps))
             / &alpha;
-        let sigma2 = (moment2(&self.mu, &self.sigma, &neg_eps)
+        if alpha == 0 {
+            mu = eps.clone();
+        }
+
+        let mut sigma2 = (moment2(&self.mu, &self.sigma, &neg_eps)
             - moment2(&self.mu, &self.sigma, &eps))
             / &alpha
             - mu.clone().square();
         // sigma2 can only be negative due to numerical errors
+        if alpha == 0 {
+            sigma2 = eps.clone().square();
+        }
         let sigma = sigma2.max(&to_hp(0.)).sqrt();
 
         assert!(
             !mu.is_nan() && !sigma.is_nan(),
-            "{:?}\teps {} {} {}",
+            "{:?}\teps {} {} {} {} {}",
             self,
             eps,
+            neg_eps,
             mu,
-            sigma
+            sigma,
+            alpha
         );
 
         let ans = &Gaussian { mu, sigma } / self;
@@ -160,7 +169,7 @@ impl Gaussian {
 
         let ans = &Gaussian { mu, sigma } / self;
 
-        assert!(ans.mu >= to_hp(2. * eps));
+        //assert!(ans.mu >= to_hp(2. * eps));
 
         ans
     }
