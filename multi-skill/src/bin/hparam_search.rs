@@ -27,8 +27,8 @@ fn main() {
     }
 
     // Prepare the contest system parameters
-    let beta_range = log_space(75., 600., 10, 10.);
-    let drift_range = log_space(5., 40., 10, 10.);
+    let beta_range = log_space(75., 600., 10, 2.);
+    let drift_range = log_space(5., 40., 10, 2.);
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for beta in beta_range.clone() {
