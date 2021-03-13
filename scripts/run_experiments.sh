@@ -16,9 +16,10 @@ run_hparam_search() {
 echo "Do you wish to run the hparam search from scratch? (This may take several hours.)"
 select yn in "Yes" "No"; do
 	case $yn in
-		Yes ) run_hparam_search; break;
-		No ) echo "Skipping hparam search..."; break;
+		Yes ) run_hparam_search;;
+		No ) echo "Skipping hparam search...";;
 	esac
+	break;
 done
 
 echo "Running experiments with existing hparams from ../experiments:"
