@@ -1,11 +1,8 @@
-extern crate overload;
-
 use overload::overload;
-use std::ops;
-
 use statrs::function::erf::erfc;
 use std::f64::consts::PI;
 use std::f64::INFINITY;
+use std::ops;
 
 #[derive(Clone, Debug)]
 pub struct Gaussian {
@@ -145,22 +142,18 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, -eps) - moment0(self.mu, self.sigma, eps);
 
-        let mut mu =
-            1. / alpha * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
-        let mut sigma2 = 1. / alpha
-            * (moment2(self.mu, self.sigma, -eps) - moment2(self.mu, self.sigma, eps))
-            - mu.powi(2);
-
-        const FLOAT_CMP_EPS : f64 = 1e-8;
-        if alpha < FLOAT_CMP_EPS {
-            mu = eps;
-            sigma2 = eps * eps;
-        }
-        if sigma2 < 0. {
+        const FLOAT_CMP_EPS: f64 = 1e-8;
+        let (mu, sigma) = if alpha < FLOAT_CMP_EPS {
+            (eps, eps)
+        } else {
+            let mu = 1. / alpha
+                * (moment1(self.mu, self.sigma, -eps) - moment1(self.mu, self.sigma, eps));
+            let sigma2 = 1. / alpha
+                * (moment2(self.mu, self.sigma, -eps) - moment2(self.mu, self.sigma, eps))
+                - mu.powi(2);
             // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
-        }
-        let sigma = sigma2.sqrt();
+            (mu, sigma2.max(0.).sqrt())
+        };
 
         assert!(
             !mu.is_nan() && !sigma.is_nan(),
@@ -168,22 +161,10 @@ impl Gaussian {
             self,
             eps,
             mu,
-            sigma2
+            sigma
         );
 
-        let ans = Gaussian { mu, sigma } / self;
-
-        /*
-        assert!(
-            ans.mu.abs() <= eps,
-            "{} {} {} {}",
-            eps,
-            mu,
-            sigma,
-            ans.mu
-        );
-        */
-        ans
+        Gaussian { mu, sigma } / self
     }
 
     pub fn greater_eps(&self, eps: f64) -> Gaussian {
@@ -193,26 +174,12 @@ impl Gaussian {
         let alpha = moment0(self.mu, self.sigma, eps);
 
         let mu = 1. / alpha * moment1(self.mu, self.sigma, eps);
-        let mut sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);
-        if sigma2 < 0. {
-            // sigma2 can only be < 0 due to numerical errors
-            sigma2 = 0.;
-        }
-        let sigma = sigma2.sqrt();
+        let sigma2 = 1. / alpha * moment2(self.mu, self.sigma, eps) - mu.powi(2);
+        // sigma2 can only be < 0 due to numerical errors
+        let sigma = sigma2.max(0.).sqrt();
 
         assert!(!mu.is_nan() && !sigma.is_nan(), "{:?}\teps {}", self, eps);
 
-        let ans = Gaussian { mu, sigma } / self;
-
-        /*
-        assert!(ans.mu >= 2. * eps,
-            "{} {} {} {}",
-            mu,
-            sigma2,
-            eps,
-            ans.mu
-        );
-        */
-        ans
+        Gaussian { mu, sigma } / self
     }
 }

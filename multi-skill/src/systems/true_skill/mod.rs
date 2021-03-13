@@ -15,7 +15,7 @@ type TSTeam<'a> = Vec<TSPlayer<'a>>;
 type TSContestPlace<'a> = Vec<TSTeam<'a>>;
 type TSContest<'a> = Vec<TSContestPlace<'a>>;
 
-// TrueSkillStPB rating system
+/// The St Petersburg improvement of TrueSkill
 #[derive(Debug)]
 pub struct TrueSkillSPb {
     // epsilon used for ties

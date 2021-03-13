@@ -4,7 +4,6 @@ use crate::systems::{
     TopcoderSys, TrueSkillSPb, BAR,
 };
 
-use json5;
 use crate::metrics::{compute_metrics_custom, PerformanceReport};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
@@ -48,6 +47,7 @@ pub struct Experiment {
 
 impl Experiment {
     pub fn from_file(source: impl AsRef<Path>) -> Self {
+        // Use json5 instead of serde_json to correctly parse f64::INFINITY
         let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
         let params = json5::from_str(&params_json).expect("Failed to parse params as JSON");
         Self::from_config(params)
