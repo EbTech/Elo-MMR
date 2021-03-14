@@ -1,3 +1,4 @@
+mod autocomplete;
 mod count_range;
 mod health_check;
 mod helpers;
