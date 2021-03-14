@@ -60,4 +60,28 @@ impl ImmutableSportDatabase {
             .collect();
         Ok(history_with_contest_data)
     }
+
+    pub fn autocomplete(&self, prefix: &UserName, max_suggestions: usize) -> Vec<String> {
+        // Note: this can be made case-insensitive, and sped up using a trie.
+        let mut filtered_list: Vec<_> = self
+            .top_list
+            .iter()
+            .filter(|player| player.handle.starts_with(prefix.as_ref()))
+            .take(max_suggestions + 1)
+            .collect();
+
+        // If there are too many candidates, yield no candidates.
+        if filtered_list.len() > max_suggestions {
+            filtered_list.clear();
+        }
+
+        // Sort the candidates alphabetically.
+        filtered_list.sort_unstable_by_key(|player| &player.handle);
+
+        // Return just the names.
+        filtered_list
+            .into_iter()
+            .map(|player| player.handle.clone())
+            .collect()
+    }
 }

@@ -49,33 +49,29 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn post_top(&self, body: String) -> reqwest::Response {
+    pub async fn post(&self, method: &str, body: String) -> reqwest::Response {
         reqwest::Client::new()
-            .post(&format!("{}/top", &self.address))
+            .post(&format!("{}/{}", &self.address, method))
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(body)
             .send()
             .await
             .expect("Failed to execute request.")
+    }
+
+    pub async fn post_top(&self, body: String) -> reqwest::Response {
+        self.post("top", body).await
     }
 
     pub async fn post_count(&self, body: String) -> reqwest::Response {
-        reqwest::Client::new()
-            .post(&format!("{}/count", &self.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request.")
+        self.post("count", body).await
     }
 
     pub async fn post_player(&self, body: String) -> reqwest::Response {
-        reqwest::Client::new()
-            .post(&format!("{}/player", &self.address))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
-            .await
-            .expect("Failed to execute request.")
+        self.post("player", body).await
+    }
+
+    pub async fn post_autocomplete(&self, body: String) -> reqwest::Response {
+        self.post("autocomplete", body).await
     }
 }

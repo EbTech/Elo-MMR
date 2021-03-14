@@ -28,7 +28,7 @@ pub struct PlayerSummary {
     last_contest_time: u64,
     last_perf: i32,
     last_change: i32,
-    handle: String,
+    pub handle: String,
 }
 
 pub fn get_display_rating_from_ints(mu: i32, sig: i32) -> i32 {

@@ -13,6 +13,7 @@ curl http://127.0.0.1:8000/top -d "start=0&many=10"
 curl http://127.0.0.1:8000/count -d ""
 curl http://127.0.0.1:8000/count -d "min=1400&max=1599"
 curl http://127.0.0.1:8000/player -d "handle=EbTech"
+curl http://127.0.0.1:8000/autocomplete -d "query=EbTec&many=10"
 ```
 
 If you'd like to learn how to make an application like this, check out Luca Palmieri's excellent blog and book at [zero2prod.com](https://zero2prod.com)!
