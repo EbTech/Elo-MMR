@@ -18,8 +18,8 @@ impl Default for TopcoderSys {
 }
 
 impl TopcoderSys {
-    fn win_probability(&self, multiplier: f64, player: &Rating, foe: &Rating) -> f64 {
-        let z = (player.mu - foe.mu) / player.sig.hypot(foe.sig) / multiplier;
+    fn win_probability(&self, sqrt_weight: f64, player: &Rating, foe: &Rating) -> f64 {
+        let z = sqrt_weight * (player.mu - foe.mu) / player.sig.hypot(foe.sig);
         standard_normal_cdf(z)
     }
 }
@@ -60,11 +60,12 @@ impl RatingSystem for TopcoderSys {
                 let vol_sq = player.approx_posterior.sig.powi(2);
 
                 let mut weight = contest_weight * self.weight_multiplier;
+                let sqrt_weight = weight.sqrt();
                 let ex_rank = standings
                     .iter()
                     .map(|&(ref foe, _, _)| {
                         self.win_probability(
-                            weight,
+                            sqrt_weight,
                             &foe.approx_posterior,
                             &player.approx_posterior,
                         )
@@ -90,7 +91,7 @@ impl RatingSystem for TopcoderSys {
                 cap *= cap_multiplier;
 
                 let try_rating = (old_rating + weight * perf_as) / (1. + weight);
-                let new_rating = try_rating.max(old_rating - cap).min(old_rating + cap);
+                let new_rating = try_rating.clamp(old_rating - cap, old_rating + cap);
                 let new_vol =
                     ((try_rating - old_rating).powi(2) / weight + vol_sq / (1. + weight)).sqrt();
 

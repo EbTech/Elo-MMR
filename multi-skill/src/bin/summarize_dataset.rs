@@ -1,10 +1,10 @@
 use multi_skill::data_processing::{
-    get_dataset_by_name, subrange, write_slice_to_file, Contest, ContestSummary, Dataset,
+    get_dataset_by_name, write_slice_to_file, BoxedDataset, ContestSummary, Dataset, Wrap,
 };
 use std::cmp::Reverse;
 use std::collections::HashMap;
 
-fn summarize(dataset: &dyn Dataset<Item = Contest>) -> (Vec<ContestSummary>, Vec<String>) {
+fn summarize(dataset: &Wrap<BoxedDataset>) -> (Vec<ContestSummary>, Vec<String>) {
     // Simulate the contests and rating updates
     let mut summaries = vec![];
     let mut participation_count = HashMap::<String, usize>::new();
@@ -30,7 +30,8 @@ fn main() {
     }
     let mut dataset = get_dataset_by_name(&args[1]).unwrap();
     if let Some(num_contests) = args.get(2).and_then(|s| s.parse().ok()) {
-        dataset = Box::new(subrange(dataset, 0..num_contests));
+        let boxed: BoxedDataset = Box::new(dataset.subrange(0..num_contests));
+        dataset = boxed.wrap();
     }
 
     let (summaries, sorted_names) = summarize(&dataset);

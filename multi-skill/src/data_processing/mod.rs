@@ -1,7 +1,7 @@
 mod cf_api;
 mod dataset;
 
-pub use dataset::{get_dataset_from_disk, map, subrange, CachedDataset, ClosureDataset, Dataset};
+pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset, Wrap};
 use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
@@ -170,31 +170,35 @@ pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
 /// Helper function to get contest results from the Codeforces API.
 pub fn get_dataset_from_codeforces_api(
     contest_id_file: impl AsRef<std::path::Path>,
-) -> impl Dataset<Item = Contest> {
+) -> Wrap<impl Dataset<Item = Contest>> {
     let client = Client::new();
     let contests_json =
         std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs from file");
     let contest_ids: Vec<usize> = serde_json::from_str(&contests_json)
         .expect("Failed to parse JSON contest IDs as a Vec<usize>");
 
-    dataset::ClosureDataset::new(contest_ids.len(), move |i| {
+    Wrap::from_closure(contest_ids.len(), move |i| {
         cf_api::fetch_cf_contest(&client, contest_ids[i])
     })
 }
 
+/// TODO: can we either do away with this type, or generate it via a method on Wrap?
+//        if so, let's grep for all uses of `subrange` and simplify them.
+pub type BoxedDataset = Box<dyn Dataset<Item = Contest> + Send + Sync>;
+//pub type BoxedData<T> = Box<dyn Dataset<Item = T> + Send + Sync>;
+
 /// Helper function to get any named dataset.
 // TODO: actually throw errors when the directory is not found.
-pub fn get_dataset_by_name(
-    dataset_name: &str,
-) -> Result<Box<dyn Dataset<Item = Contest> + Send + Sync>, String> {
+pub fn get_dataset_by_name(dataset_name: &str) -> Result<Wrap<BoxedDataset>, String> {
     const CF_IDS: &str = "../data/codeforces/contest_ids.json";
 
     let dataset_dir = format!("../cache/{}", dataset_name);
-    Ok(if dataset_name == "codeforces" {
+    let dataset: BoxedDataset = if dataset_name == "codeforces" {
         Box::new(get_dataset_from_codeforces_api(CF_IDS).cached(dataset_dir))
     } else {
         Box::new(get_dataset_from_disk(dataset_dir))
-    })
+    };
+    Ok(dataset.wrap())
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use crate::data_processing::{get_dataset_by_name, subrange, Contest, Dataset};
+use crate::data_processing::{get_dataset_by_name, BoxedDataset, Dataset, Wrap};
 use crate::systems::{
     simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, PlayersByName, RatingSystem,
     TopcoderSys, TrueSkillSPb, BAR,
@@ -42,7 +42,7 @@ pub struct Experiment {
 
     // Experiment should implement Send so that it can be sent across threads
     pub system: Box<dyn RatingSystem + Send>,
-    pub dataset: Box<dyn Dataset<Item = Contest> + Send>,
+    pub dataset: Wrap<BoxedDataset>,
 }
 
 impl Experiment {
@@ -57,7 +57,8 @@ impl Experiment {
         tracing::info!("Loading rating system:\n{:?}", params);
         let dataset = get_dataset_by_name(&params.contest_source).unwrap();
         let dataset_len = dataset.len().min(params.max_contests);
-        let dataset = Box::new(subrange(dataset, ..dataset_len));
+        let dataset: BoxedDataset = Box::new(dataset.subrange(..dataset_len));
+        let dataset = dataset.wrap();
 
         let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
             "glicko" => Box::new(Glicko {
