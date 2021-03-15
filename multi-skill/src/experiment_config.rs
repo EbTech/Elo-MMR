@@ -69,11 +69,11 @@ impl Experiment {
                 sig_drift: params.system.params[1],
                 kappa: 1e-4,
             }),
-            "codeforces" => Box::new(CodeforcesSys {
+            "cfsys" => Box::new(CodeforcesSys {
                 beta: params.system.params[0],
                 weight_multiplier: params.system.params[1],
             }),
-            "topcoder" => Box::new(TopcoderSys {
+            "tcsys" => Box::new(TopcoderSys {
                 weight_multiplier: params.system.params[0],
             }),
             "trueskill" => Box::new(TrueSkillSPb {

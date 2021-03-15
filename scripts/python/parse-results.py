@@ -17,8 +17,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     algs = ["CodeforcesSys", "EloMMR", "EloMMX", "TopcoderSys", "TrueSkillSPb", "Glicko", "BAR"]
-    shortnames = ["codeforces", "mmr", "mmx", "topcoder", "trueskill", "glicko", "bar"]
-    expnames = ["cf", "mmr-fast", "mmx-fast", "tc", "ts", "glicko", "bar"]
+    shortnames = ["cfsys", "mmr", "mmx", "tcsys", "trueskill", "glicko", "bar"]
+    expnames = ["cfsys", "mmr-fast", "mmx-fast", "tcsys", "trueskill", "glicko", "bar"]
     metric_names = ['pair-all', 'pair-exp', 'pair-100', 'rank-all', \
             'rank-exp', 'rank-100', 'entropy-exp', 'num-contests', 'time']
     metrics = {}
