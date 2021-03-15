@@ -182,23 +182,22 @@ pub fn get_dataset_from_codeforces_api(
     })
 }
 
-/// TODO: can we either do away with this type, or generate it via a method on Wrap?
-//        if so, let's grep for all uses of `subrange` and simplify them.
-pub type BoxedDataset = Box<dyn Dataset<Item = Contest> + Send + Sync>;
-//pub type BoxedData<T> = Box<dyn Dataset<Item = T> + Send + Sync>;
+pub type BoxedDataset<T> = Box<dyn Dataset<Item = T> + Send + Sync>;
+pub type ContestDataset = Wrap<BoxedDataset<Contest>>;
 
 /// Helper function to get any named dataset.
 // TODO: actually throw errors when the directory is not found.
-pub fn get_dataset_by_name(dataset_name: &str) -> Result<Wrap<BoxedDataset>, String> {
+pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String> {
     const CF_IDS: &str = "../data/codeforces/contest_ids.json";
 
     let dataset_dir = format!("../cache/{}", dataset_name);
-    let dataset: BoxedDataset = if dataset_name == "codeforces" {
-        Box::new(get_dataset_from_codeforces_api(CF_IDS).cached(dataset_dir))
+    Ok(if dataset_name == "codeforces" {
+        get_dataset_from_codeforces_api(CF_IDS)
+            .cached(dataset_dir)
+            .boxed()
     } else {
-        Box::new(get_dataset_from_disk(dataset_dir))
-    };
-    Ok(dataset.wrap())
+        get_dataset_from_disk(dataset_dir).boxed()
+    })
 }
 
 #[cfg(test)]

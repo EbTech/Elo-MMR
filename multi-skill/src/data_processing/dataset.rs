@@ -9,7 +9,7 @@ pub trait Dataset {
     type Item;
     /// The number of objects in the `Dataset`.
     fn len(&self) -> usize;
-    /// Get the `index`'th element, where `0 <= index < len()`
+    /// Get the `index`'th element, where `0 <= index < len()`.
     fn get(&self, index: usize) -> Self::Item;
 
     /// Whether this `Dataset` is empty.
@@ -17,7 +17,7 @@ pub trait Dataset {
         self.len() == 0
     }
 
-    /// Returns this dataset as a concrete struct with additional methods
+    /// Returns this `Dataset` as a concrete struct with additional methods.
     fn wrap(self) -> Wrap<Self>
     where
         Self: Sized,
@@ -26,7 +26,7 @@ pub trait Dataset {
     }
 }
 
-/// Concrete `Sized` wrapper for `Dataset`
+/// Concrete `Sized` wrapper for `Dataset`.
 pub struct Wrap<D: Dataset> {
     inner: D,
 }
@@ -50,7 +50,16 @@ impl<T, F: Fn(usize) -> T> Wrap<ClosureDataset<T, F>> {
     }
 }
 
+impl<D: 'static + Send + Sync + Dataset> Wrap<D> {
+    /// Box the dataset for thread-safe dynamic dispatch.
+    pub fn boxed(self) -> Wrap<super::BoxedDataset<D::Item>> {
+        let inner: super::BoxedDataset<_> = Box::new(self.inner);
+        inner.wrap()
+    }
+}
+
 impl<D: Dataset> Wrap<D> {
+    /// Provide a directory in which to memorize dataset lookups.
     pub fn cached(self, cache_dir: impl Into<PathBuf>) -> Wrap<CachedDataset<D>>
     where
         D::Item: Serialize + DeserializeOwned,
@@ -152,6 +161,7 @@ impl<D: Dataset + ?Sized> Dataset for &D {
     }
 }
 
+/// Boxed `Dataset`s are also `Dataset`s.
 impl<D: Dataset + ?Sized> Dataset for Box<D> {
     type Item = D::Item;
 

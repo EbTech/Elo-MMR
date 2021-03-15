@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, BoxedDataset, Dataset};
+use multi_skill::data_processing::{get_dataset_by_name, Dataset};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::systems::{self, RatingSystem};
 use rayon::prelude::*;
@@ -109,11 +109,10 @@ fn main() {
 
     systems.into_par_iter().for_each(|system| {
         // We're repeatedly loading the same dataset's metadata but this is cheap anyway
-        let dataset = get_dataset_by_name(&args[1]).unwrap();
-        let dataset_len = dataset.len();
+        let dataset_full = get_dataset_by_name(&args[1]).unwrap();
+        let dataset_len = dataset_full.len();
         let train_set_len = dataset_len / 10;
-        let boxed: BoxedDataset = Box::new(dataset.subrange(..train_set_len));
-        let dataset = boxed.wrap();
+        let dataset = dataset_full.subrange(..train_set_len).boxed();
 
         let experiment = Experiment {
             mu_noob: 1500.,

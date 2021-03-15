@@ -1,6 +1,4 @@
-use multi_skill::data_processing::{
-    get_dataset_by_name, write_slice_to_file, BoxedDataset, Dataset,
-};
+use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file, Dataset};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::get_rating_system_by_name;
@@ -15,8 +13,7 @@ fn get_experiment_from_args(args: &[String]) -> Experiment {
         let system = get_rating_system_by_name(system).unwrap();
         let mut dataset = get_dataset_by_name(name).unwrap();
         if let Some(num_contests) = args.get(3).and_then(|s| s.parse().ok()) {
-            let boxed: BoxedDataset = Box::new(dataset.subrange(0..num_contests));
-            dataset = boxed.wrap();
+            dataset = dataset.subrange(0..num_contests).boxed();
         }
 
         Experiment {
