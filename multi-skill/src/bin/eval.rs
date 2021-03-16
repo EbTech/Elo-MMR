@@ -1,5 +1,3 @@
-use rayon::prelude::*;
-
 use multi_skill::data_processing::Dataset;
 use multi_skill::experiment_config::Experiment;
 
@@ -35,7 +33,7 @@ fn main() {
         experiment_files = args[2..].to_vec();
     }
 
-    experiment_files.par_iter().for_each(|filename| {
+    for filename in &experiment_files {
         let experiment = Experiment::from_file(filename);
         let train_set_len = experiment.dataset.len() / 10;
         let results = experiment.eval(train_set_len);
@@ -49,5 +47,5 @@ fn main() {
             results.secs_elapsed,
             horizontal
         );
-    });
+    }
 }

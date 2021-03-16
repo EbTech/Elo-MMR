@@ -65,7 +65,7 @@ impl Term for Rating {
             Ordering::Equal => {
                 if split_ties {
                     let cdf = standard_normal_cdf(z);
-                    let cdf_m1 = cdf - 1.;
+                    let cdf_m1 = -standard_normal_cdf(-z);
                     let val0 = pdf / cdf;
                     let val1 = pdf / cdf_m1;
                     (
