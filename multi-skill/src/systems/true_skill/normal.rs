@@ -1,4 +1,4 @@
-use super::{erfc, Float, MyFloat, PI, TWO, ZERO};
+use super::float::{erfc, Float, MyFloat, PI, TWO, ZERO};
 use overload::overload;
 use std::ops;
 
