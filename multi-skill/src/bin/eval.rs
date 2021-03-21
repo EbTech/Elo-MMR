@@ -33,6 +33,7 @@ fn main() {
         experiment_files = args[2..].to_vec();
     }
 
+    // To ensure accurate timings, this loop is not parallelized
     for filename in &experiment_files {
         let experiment = Experiment::from_file(filename);
         let train_set_len = experiment.dataset.len() / 10;
