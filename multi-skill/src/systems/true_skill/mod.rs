@@ -186,14 +186,16 @@ impl TrueSkillSPb {
         infer2(&mut u);
         infer1(&mut tul);
 
-        //let mut rounds = 0;
-
-        while check_convergence(&conv, &old_conv) >= self.convergence_eps.into() {
+        let mut rounds = 0;
+        let max_rounds = 42;
+        while rounds < max_rounds
+            && check_convergence(&conv, &old_conv) >= self.convergence_eps.into()
+        {
             old_conv.clear();
             for item in &conv {
                 old_conv.push(RefCell::borrow(item).clone());
             }
-            //rounds += 1;
+            rounds += 1;
 
             infer_ld(&mut ld, &mut l);
             infer1(&mut d);

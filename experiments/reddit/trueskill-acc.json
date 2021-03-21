@@ -1,0 +1,1 @@
+{"max_contests": 1000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "reddit", "system": {"method": "trueskill", "params": [0.8500000000000001, 475.0, 0.0001, 40.0]}}

@@ -107,7 +107,7 @@ overload!((a: ?Gaussian) / (b: ?Gaussian) -> Gaussian {
     let ssigma2 = b.sigma.powi(2);
 
     Gaussian {
-        mu: (a.mu * ssigma2 - b.mu * ssigma1) / (ssigma2 - ssigma1).abs(),
+        mu: (a.mu * ssigma2 - b.mu * ssigma1) / (ssigma2 - ssigma1),
         sigma: a.sigma * b.sigma / (ssigma2 - ssigma1).abs().sqrt(),
     }
 });
@@ -174,10 +174,15 @@ impl Gaussian {
 
         let alpha = moment0(self.mu, self.sigma, eps);
 
-        let mu = moment1(self.mu, self.sigma, eps) / alpha;
-        let sigma2 = moment2(self.mu, self.sigma, eps) / alpha - mu.powi(2);
-        // sigma2 can only be < 0 due to numerical errors
-        let sigma = sigma2.max(ZERO).sqrt();
+        const FLOAT_CMP_EPS: f64 = 1e-8;
+        let (mu, sigma) = if alpha < FLOAT_CMP_EPS.into() {
+            (eps, eps)
+        } else {
+            let mu = moment1(self.mu, self.sigma, eps) / alpha;
+            let sigma2 = moment2(self.mu, self.sigma, eps) / alpha - mu.powi(2);
+            // sigma2 can only be < 0 due to numerical errors
+            (mu, sigma2.max(ZERO).sqrt())
+        };
 
         assert!(!mu.is_nan() && !sigma.is_nan(), "{:?}\teps {}", self, eps);
 
