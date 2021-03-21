@@ -107,7 +107,7 @@ impl Term for TanhTerm {
         }
     }
 
-    // Optimized implementation, since win, loss, and draw terms are similar in this case.
+    // Override to optimize this case where win, loss, and draw terms are similar.
     fn evals(&self, x: f64, ranks: &[usize], my_rank: usize, split_ties: bool) -> (f64, f64) {
         if ranks.len() == 1 {
             // The unit-length case is very common, so we optimize it.
