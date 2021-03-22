@@ -1,1 +1,1 @@
-{"max_contests": 1147, "mu_noob": 1500, "sig_noob": 350, "contest_source": "codeforces", "system": {"method": "glicko", "params": [95.0, 20.0]}}
+{"max_contests": 1152, "mu_noob": 1500, "sig_noob": 350, "contest_source": "codeforces", "system": {"method": "glicko", "params": [125.0, 25.0]}}

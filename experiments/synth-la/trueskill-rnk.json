@@ -1,1 +1,1 @@
-{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-sm", "system": {"method": "trueskill", "params": [0.1, 95.0, 0.0001, 16.0]}}
+{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-la", "system": {"method": "trueskill", "params": [0.1, 95.0, 0.0001, 16.0]}}

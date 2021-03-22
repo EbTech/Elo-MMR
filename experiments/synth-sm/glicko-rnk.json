@@ -1,1 +1,1 @@
-{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-sm", "system": {"method": "glicko", "params": [75.0, 10.0]}}
+{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-sm", "system": {"method": "glicko", "params": [100.0, 32.0]}}

@@ -48,7 +48,7 @@ if __name__ == "__main__":
         vals = extract_numbers(results)
 
         for i in range(6):
-            metrics[metric_names[i]][name][params] = vals[i]
+            metrics[metric_names[i]][name][params] = (vals[i], vals[-1])
         metrics['time'][name][params] = vals[-1]
 
     contest_source = args.dataset
@@ -59,6 +59,8 @@ if __name__ == "__main__":
     for alg, shortname, expname in zip(algs, shortnames, expnames):
         print("Algorithm type {}:".format(alg))
         for name in metric_names:
+            if name == 'time':
+                continue
             values = metrics[name][alg].values()
             if values:
                 if 'pair' in name:
@@ -69,4 +71,4 @@ if __name__ == "__main__":
                 best_params = list(metrics[name][alg])[idx]
 
                 param_values = extract_numbers(best_params)
-                print("  Best {}: {} {}".format(name, best, best_params))
+                print("  Best {} (metric, time): {} {}".format(name, best, best_params))

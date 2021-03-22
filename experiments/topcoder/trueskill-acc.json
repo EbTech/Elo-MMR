@@ -1,1 +1,1 @@
-{"max_contests": 2023, "mu_noob": 1500, "sig_noob": 350, "contest_source": "topcoder", "system": {"method": "trueskill", "params": [3.0, 75.0, 0.0001, 10.0]}}
+{"max_contests": 2023, "mu_noob": 1500, "sig_noob": 350, "contest_source": "topcoder", "system": {"method": "trueskill", "params": [11.5, 65.0, 0.0001, 10.0]}}

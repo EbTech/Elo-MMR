@@ -44,11 +44,7 @@ fn main() {
         let system = systems::TopcoderSys { weight_multiplier };
         systems.push(Box::new(system));
     }
-    for eps in log_space(0.2, 20., 9, 0.1) {
-        // TrueSkill crashes with the above params, so use different ones.
-        let beta_range = log_space(75., 600., 10, 5.);
-        let drift_range = log_space(5., 40., 10, 1.);
-
+    for eps in log_space(0.2, 40., 18, 0.1) {
         for beta in beta_range.clone() {
             for sig_drift in drift_range.clone() {
                 let system = systems::TrueSkillSPb {
