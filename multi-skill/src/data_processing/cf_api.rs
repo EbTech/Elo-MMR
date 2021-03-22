@@ -141,6 +141,6 @@ pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
         CFResponse::Ok { result } => result
             .try_into()
             .expect("Failed to parse JSON response as a valid Contest"),
-        CFResponse::Failed { comment } => panic!(comment),
+        CFResponse::Failed { comment } => panic!("{}", comment),
     }
 }

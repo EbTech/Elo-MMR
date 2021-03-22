@@ -27,12 +27,12 @@ fn main() {
     }
 
     // Prepare the contest system parameters
-    let beta_range = log_space(25., 400., 13, 5.);
-    let drift_range = log_space(10., 80., 10, 1.);
+    let beta_range = log_space(15., 600., 15, 5.);
+    let drift_range = log_space(5., 150., 12, 1.);
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for beta in beta_range.clone() {
-        for weight_multiplier in log_space(0.01, 10., 16, 1e-3) {
+        for weight_multiplier in log_space(0.05, 10., 12, 0.01) {
             let system = systems::CodeforcesSys {
                 beta,
                 weight_multiplier,
@@ -40,11 +40,11 @@ fn main() {
             systems.push(Box::new(system));
         }
     }
-    for weight_multiplier in log_space(0.02, 50., 40, 1e-3) {
+    for weight_multiplier in log_space(0.05, 10., 60, 0.01) {
         let system = systems::TopcoderSys { weight_multiplier };
         systems.push(Box::new(system));
     }
-    for eps in log_space(0.2, 40., 18, 0.1) {
+    for eps in log_space(0.1, 100., 10, 0.1) {
         for beta in beta_range.clone() {
             for sig_drift in drift_range.clone() {
                 let system = systems::TrueSkillSPb {
@@ -58,7 +58,7 @@ fn main() {
         }
     }
     for beta in beta_range.clone() {
-        for sig_limit in log_space(18., 0.75 * beta, 10, 1.) {
+        for sig_limit in log_space(0.1 * beta, 0.8 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
                 // make the algorithm fast
                 let subsample_size = 100;
