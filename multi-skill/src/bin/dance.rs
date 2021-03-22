@@ -13,8 +13,8 @@ struct O2cmDateFilter {
     inmonth: usize,
 }
 
-#[serde(rename_all = "camelCase")]
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct O2cmEventFilter {
     sel_div: String,
     sel_age: String,
