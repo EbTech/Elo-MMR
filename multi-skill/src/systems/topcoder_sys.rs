@@ -49,6 +49,7 @@ impl RatingSystem for TopcoderSys {
             mean_vol_sq.sqrt()
         };
 
+        let sqrt_contest_weight = contest_weight.sqrt();
         let limit_weight = 1. / 0.82 - 1.;
         let cap_multiplier = self.weight_multiplier * (1. + limit_weight)
             / (1. + limit_weight * self.weight_multiplier);
@@ -59,13 +60,11 @@ impl RatingSystem for TopcoderSys {
                 let old_rating = player.approx_posterior.mu;
                 let vol_sq = player.approx_posterior.sig.powi(2);
 
-                let mut weight = contest_weight * self.weight_multiplier;
-                let sqrt_weight = weight.sqrt();
                 let ex_rank = standings
                     .iter()
                     .map(|&(ref foe, _, _)| {
                         self.win_probability(
-                            sqrt_weight,
+                            sqrt_contest_weight,
                             &foe.approx_posterior,
                             &player.approx_posterior,
                         )
@@ -80,7 +79,8 @@ impl RatingSystem for TopcoderSys {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let num_contests = player.event_history.len() as f64;
-                weight *= 1. / (0.82 - 0.42 / num_contests) - 1.;
+                let mut weight = 1. / (0.82 - 0.42 / num_contests) - 1.;
+                weight *= contest_weight * self.weight_multiplier;
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {
