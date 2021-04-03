@@ -1,4 +1,5 @@
 mod cf_api;
+mod ctf_api;
 mod dataset;
 
 pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset, Wrap};
@@ -16,7 +17,7 @@ fn is_one(&weight: &f64) -> bool {
 }
 
 /// Represents the outcome of a contest.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Contest {
     /// A human-readable title for the contest.
     pub name: String,
@@ -154,13 +155,21 @@ fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<()
         .map_err(|_| "Failed to serialize row")
 }
 
-pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
+pub fn write_slice_to_file_fallible<T: Serialize>(
+    values: &[T],
+    path: impl AsRef<Path>,
+) -> Result<(), &str> {
     let path = path.as_ref();
-    let write_res = match path.extension().and_then(|s| s.to_str()) {
+    match path.extension().and_then(|s| s.to_str()) {
         Some("json") => write_to_json(values, path),
         Some("csv") => write_to_csv(values, path),
         _ => Err("Invalid or missing filename extension"),
-    };
+    }
+}
+
+pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
+    let path = path.as_ref();
+    let write_res = write_slice_to_file_fallible(values, path);
     match write_res {
         Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
         Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
@@ -182,6 +191,13 @@ pub fn get_dataset_from_codeforces_api(
     })
 }
 
+/// Helper function to get contest results from the CTFtime API.
+pub fn get_dataset_from_ctftime_api() -> Wrap<impl Dataset<Item = Contest>> {
+    let contests = ctf_api::fetch_ctf_history();
+
+    Wrap::from_closure(contests.len(), move |i| contests[i].clone())
+}
+
 pub type BoxedDataset<T> = Box<dyn Dataset<Item = T> + Send + Sync>;
 pub type ContestDataset = Wrap<BoxedDataset<Contest>>;
 
@@ -195,6 +211,8 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String>
         get_dataset_from_codeforces_api(CF_IDS)
             .cached(dataset_dir)
             .boxed()
+    //} else if dataset_name == "ctf" {
+    //    get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
     } else {
         get_dataset_from_disk(dataset_dir).boxed()
     })

@@ -1,12 +1,12 @@
 use super::Contest;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 
 /// General response from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "UPPERCASE", tag = "status")]
 enum CFResponse<T> {
     Ok { result: T },
@@ -15,7 +15,7 @@ enum CFResponse<T> {
 
 /// A RatingChange object from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp/objects#RatingChange
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CFRatingChange {
     contest_id: usize,
