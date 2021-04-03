@@ -2,8 +2,7 @@ use reqwest::blocking::{Client, RequestBuilder};
 use reqwest::StatusCode;
 use select::document::Document;
 use select::node::Node;
-use select::predicate::{Attr, Name};
-use serde::Serialize;
+use select::predicate::Name;
 
 fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
     let response = builder
@@ -17,11 +16,11 @@ fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
     Ok(Document::from(page_text.as_str()))
 }
 
-struct ArchiveRows<'a, I: Iterator<Item=Node<'a>>> {
-    table: I
+struct ArchiveRows<'a, I: Iterator<Item = Node<'a>>> {
+    table: I,
 }
 
-impl<'a, I: Iterator<Item=Node<'a>>> Iterator for ArchiveRows<'a, I> {
+impl<'a, I: Iterator<Item = Node<'a>>> Iterator for ArchiveRows<'a, I> {
     type Item = (String, String, String);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -42,11 +41,11 @@ impl<'a, I: Iterator<Item=Node<'a>>> Iterator for ArchiveRows<'a, I> {
     }
 }
 
-struct ScoreboardRows<'a, I: Iterator<Item=Node<'a>>> {
-    table: I
+struct ScoreboardRows<'a, I: Iterator<Item = Node<'a>>> {
+    table: I,
 }
 
-impl<'a, I: Iterator<Item=Node<'a>>> Iterator for ScoreboardRows<'a, I> {
+impl<'a, I: Iterator<Item = Node<'a>>> Iterator for ScoreboardRows<'a, I> {
     type Item = (usize, String);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -65,18 +64,22 @@ fn main() {
     tracing_subscriber::fmt::init();
 
     let client = Client::new();
-    
+
     for year in 2005..=2021 {
         let year_url = format!("https://ctftime.org/event/list/?year={}", year);
         let year_req = client.get(year_url);
         let year_page = request(year_req).expect("Failed HTTP status");
-        let table = ArchiveRows { table: year_page.select(Name("td")) };
+        let table = ArchiveRows {
+            table: year_page.select(Name("td")),
+        };
         // TODO: reverse rows, parse time in seconds, parse Contest
         for (contest_url, title, time_string) in table {
             tracing::info!("{} {} {}", contest_url, title, time_string);
             let contest_req = client.get(contest_url);
             let contest_page = request(contest_req).expect("Failed HTTP status");
-            let table = ScoreboardRows { table: year_page.select(Name("td")) };
+            let table = ScoreboardRows {
+                table: year_page.select(Name("td")),
+            };
         }
     }
 }
