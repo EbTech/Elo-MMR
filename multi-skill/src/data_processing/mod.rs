@@ -138,7 +138,7 @@ impl ContestSummary {
     }
 }
 
-fn write_to_json<T: Serialize + ?Sized>(
+pub fn write_to_json<T: Serialize + ?Sized>(
     value: &T,
     path: impl AsRef<Path>,
 ) -> Result<(), &'static str> {
@@ -146,7 +146,7 @@ fn write_to_json<T: Serialize + ?Sized>(
     std::fs::write(path.as_ref(), cached_json).map_err(|_| "File writing error")
 }
 
-fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
+pub fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
     let file = std::fs::File::create(path.as_ref()).map_err(|_| "Output file not found")?;
     let mut writer = csv::Writer::from_writer(file);
     values
@@ -211,8 +211,8 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String>
         get_dataset_from_codeforces_api(CF_IDS)
             .cached(dataset_dir)
             .boxed()
-    //} else if dataset_name == "ctf" {
-    //    get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
+    } else if dataset_name == "ctf" {
+        get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
     } else {
         get_dataset_from_disk(dataset_dir).boxed()
     })

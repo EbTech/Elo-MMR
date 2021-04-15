@@ -28,6 +28,8 @@ rand = "0.8.3"
 json5 = "0.3.0"
 f128 = "0.2.9"
 num-traits = "0.2.14"
+itertools = "0.10.0"
+chrono = "0.4.19"
 
 [[bin]]
 name = "rate"

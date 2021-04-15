@@ -1,4 +1,5 @@
 use serde::{de::DeserializeOwned, Serialize};
+use std::cmp::min;
 use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
 
@@ -87,8 +88,8 @@ impl<D: Dataset> Wrap<D> {
             Bound::Unbounded => 0,
         };
         let end = match range.end_bound() {
-            Bound::Included(&i) => i + 1,
-            Bound::Excluded(&i) => i,
+            Bound::Included(&i) => min(i + 1, self.len()),
+            Bound::Excluded(&i) => min(i, self.len()),
             Bound::Unbounded => self.len(),
         };
         assert!(start <= end);
