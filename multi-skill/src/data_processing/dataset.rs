@@ -1,5 +1,4 @@
 use serde::{de::DeserializeOwned, Serialize};
-use std::cmp::min;
 use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
 
@@ -80,7 +79,7 @@ impl<D: Dataset> Wrap<D> {
         (0..self.len()).map(move |i| self.get(i))
     }
 
-    /// Truncate a dataset to a given range.
+    /// Truncate a dataset to a given range. Panics if the range goes out of bounds.
     pub fn subrange(self, range: impl RangeBounds<usize>) -> Wrap<impl Dataset<Item = D::Item>> {
         let start = match range.start_bound() {
             Bound::Included(&i) => i,
@@ -88,8 +87,8 @@ impl<D: Dataset> Wrap<D> {
             Bound::Unbounded => 0,
         };
         let end = match range.end_bound() {
-            Bound::Included(&i) => min(i + 1, self.len()),
-            Bound::Excluded(&i) => min(i, self.len()),
+            Bound::Included(&i) => i + 1,
+            Bound::Excluded(&i) => i,
             Bound::Unbounded => self.len(),
         };
         assert!(start <= end);

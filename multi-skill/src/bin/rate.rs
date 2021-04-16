@@ -13,6 +13,14 @@ fn get_experiment_from_args(args: &[String]) -> Experiment {
         let system = get_rating_system_by_name(system).unwrap();
         let mut dataset = get_dataset_by_name(name).unwrap();
         if let Some(num_contests) = args.get(3).and_then(|s| s.parse().ok()) {
+            if num_contests > dataset.len() {
+                tracing::error!(
+                    "Requested {} contests, but {} has only {}.",
+                    num_contests,
+                    args[1],
+                    dataset.len()
+                );
+            }
             dataset = dataset.subrange(0..num_contests).boxed();
         }
 

@@ -1,5 +1,5 @@
 use multi_skill::data_processing::{
-    get_dataset_by_name, write_slice_to_file, ContestDataset, ContestSummary,
+    get_dataset_by_name, write_slice_to_file, ContestDataset, ContestSummary, Dataset,
 };
 use std::cmp::Reverse;
 use std::collections::HashMap;
@@ -30,6 +30,14 @@ fn main() {
     }
     let mut dataset = get_dataset_by_name(&args[1]).unwrap();
     if let Some(num_contests) = args.get(2).and_then(|s| s.parse().ok()) {
+        if num_contests > dataset.len() {
+            tracing::error!(
+                "Requested {} contests, but {} has only {}.",
+                num_contests,
+                args[1],
+                dataset.len()
+            );
+        }
         dataset = dataset.subrange(0..num_contests).boxed();
     }
 
