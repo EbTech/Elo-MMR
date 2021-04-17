@@ -62,7 +62,7 @@ for round_id in round_ids:
 import json
 from collections import defaultdict
 
-for r, contest in enumerate(contests):
+for r, contest in enumerate(reversed(contests)):
     data = {}
     data['id'] = r
     data['name'] = "To be filled."
@@ -84,10 +84,10 @@ for r, contest in enumerate(contests):
     json.dump(data, ranking_file)
     ranking_file.close()
     
-contest_ids = list(range(len(contests)))
-with open('../data/topcoder/contest_ids.json', 'w') as out:
-    out.write(str(contest_ids))
-    out.close()
+#contest_ids = list(range(len(contests)))
+#with open('../data/topcoder/contest_ids.json', 'w') as out:
+#    out.write(str(contest_ids))
+#    out.close()
 
 
 
