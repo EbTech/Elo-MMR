@@ -9,11 +9,11 @@ cargo run --release
 
 Now you can access the API from another terminal or application. Examples:
 ```
-curl http://127.0.0.1:8000/top -d "start=0&many=10"
-curl http://127.0.0.1:8000/count -d ""
-curl http://127.0.0.1:8000/count -d "min=1400&max=1599"
-curl http://127.0.0.1:8000/player -d "handle=EbTech"
-curl http://127.0.0.1:8000/autocomplete -d "query=EbTec&many=10"
+curl http://127.0.0.1:8000/top -d "source=codeforces&start=0&many=10"
+curl http://127.0.0.1:8000/count -d "source=codeforces"
+curl http://127.0.0.1:8000/count -d "source=codeforces&min=1400&max=1599"
+curl http://127.0.0.1:8000/player -d "source=codeforces&handle=EbTech"
+curl http://127.0.0.1:8000/autocomplete -d "source=codeforces&query=EbTec&many=10"
 ```
 
 If you'd like to learn how to make an application like this, check out Luca Palmieri's excellent blog and book at [zero2prod.com](https://zero2prod.com)!

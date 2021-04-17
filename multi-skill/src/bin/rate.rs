@@ -59,10 +59,10 @@ fn main() {
         .get(dataset_len - 1)
         .time_seconds
         .saturating_sub(183 * 86_400);
-    let dir = std::path::PathBuf::from("../data/output");
+    let dir = std::path::PathBuf::from("../data").join(&args[2]);
     std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
 
-    // Print contest histories of top players to data/output/players/{handle}.csv
+    // Print contest histories of top players to data/{source}/players/{handle}.csv
     for (handle, player) in &results.players {
         let player = player.borrow();
 
@@ -75,6 +75,7 @@ fn main() {
         }
     }
 
-    // Print ratings list to data/codeforces/CFratings.txt
+    // Print ratings list to data/{source}/all_players.csv,
+    // which LO Calc can open to copy-paste into CFratings.txt
     print_ratings(&results.players, six_months_ago, &dir);
 }

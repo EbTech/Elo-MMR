@@ -225,7 +225,8 @@ fn main() {
                     }
                     Err(status) => {
                         tracing::warn!(
-                            "{:2}/{} missing data: {} at {}",
+                            "{:2}/{:2}/{} missing data: {} at {}",
+                            inday,
                             inmonth,
                             inyear,
                             status,

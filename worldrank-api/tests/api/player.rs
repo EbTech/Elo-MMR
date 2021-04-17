@@ -5,7 +5,7 @@ use worldrank_api::domain::HistoryPoint;
 async fn player_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
-    let body = "handle=tourist";
+    let body = "source=codeforces&handle=tourist";
 
     // Act
     let response = app.post_player(body.into()).await;
@@ -21,7 +21,7 @@ async fn player_returns_a_200_for_valid_form_data() {
 async fn player_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = TestApp::spawn().await;
-    let test_cases = vec![("", "missing handle")];
+    let test_cases = vec![("source=codeforces", "missing handle")];
 
     for (body, error_message) in test_cases {
         // Act
@@ -41,7 +41,10 @@ async fn player_returns_a_400_when_data_is_missing() {
 async fn player_returns_a_400_when_fields_are_present_but_empty() {
     // Arrange
     let app = TestApp::spawn().await;
-    let test_cases = vec![("handle=", "empty handle"), ("handle=<>", "invalid handle")];
+    let test_cases = vec![
+        ("source=codeforces&handle=", "empty handle"),
+        ("source=codeforces&handle=<>", "invalid handle"),
+    ];
 
     for (body, description) in test_cases {
         // Act

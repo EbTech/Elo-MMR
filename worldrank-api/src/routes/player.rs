@@ -1,28 +1,32 @@
 use crate::domain::HistoryPoint;
 use crate::domain::UserName;
-use crate::immut_database::ImmutableSportDatabase;
+use crate::immut_database::{ImmutableSportDatabase, SportDatabases};
 use actix_web::{web, HttpResponse};
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
+    source: String,
     handle: String,
 }
 
 #[tracing::instrument(
     name = "Requesting a player's history",
-    skip(form, database),
-    fields(handle = %form.handle)
+    skip(form, databases),
+    fields(source = %form.source, handle = %form.handle)
 )]
 pub async fn request_player(
     form: web::Form<FormData>,
-    database: web::Data<ImmutableSportDatabase>,
+    databases: web::Data<SportDatabases>,
 ) -> Result<HttpResponse, HttpResponse> {
+    let database = databases
+        .get(&form.0.source)
+        .ok_or(HttpResponse::BadRequest())?;
     let handle = UserName::parse(form.0.handle).map_err(|e| {
         tracing::error!("Bad username: {:?}", e);
         HttpResponse::BadRequest().finish()
     })?;
 
-    let player_history = player_from_database(&handle, &database)
+    let player_history = player_from_database(&handle, database)
         .await
         .map_err(|e| HttpResponse::BadRequest().body(e))?;
 

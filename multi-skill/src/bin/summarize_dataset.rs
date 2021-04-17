@@ -28,7 +28,8 @@ fn main() {
         tracing::error!("Usage: {} dataset_name [num_contests]", args[0]);
         return;
     }
-    let mut dataset = get_dataset_by_name(&args[1]).unwrap();
+    let dataset_name = &args[1];
+    let mut dataset = get_dataset_by_name(dataset_name).unwrap();
     if let Some(num_contests) = args.get(2).and_then(|s| s.parse().ok()) {
         if num_contests > dataset.len() {
             tracing::error!(
@@ -43,13 +44,13 @@ fn main() {
 
     let (summaries, sorted_names) = summarize(&dataset);
 
-    let dir = std::path::PathBuf::from("../data/output");
+    let dir = std::path::PathBuf::from("../data").join(dataset_name);
 
-    // Write contest summaries to data/output/all_contests.csv
+    // Write contest summaries to data/{source}/all_contests.csv
     let summary_file = dir.join("all_contests.csv");
     write_slice_to_file(&summaries, &summary_file);
 
-    // Sort players in descending order of experience in data/output/names_by_experience.csv
+    // Sort players in descending order of experience in data/{source}/names_by_experience.csv
     let experienced_players_file = dir.join("names_by_experience.csv");
     write_slice_to_file(&sorted_names, &experienced_players_file);
 }

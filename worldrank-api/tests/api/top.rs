@@ -5,7 +5,7 @@ use worldrank_api::domain::PlayerSummary;
 async fn top_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
-    let body = "start=0&many=10";
+    let body = "source=codeforces&start=0&many=10";
 
     // Act
     let response = app.post_top(body.into()).await;
@@ -21,7 +21,7 @@ async fn top_returns_a_200_for_valid_form_data() {
 async fn top_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = TestApp::spawn().await;
-    let test_cases = vec![("start=0", "missing many")];
+    let test_cases = vec![("source=codeforces&start=0", "missing many")];
 
     for (body, error_message) in test_cases {
         // Act
@@ -42,11 +42,11 @@ async fn top_returns_a_400_when_fields_are_present_but_empty() {
     // Arrange
     let app = TestApp::spawn().await;
     let test_cases = vec![
-        ("start=&many=10", "empty start"),
-        ("start=a&many=10", "non-numeric start"),
-        ("start=0&many=", "empty many"),
-        ("start=0&many=a", "non-numeric many"),
-        ("start=987654321&many=10", "start too big"),
+        ("source=codeforces&start=&many=10", "empty start"),
+        ("source=codeforces&start=a&many=10", "non-numeric start"),
+        ("source=codeforces&start=0&many=", "empty many"),
+        ("source=codeforces&start=0&many=a", "non-numeric many"),
+        ("source=codeforces&start=987654321&many=10", "start too big"),
     ];
 
     for (body, description) in test_cases {
