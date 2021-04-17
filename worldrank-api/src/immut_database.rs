@@ -2,6 +2,7 @@ use crate::domain::{ContestSummary, HistoryPoint, PlayerSummary, UserName};
 use csv::Reader;
 use serde::de::DeserializeOwned;
 use std::cmp::Reverse;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 use superslice::Ext;
@@ -83,5 +84,25 @@ impl ImmutableSportDatabase {
             .into_iter()
             .map(|player| player.handle.clone())
             .collect()
+    }
+}
+
+pub struct SportDatabases {
+    databases: HashMap<String, ImmutableSportDatabase>,
+}
+
+impl SportDatabases {
+    pub fn new(dir: impl AsRef<Path>, sources: Vec<String>) -> Result<Self, csv::Error> {
+        let mut databases = HashMap::with_capacity(sources.len());
+        for source in sources {
+            let path = dir.as_ref().join(&source);
+            let db = ImmutableSportDatabase::new(&path)?;
+            databases.insert(source, db);
+        }
+        Ok(Self { databases })
+    }
+
+    pub fn get(&self, source: &str) -> Option<&ImmutableSportDatabase> {
+        self.databases.get(source)
     }
 }

@@ -5,10 +5,10 @@ async fn player_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
     let test_cases = vec![
-        ("", "count all"),
-        ("max=1499", "count low"),
-        ("min=1500", "count high"),
-        ("min=-1000&max=900", "include negatives"),
+        ("source=codeforces", "count all"),
+        ("source=codeforces&max=1499", "count low"),
+        ("source=codeforces&min=1500", "count high"),
+        ("source=codeforces&min=-1000&max=900", "include negatives"),
     ];
 
     let mut counts = vec![];
@@ -35,9 +35,9 @@ async fn player_returns_a_400_when_fields_are_invalid() {
     // Arrange
     let app = TestApp::spawn().await;
     let test_cases = vec![
-        ("min=a", "non-numeric min"),
-        ("max=a", "non-numeric max"),
-        ("min=1500&max=1400", "inverted range"),
+        ("source=codeforces&min=a", "non-numeric min"),
+        ("source=codeforces&max=a", "non-numeric max"),
+        ("source=codeforces&min=1500&max=1400", "inverted range"),
     ];
 
     for (body, description) in test_cases {

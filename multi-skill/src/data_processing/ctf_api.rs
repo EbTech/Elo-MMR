@@ -63,6 +63,8 @@ impl TryFrom<(usize, CTFContest)> for Contest {
 
 // The preprocessing here is extremely slow and defeats the purpose of caching;
 // ideally, the CTFtime API should expose the standings on a per-round basis.
+// Currently, to use caching, we have to manually comment out the CTFtime
+// lines from mod::get_dataset_by_name() after fetching the data once.
 // We should also provide human-readable team names. (but as a primary key?)
 // Should the the backend's {handle}.{ext} provide a URL for the member/team?
 pub fn fetch_ctf_history() -> Vec<Contest> {

@@ -1,9 +1,10 @@
 use crate::domain::PlayerSummary;
-use crate::immut_database::ImmutableSportDatabase;
+use crate::immut_database::{ImmutableSportDatabase, SportDatabases};
 use actix_web::{web, HttpResponse};
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
+    source: String,
     many: usize,
     #[serde(default)]
     start: usize,
@@ -11,17 +12,21 @@ pub struct FormData {
 
 #[tracing::instrument(
     name = "Requesting top players by rank",
-    skip(form, database),
+    skip(form, databases),
     fields(
+        source = %form.source,
         many = %form.many,
         start = %form.start
     )
 )]
 pub async fn request_top(
     form: web::Form<FormData>,
-    database: web::Data<ImmutableSportDatabase>,
+    databases: web::Data<SportDatabases>,
 ) -> Result<HttpResponse, HttpResponse> {
-    let player_summaries = top_from_database(form.0.many, form.0.start, &database)
+    let database = databases
+        .get(&form.0.source)
+        .ok_or(HttpResponse::BadRequest())?;
+    let player_summaries = top_from_database(form.0.many, form.0.start, database)
         .await
         .map_err(|e| HttpResponse::BadRequest().body(e))?;
 

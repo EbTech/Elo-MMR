@@ -146,7 +146,7 @@ pub fn write_to_json<T: Serialize + ?Sized>(
     std::fs::write(path.as_ref(), cached_json).map_err(|_| "File writing error")
 }
 
-pub fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
+fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
     let file = std::fs::File::create(path.as_ref()).map_err(|_| "Output file not found")?;
     let mut writer = csv::Writer::from_writer(file);
     values
