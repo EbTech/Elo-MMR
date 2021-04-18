@@ -137,8 +137,6 @@ pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
-    // Rate limit ourselves so that we don't ping CF too hard
-    std::thread::sleep(std::time::Duration::from_millis(500));
     match packet {
         CFResponse::Ok { result } => result
             .try_into()

@@ -1,6 +1,8 @@
 use serde::{de::DeserializeOwned, Serialize};
 use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 /// Generic `Dataset` trait, modeled after PyTorch's `utils.data.Dataset`.
 /// It represents a collection of objects indexed in the range `0..len()`.
@@ -51,7 +53,7 @@ impl<T, F: Fn(usize) -> T> Wrap<ClosureDataset<T, F>> {
 }
 
 impl<D: 'static + Send + Sync + Dataset> Wrap<D> {
-    /// Box the dataset for thread-safe dynamic dispatch.
+    /// Box the `Dataset` for thread-safe dynamic dispatch.
     pub fn boxed(self) -> Wrap<super::BoxedDataset<D::Item>> {
         let inner: super::BoxedDataset<_> = Box::new(self.inner);
         inner.wrap()
@@ -70,6 +72,19 @@ impl<D: Dataset> Wrap<D> {
         CachedDataset {
             base_dataset,
             cache_dir,
+        }
+        .wrap()
+    }
+
+    /// Rate-limit access to the `get()` function.
+    pub fn rate_limit(self, min_wait: Duration) -> Wrap<PatientDataset<D>> {
+        let base_dataset = self.inner;
+        let wakeup_time = Mutex::new(Instant::now());
+
+        PatientDataset {
+            base_dataset,
+            min_wait,
+            wakeup_time,
         }
         .wrap()
     }
@@ -225,6 +240,32 @@ where
                 contest
             }
         }
+    }
+}
+
+/// A `Dataset` whose use must be rate-limited, perhaps because it makes web API calls.
+pub struct PatientDataset<D: Dataset> {
+    base_dataset: D,
+    min_wait: Duration,
+    wakeup_time: Mutex<Instant>,
+}
+
+impl<D: Dataset> Dataset for PatientDataset<D> {
+    type Item = D::Item;
+
+    fn len(&self) -> usize {
+        self.base_dataset.len()
+    }
+
+    fn get(&self, index: usize) -> Self::Item {
+        let mut wakeup_time = self.wakeup_time.lock().unwrap();
+        if let Some(sleep_dur) = wakeup_time.checked_duration_since(Instant::now()) {
+            // wakeup_time hasn't passed yet, so sleep until it does.
+            std::thread::sleep(sleep_dur);
+        }
+        let item = self.base_dataset.get(index);
+        *wakeup_time = Instant::now() + self.min_wait;
+        item
     }
 }
 

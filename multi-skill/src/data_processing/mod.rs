@@ -207,15 +207,18 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String>
     const CF_IDS: &str = "../data/codeforces/contest_ids.json";
 
     let dataset_dir = format!("../cache/{}", dataset_name);
-    Ok(if dataset_name == "codeforces" {
+    let dataset = if dataset_name == "codeforces" {
+        // Rate-limit API calls so we don't burden Codeforces
         get_dataset_from_codeforces_api(CF_IDS)
+            .rate_limit(std::time::Duration::from_millis(500))
             .cached(dataset_dir)
             .boxed()
     //} else if dataset_name == "ctf" {
     //    get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
     } else {
         get_dataset_from_disk(dataset_dir).boxed()
-    })
+    };
+    Ok(dataset)
 }
 
 #[cfg(test)]
