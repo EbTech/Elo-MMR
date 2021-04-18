@@ -7,7 +7,7 @@ run_hparam_search() {
 	do
 		echo "Processing dataset ${dataset}..."
 		export RUST_LOG=info
-		cargo run --manifest-path=../multi-skill/Cargo.toml --bin hparam_search $dataset | tee log-$dataset.txt
+		cargo run --release --manifest-path=../multi-skill/Cargo.toml --bin hparam_search $dataset | tee log-$dataset.txt
 		cat log-$dataset.txt | python3 python/parse-hparams.py --dataset $dataset --output_dir ../experiments
 		#rm log-$dataset.txt
 	done

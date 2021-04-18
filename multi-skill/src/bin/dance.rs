@@ -6,6 +6,7 @@ use reqwest::StatusCode;
 use select::document::Document;
 use select::predicate::{And, Attr, Class, Name, Or};
 use serde::Serialize;
+use std::collections::HashSet;
 use std::ops::RangeInclusive;
 
 const ROOT_URL: &str = "https://results.o2cm.com/";
@@ -134,7 +135,6 @@ fn write_round(
     datetime: DateTime<Utc>,
 ) {
     if round.len() > 1 {
-        *num_rounds += 1;
         let contest = Contest {
             name: format!("{} {}", contest_name, round_name),
             url: None, // TODO: add scoresheet URL
@@ -149,6 +149,7 @@ fn write_round(
             Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
             Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
         };
+        *num_rounds += 1;
     }
 }
 
@@ -188,6 +189,7 @@ fn main() {
                         };
                         let mut round: Vec<(usize, String)> = vec![];
                         let mut round_name = "".to_string();
+                        let mut names = HashSet::new();
                         for line in get_rounds(&comp_page) {
                             // Split string into tokens and get the placing and name
                             let tokens: Vec<_> = line.split(' ').collect();
@@ -209,6 +211,12 @@ fn main() {
                                 } else {
                                     tokens[2..tokens.len()].join(" ").to_string()
                                 };
+
+                                // Remove dups
+                                if names.contains(&team) {
+                                    continue;
+                                }
+                                names.insert(team.clone());
 
                                 // Check if new round by seeing if this is a first place
                                 let rank: usize = tokens[0][..tokens[0].len() - 1].parse().unwrap();
