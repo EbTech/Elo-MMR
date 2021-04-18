@@ -141,29 +141,29 @@ impl ContestSummary {
 pub fn write_to_json<T: Serialize + ?Sized>(
     value: &T,
     path: impl AsRef<Path>,
-) -> Result<(), &'static str> {
-    let cached_json = serde_json::to_string_pretty(&value).map_err(|_| "Serialization error")?;
-    std::fs::write(path.as_ref(), cached_json).map_err(|_| "File writing error")
+) -> Result<(), String> {
+    let cached_json = serde_json::to_string_pretty(&value).map_err(|e| e.to_string())?;
+    std::fs::write(path.as_ref(), cached_json).map_err(|e| e.to_string())
 }
 
-fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), &'static str> {
-    let file = std::fs::File::create(path.as_ref()).map_err(|_| "Output file not found")?;
+fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), String> {
+    let file = std::fs::File::create(path.as_ref()).map_err(|e| e.to_string())?;
     let mut writer = csv::Writer::from_writer(file);
     values
         .iter()
         .try_for_each(|val| writer.serialize(val))
-        .map_err(|_| "Failed to serialize row")
+        .map_err(|e| e.to_string())
 }
 
 pub fn write_slice_to_file_fallible<T: Serialize>(
     values: &[T],
     path: impl AsRef<Path>,
-) -> Result<(), &str> {
+) -> Result<(), String> {
     let path = path.as_ref();
     match path.extension().and_then(|s| s.to_str()) {
         Some("json") => write_to_json(values, path),
         Some("csv") => write_to_csv(values, path),
-        _ => Err("Invalid or missing filename extension"),
+        _ => Err("Invalid or missing filename extension".into()),
     }
 }
 
@@ -211,8 +211,8 @@ pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String>
         get_dataset_from_codeforces_api(CF_IDS)
             .cached(dataset_dir)
             .boxed()
-    } else if dataset_name == "ctf" {
-        get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
+    //} else if dataset_name == "ctf" {
+    //    get_dataset_from_ctftime_api().cached(dataset_dir).boxed()
     } else {
         get_dataset_from_disk(dataset_dir).boxed()
     })
