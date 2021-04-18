@@ -22,9 +22,8 @@ impl Default for BAR {
 }
 
 impl BAR {
-    fn win_probability(&self, sig_perf: f64, player: &Rating, foe: &Rating) -> f64 {
-        let c_sq = player.sig.powi(2) + foe.sig.powi(2) + 2. * sig_perf.powi(2);
-        let z = (player.mu - foe.mu) / c_sq.sqrt();
+    fn win_probability(&self, c: f64, player: &Rating, foe: &Rating) -> f64 {
+        let z = (player.mu - foe.mu) / c;
         standard_logistic_cdf(z)
     }
 }
@@ -51,11 +50,12 @@ impl RatingSystem for BAR {
                     std::cmp::Ordering::Equal => 0.5,
                     std::cmp::Ordering::Greater => 0.,
                 };
-                let probability = self.win_probability(sig_perf_sq.sqrt(), my_rating, rating);
-
                 let c_sq = old_sig_sq + rating.sig.powi(2) + 2. * sig_perf_sq;
+                let c = c_sq.sqrt();
+                let probability = self.win_probability(c, my_rating, rating);
+
                 info += probability * (1. - probability) / c_sq;
-                update += (outcome - probability) / c_sq.sqrt();
+                update += (outcome - probability) / c;
             }
             // Treat the round as one highly informative match
             info = 0.25 / (old_sig_sq + 2. * sig_perf_sq);

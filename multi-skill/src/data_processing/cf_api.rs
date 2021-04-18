@@ -1,12 +1,12 @@
 use super::Contest;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 
 /// General response from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "UPPERCASE", tag = "status")]
 enum CFResponse<T> {
     Ok { result: T },
@@ -15,7 +15,7 @@ enum CFResponse<T> {
 
 /// A RatingChange object from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp/objects#RatingChange
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CFRatingChange {
     contest_id: usize,
@@ -137,10 +137,12 @@ pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
     let packet: CFResponse<Vec<CFRatingChange>> = response
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
+    // Rate limit ourselves so that we don't ping CF too hard
+    std::thread::sleep(std::time::Duration::from_millis(500));
     match packet {
         CFResponse::Ok { result } => result
             .try_into()
             .expect("Failed to parse JSON response as a valid Contest"),
-        CFResponse::Failed { comment } => panic!(comment),
+        CFResponse::Failed { comment } => panic!("{}", comment),
     }
 }

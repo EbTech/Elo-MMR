@@ -4,7 +4,7 @@ use crate::helpers::TestApp;
 async fn top_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
-    let body = "query=EbTec&many=10";
+    let body = "source=codeforces&query=EbTec&many=10";
 
     // Act
     let response = app.post_autocomplete(body.into()).await;
@@ -21,8 +21,8 @@ async fn top_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = TestApp::spawn().await;
     let test_cases = vec![
-        ("query=EbTec", "missing many"),
-        ("many=10", "missing query"),
+        ("source=codeforces&query=EbTec", "missing many"),
+        ("source=codeforces&many=10", "missing query"),
     ];
 
     for (body, error_message) in test_cases {

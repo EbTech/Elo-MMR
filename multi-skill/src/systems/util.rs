@@ -281,10 +281,10 @@ pub fn solve_newton((mut lo, mut hi): (f64, f64), f: impl Fn(f64) -> (f64, f64))
         let extrapolate = guess - sum / sum_prime;
         if extrapolate < guess {
             hi = guess;
-            guess = extrapolate.clamp(0.75 * lo + 0.25 * hi, hi);
+            guess = extrapolate.clamp(hi - 0.75 * (hi - lo), hi);
         } else {
             lo = guess;
-            guess = extrapolate.clamp(lo, 0.25 * lo + 0.75 * hi);
+            guess = extrapolate.clamp(lo, lo + 0.75 * (hi - lo));
         }
         if lo >= guess || guess >= hi {
             if sum.abs() > 1e-10 {

@@ -19,6 +19,7 @@ pub struct ApplicationSettings {
 #[derive(Clone, serde::Deserialize)]
 pub struct DatabaseSettings {
     pub path_to_data: String, // TODO: make an actual database
+    pub sources: Vec<String>,
     pub username: String,
     pub password: String,
     #[serde(deserialize_with = "deserialize_number_from_string")]

@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, subrange, write_slice_to_file};
+use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file_fallible, Dataset};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::get_rating_system_by_name;
@@ -13,7 +13,15 @@ fn get_experiment_from_args(args: &[String]) -> Experiment {
         let system = get_rating_system_by_name(system).unwrap();
         let mut dataset = get_dataset_by_name(name).unwrap();
         if let Some(num_contests) = args.get(3).and_then(|s| s.parse().ok()) {
-            dataset = Box::new(subrange(dataset, 0..num_contests));
+            if num_contests > dataset.len() {
+                tracing::error!(
+                    "Requested {} contests, but {} has only {}.",
+                    num_contests,
+                    args[1],
+                    dataset.len()
+                );
+            }
+            dataset = dataset.subrange(0..num_contests).boxed();
         }
 
         Experiment {
@@ -51,10 +59,10 @@ fn main() {
         .get(dataset_len - 1)
         .time_seconds
         .saturating_sub(183 * 86_400);
-    let dir = std::path::PathBuf::from("../data/output");
+    let dir = std::path::PathBuf::from("../data").join(&args[2]);
     std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
 
-    // Print contest histories of top players to data/output/players/{handle}.csv
+    // Print contest histories of top players to data/{source}/players/{handle}.csv
     for (handle, player) in &results.players {
         let player = player.borrow();
 
@@ -62,10 +70,12 @@ fn main() {
         //if last_event.rating_mu >= 2700 && player.update_time > six_months_ago {
         if true {
             let player_file = dir.join(format!("players/{}.csv", handle));
-            write_slice_to_file(&player.event_history, &player_file);
+            write_slice_to_file_fallible(&player.event_history, &player_file)
+                .expect("Failed write");
         }
     }
 
-    // Print ratings list to data/codeforces/CFratings.txt
+    // Print ratings list to data/{source}/all_players.csv,
+    // which LO Calc can open to copy-paste into CFratings.txt
     print_ratings(&results.players, six_months_ago, &dir);
 }

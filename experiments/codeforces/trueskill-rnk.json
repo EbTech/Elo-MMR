@@ -1,0 +1,1 @@
+{"max_contests": 1152, "mu_noob": 1500, "sig_noob": 350, "contest_source": "codeforces", "system": {"method": "trueskill", "params": [11.5, 40.0, 0.0001, 10.0]}}

@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, subrange};
+use multi_skill::data_processing::{get_dataset_by_name, Dataset};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::systems::{self, RatingSystem};
 use rayon::prelude::*;
@@ -27,12 +27,12 @@ fn main() {
     }
 
     // Prepare the contest system parameters
-    let beta_range = log_space(75., 600., 10, 5.);
-    let drift_range = log_space(5., 40., 10, 1.);
+    let beta_range = log_space(30., 600., 15, 5.);
+    let drift_range = log_space(5., 80., 12, 1.);
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for beta in beta_range.clone() {
-        for weight_multiplier in log_space(0.01, 10., 16, 1e-3) {
+        for weight_multiplier in log_space(0.05, 10., 12, 0.01) {
             let system = systems::CodeforcesSys {
                 beta,
                 weight_multiplier,
@@ -40,11 +40,11 @@ fn main() {
             systems.push(Box::new(system));
         }
     }
-    for weight_multiplier in log_space(0.02, 50., 40, 1e-3) {
+    for weight_multiplier in log_space(0.05, 10., 60, 0.01) {
         let system = systems::TopcoderSys { weight_multiplier };
         systems.push(Box::new(system));
     }
-    for eps in log_space(0.5, 50., 9, 0.5) {
+    for eps in log_space(0.1, 100., 10, 0.1) {
         for beta in beta_range.clone() {
             for sig_drift in drift_range.clone() {
                 let system = systems::TrueSkillSPb {
@@ -58,7 +58,7 @@ fn main() {
         }
     }
     for beta in beta_range.clone() {
-        for sig_limit in log_space(20., 0.75 * beta, 10, 1.) {
+        for sig_limit in log_space(0.1 * beta, 0.8 * beta, 10, 1.) {
             for &split_ties in &[false, true] {
                 // make the algorithm fast
                 let subsample_size = 100;
@@ -109,10 +109,10 @@ fn main() {
 
     systems.into_par_iter().for_each(|system| {
         // We're repeatedly loading the same dataset's metadata but this is cheap anyway
-        let dataset = get_dataset_by_name(&args[1]).unwrap();
-        let dataset_len = dataset.len();
+        let dataset_full = get_dataset_by_name(&args[1]).unwrap();
+        let dataset_len = dataset_full.len();
         let train_set_len = dataset_len / 10;
-        let dataset = Box::new(subrange(dataset, ..train_set_len));
+        let dataset = dataset_full.subrange(..train_set_len).boxed();
 
         let experiment = Experiment {
             mu_noob: 1500.,

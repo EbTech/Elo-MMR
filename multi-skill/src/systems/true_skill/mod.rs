@@ -1,3 +1,4 @@
+mod float;
 mod nodes;
 mod normal;
 
@@ -6,6 +7,7 @@ use super::util::{Player, Rating, RatingSystem};
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
 
+use float::{Float, MyFloat, ZERO};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -91,9 +93,9 @@ fn infer_ld(ld: &mut Vec<impl TreeNode>, l: &mut Vec<impl TreeNode>) {
 fn check_convergence(
     a: &[Rc<RefCell<(TSMessage, TSMessage)>>],
     b: &[(TSMessage, TSMessage)],
-) -> f64 {
+) -> MyFloat {
     if a.len() != b.len() {
-        return std::f64::INFINITY;
+        return MyFloat::INFINITY;
     }
 
     a.iter()
@@ -107,9 +109,9 @@ fn check_convergence(
                 ai.1.sigma - bi.1.sigma,
             ]
         })
-        .map(f64::abs)
+        .map(MyFloat::abs)
         .max_by(|x, y| x.partial_cmp(y).expect("Difference became NaN"))
-        .unwrap_or(0.)
+        .unwrap_or(ZERO)
 }
 
 impl TrueSkillSPb {
@@ -150,8 +152,8 @@ impl TrueSkillSPb {
                     ]));
                     RefCell::borrow_mut(perf[i][j][k].get_edges_mut().last_mut().unwrap()).1 =
                         Gaussian {
-                            mu: 0.,
-                            sigma: sig_perf,
+                            mu: ZERO,
+                            sigma: sig_perf.into(),
                         };
 
                     players.push((i, j, k, new_edge));
@@ -184,14 +186,16 @@ impl TrueSkillSPb {
         infer2(&mut u);
         infer1(&mut tul);
 
-        //let mut rounds = 0;
-
-        while check_convergence(&conv, &old_conv) >= self.convergence_eps {
+        let mut rounds = 0;
+        let max_rounds = 42;
+        while rounds < max_rounds
+            && check_convergence(&conv, &old_conv) >= self.convergence_eps.into()
+        {
             old_conv.clear();
             for item in &conv {
                 old_conv.push(RefCell::borrow(item).clone());
             }
-            //rounds += 1;
+            rounds += 1;
 
             infer_ld(&mut ld, &mut l);
             infer1(&mut d);
@@ -217,8 +221,8 @@ impl TrueSkillSPb {
             *gaussian = prior * performance;
             player.update_rating(
                 Rating {
-                    mu: gaussian.mu,
-                    sig: gaussian.sigma,
+                    mu: gaussian.mu.into(),
+                    sig: gaussian.sigma.into(),
                 },
                 0.,
             );
@@ -241,8 +245,8 @@ impl RatingSystem for TrueSkillSPb {
             }
             let noised = user.approx_posterior.with_noise(self.sig_drift);
             let gaussian = Gaussian {
-                mu: noised.mu,
-                sigma: noised.sig,
+                mu: noised.mu.into(),
+                sigma: noised.sig.into(),
             };
             contest.last_mut().unwrap().push(vec![(user, gaussian)]);
             prev = lo;

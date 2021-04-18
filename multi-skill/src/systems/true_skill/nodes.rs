@@ -1,4 +1,5 @@
-use super::normal::{Gaussian, ONE, ZERO};
+use super::float::MyFloat;
+use super::normal::{Gaussian, G_ONE, G_ZERO};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -23,13 +24,13 @@ pub struct ProdNode {
 
 #[derive(Clone)]
 pub struct LeqNode {
-    eps: f64,
+    eps: MyFloat,
     edge: Rc<RefCell<(Message, Message)>>,
 }
 
 #[derive(Clone)]
 pub struct GreaterNode {
-    eps: f64,
+    eps: MyFloat,
     edge: Rc<RefCell<(Message, Message)>>,
 }
 
@@ -43,7 +44,7 @@ impl TreeNode for ProdNode {
     fn infer(&mut self) {
         fn get_prefix_prods(from: &[Rc<RefCell<(Message, Message)>>]) -> Vec<Message> {
             let mut prefix_prods = Vec::with_capacity(from.len() + 1);
-            prefix_prods.push(ONE);
+            prefix_prods.push(G_ONE);
 
             for val in from {
                 let (ref val, _) = *val.borrow();
@@ -69,7 +70,7 @@ impl TreeNode for ProdNode {
 
 impl ValueNode for ProdNode {
     fn add_edge(&mut self) -> Weak<RefCell<(Message, Message)>> {
-        self.edges.push(Rc::new(RefCell::new((ONE, ZERO))));
+        self.edges.push(Rc::new(RefCell::new((G_ONE, G_ZERO))));
         Rc::downgrade(&self.edges.last().unwrap())
     }
 }
@@ -107,8 +108,8 @@ impl ValueNode for LeqNode {
 impl LeqNode {
     pub fn new(eps: f64) -> LeqNode {
         LeqNode {
-            eps,
-            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+            eps: eps.into(),
+            edge: Rc::new(RefCell::new((G_ZERO, G_ZERO))),
         }
     }
 }
@@ -132,8 +133,8 @@ impl ValueNode for GreaterNode {
 impl GreaterNode {
     pub fn new(eps: f64) -> GreaterNode {
         GreaterNode {
-            eps,
-            edge: Rc::new(RefCell::new((ZERO, ZERO))),
+            eps: eps.into(),
+            edge: Rc::new(RefCell::new((G_ZERO, G_ZERO))),
         }
     }
 }
@@ -159,7 +160,7 @@ impl TreeNode for SumNode {
     fn infer(&mut self) {
         fn get_prefix_sums(from: &[Weak<RefCell<(Message, Message)>>]) -> Vec<Message> {
             let mut prefix_sums = Vec::with_capacity(from.len() + 1);
-            prefix_sums.push(ZERO);
+            prefix_sums.push(G_ZERO);
 
             for val in from {
                 let val = val.upgrade().unwrap();

@@ -1,5 +1,4 @@
-use rayon::prelude::*;
-
+use multi_skill::data_processing::Dataset;
 use multi_skill::experiment_config::Experiment;
 
 fn main() {
@@ -7,8 +6,16 @@ fn main() {
 
     // Load system configs from parameter files
     let mut experiment_files = vec![];
-    let datasets = vec!["codeforces", "topcoder", "reddit"]; //, "synth-sm", "synth-la"];
-    let methods = vec!["glicko", "bar", "cf", "tc", "ts", "mmx-fast", "mmr-fast"];
+    let datasets = vec!["codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
+    let methods = vec![
+        "glicko",
+        "bar",
+        "cfsys",
+        "tcsys",
+        "trueskill",
+        "mmx-fast",
+        "mmr-fast",
+    ];
     let metrics = vec!["acc", "rnk"];
 
     for dataset in &datasets {
@@ -26,7 +33,8 @@ fn main() {
         experiment_files = args[2..].to_vec();
     }
 
-    experiment_files.par_iter().for_each(|filename| {
+    // To ensure accurate timings, this loop is not parallelized
+    for filename in &experiment_files {
         let experiment = Experiment::from_file(filename);
         let train_set_len = experiment.dataset.len() / 10;
         let results = experiment.eval(train_set_len);
@@ -40,5 +48,5 @@ fn main() {
             results.secs_elapsed,
             horizontal
         );
-    });
+    }
 }

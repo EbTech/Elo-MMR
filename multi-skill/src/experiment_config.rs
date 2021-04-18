@@ -1,4 +1,4 @@
-use crate::data_processing::{get_dataset_by_name, subrange, Contest, Dataset};
+use crate::data_processing::{get_dataset_by_name, ContestDataset, Dataset};
 use crate::systems::{
     simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, PlayersByName, RatingSystem,
     TopcoderSys, TrueSkillSPb, BAR,
@@ -42,7 +42,7 @@ pub struct Experiment {
 
     // Experiment should implement Send so that it can be sent across threads
     pub system: Box<dyn RatingSystem + Send>,
-    pub dataset: Box<dyn Dataset<Item = Contest> + Send>,
+    pub dataset: ContestDataset,
 }
 
 impl Experiment {
@@ -55,9 +55,9 @@ impl Experiment {
 
     pub fn from_config(params: ExperimentConfig) -> Self {
         tracing::info!("Loading rating system:\n{:?}", params);
-        let dataset = get_dataset_by_name(&params.contest_source).unwrap();
-        let dataset_len = dataset.len().min(params.max_contests);
-        let dataset = Box::new(subrange(dataset, ..dataset_len));
+        let dataset_full = get_dataset_by_name(&params.contest_source).unwrap();
+        let dataset_len = dataset_full.len().min(params.max_contests);
+        let dataset = dataset_full.subrange(..dataset_len).boxed();
 
         let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
             "glicko" => Box::new(Glicko {
@@ -69,11 +69,11 @@ impl Experiment {
                 sig_drift: params.system.params[1],
                 kappa: 1e-4,
             }),
-            "codeforces" => Box::new(CodeforcesSys {
+            "cfsys" => Box::new(CodeforcesSys {
                 beta: params.system.params[0],
                 weight_multiplier: params.system.params[1],
             }),
-            "topcoder" => Box::new(TopcoderSys {
+            "tcsys" => Box::new(TopcoderSys {
                 weight_multiplier: params.system.params[0],
             }),
             "trueskill" => Box::new(TrueSkillSPb {

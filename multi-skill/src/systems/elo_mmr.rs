@@ -65,7 +65,7 @@ impl Term for Rating {
             Ordering::Equal => {
                 if split_ties {
                     let cdf = standard_normal_cdf(z);
-                    let cdf_m1 = cdf - 1.;
+                    let cdf_m1 = -standard_normal_cdf(-z);
                     let val0 = pdf / cdf;
                     let val1 = pdf / cdf_m1;
                     (
@@ -82,12 +82,18 @@ impl Term for Rating {
     }
 }
 
-impl Term for TanhTerm {
-    fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
+impl TanhTerm {
+    fn base_values(&self, x: f64) -> (f64, f64) {
         let z = (x - self.mu) * self.w_arg;
         let val = -z.tanh() * self.w_out;
         let val_prime = -z.cosh().powi(-2) * self.w_arg * self.w_out;
+        (val, val_prime)
+    }
+}
 
+impl Term for TanhTerm {
+    fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
+        let (val, val_prime) = self.base_values(x);
         match order {
             Ordering::Less => (val - self.w_out, val_prime),
             Ordering::Greater => (val + self.w_out, val_prime),
@@ -99,6 +105,26 @@ impl Term for TanhTerm {
                 }
             }
         }
+    }
+
+    // Override to optimize this case where win, loss, and draw terms are similar.
+    fn evals(&self, x: f64, ranks: &[usize], my_rank: usize, split_ties: bool) -> (f64, f64) {
+        if ranks.len() == 1 {
+            // The unit-length case is very common, so we optimize it.
+            return self.eval(x, ranks[0].cmp(&my_rank), split_ties);
+        }
+        let (val, val_prime) = self.base_values(x);
+        let Range { start, end } = ranks.equal_range(&my_rank);
+        let mut total = ranks.len() as f64;
+        let win_minus_loss = total - (start + end) as f64;
+        if !split_ties {
+            let equal = end - start;
+            total += equal as f64;
+        }
+
+        let value = val * total + self.w_out * win_minus_loss;
+        let deriv = val_prime * total;
+        (value, deriv)
     }
 }
 
