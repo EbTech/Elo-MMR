@@ -211,16 +211,19 @@ fn main() {
                                 } else {
                                     tokens[2..tokens.len()].join(" ").to_string()
                                 };
+    
+                                // Remove any forward slashes
+                                let sanitized_team = team.replace("/", "");
 
                                 // Remove dups
-                                if names.contains(&team) {
+                                if names.contains(&sanitized_team) {
                                     continue;
                                 }
-                                names.insert(team.clone());
+                                names.insert(sanitized_team.clone());
 
                                 // Check if new round by seeing if this is a first place
                                 let rank: usize = tokens[0][..tokens[0].len() - 1].parse().unwrap();
-                                round.push((rank, team));
+                                round.push((rank, sanitized_team));
                             }
                         }
                         write_round(

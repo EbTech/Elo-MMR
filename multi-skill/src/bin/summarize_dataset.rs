@@ -45,6 +45,7 @@ fn main() {
     let (summaries, sorted_names) = summarize(&dataset);
 
     let dir = std::path::PathBuf::from("../data").join(dataset_name);
+    std::fs::create_dir_all(&dir).expect("Could not create directory");
 
     // Write contest summaries to data/{source}/all_contests.csv
     let summary_file = dir.join("all_contests.csv");
