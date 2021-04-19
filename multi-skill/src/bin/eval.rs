@@ -6,7 +6,7 @@ fn main() {
 
     // Load system configs from parameter files
     let mut experiment_files = vec![];
-    let datasets = vec!["codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
+    let datasets = vec!["dance", "ctf"];//, "codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
     let methods = vec![
         "glicko",
         "bar",
