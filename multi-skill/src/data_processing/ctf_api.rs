@@ -1,4 +1,5 @@
 use super::Contest;
+use crate::systems::outcome_free;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -32,6 +33,7 @@ impl TryFrom<(usize, CTFContest)> for Contest {
 
     /// Checks the integrity of our API response and convert it into a more convenient format.
     fn try_from((id, json_contest): (usize, CTFContest)) -> Result<Self, Self::Error> {
+        let url = ctftime_human_url(id);
         let len = json_contest.scores.len();
         let mut seen_handles = HashMap::with_capacity(len);
         let mut standings = Vec::with_capacity(len);
@@ -40,8 +42,8 @@ impl TryFrom<(usize, CTFContest)> for Contest {
             let mut name = place.team_id.to_string();
             while let Some(j) = seen_handles.insert(name.clone(), i) {
                 tracing::warn!(
-                    "@ {}: duplicate team {} at positions {} and {}",
-                    id,
+                    "{} has duplicate team {} at positions {} and {}",
+                    url,
                     name,
                     i,
                     j
@@ -53,7 +55,7 @@ impl TryFrom<(usize, CTFContest)> for Contest {
 
         Ok(Self {
             name: json_contest.title,
-            url: Some(ctftime_human_url(id)),
+            url: Some(url),
             weight: 1.0,
             time_seconds: json_contest.time.round() as u64,
             standings,
@@ -63,13 +65,13 @@ impl TryFrom<(usize, CTFContest)> for Contest {
 
 // The preprocessing here is extremely slow and defeats the purpose of caching;
 // ideally, the CTFtime API should expose the standings on a per-round basis.
-// Currently, to use caching, we have to manually comment out the CTFtime
-// lines from mod::get_dataset_by_name() after fetching the data once.
+// Currently, to use caching, we have to manually comment out the CTFtime lines
+// from mod::get_dataset_by_name() after clearing & fetching the data once.
 // We should also provide human-readable team names. (but as a primary key?)
 // Should the the backend's {handle}.{ext} provide a URL for the member/team?
 pub fn fetch_ctf_history() -> Vec<Contest> {
     let client = Client::new();
-    let mut contests: Vec<Contest> = (2011..=CURRENT_YEAR)
+    let mut contests: Vec<_> = (2011..=CURRENT_YEAR)
         .flat_map(|year| {
             let response = client
                 .get(format!("https://ctftime.org/api/v1/results/{}/", year))
@@ -84,6 +86,7 @@ pub fn fetch_ctf_history() -> Vec<Contest> {
                 .into_iter()
                 .map(|entry| entry.try_into().expect("failed conversion"))
         })
+        .filter(|contest: &Contest| !outcome_free(&contest.standings))
         .collect();
     contests.sort_by_key(|contest| contest.time_seconds);
     contests
