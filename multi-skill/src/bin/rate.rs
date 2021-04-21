@@ -20,8 +20,9 @@ fn get_experiment_from_args(args: &[String]) -> Experiment {
                     args[1],
                     dataset.len()
                 );
+            } else {
+                dataset = dataset.subrange(0..num_contests).boxed();
             }
-            dataset = dataset.subrange(0..num_contests).boxed();
         }
 
         Experiment {
