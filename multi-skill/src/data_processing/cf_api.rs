@@ -1,7 +1,7 @@
 use super::Contest;
 use reqwest::blocking::Client;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::{TryFrom, TryInto};
 
 /// General response from the Codeforces API.
@@ -125,22 +125,93 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
     }
 }
 
-/// Retrieves the Codeforces contest with the given ID, or panics if the API call fails.
+/// Retrieves metadata and rating changes from the Codeforces contest with the given ID,
+/// or yields an error if the API call fails, typically due to the contest being unrated.
+/// Unrated contests may return CFResponse::Failed with status 400, or plain empty standings.
+/// This function panics if there are networking or parsing errors.
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
-pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Contest {
+pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Result<Contest, String> {
     let response = client
         .get(&codeforces_api_url(contest_id))
+        .send()
+        .expect("Connection error: is Codeforces.com down?");
+    if response.status().as_u16() != 400 {
+        // Status code 400 may come from an unrated contest,
+        // so it should not trigger a panic.
+        response
+            .error_for_status_ref()
+            .expect("Status error: is Codeforces.com down?");
+    }
+    let packet: CFResponse<Vec<CFRatingChange>> = response
+        .json()
+        .expect("Codeforces API response doesn't match the expected JSON schema");
+    let result = match packet {
+        CFResponse::Ok { result } => result,
+        CFResponse::Failed { comment } => return Err(comment),
+    };
+
+    if result.is_empty() {
+        Err("Empty standings".into())
+    } else {
+        let contest = result
+            .try_into()
+            .expect("Failed to parse JSON response as a valid Contest");
+        Ok(contest)
+    }
+}
+
+/// A Contest object from the Codeforces API.
+/// Codeforces documentation: https://codeforces.com/apiHelp/objects#Contest
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CFContest {
+    id: usize,
+    name: String,
+    phase: String,
+    duration_seconds: u64,
+    start_time_seconds: u64,
+}
+
+macro_rules! collection {
+    // map-like
+    ($($k:expr => $v:expr),* $(,)?) => {
+        std::iter::Iterator::collect(std::array::IntoIter::new([$(($k, $v),)*]))
+    };
+    // set-like
+    ($($v:expr),* $(,)?) => {
+        std::iter::Iterator::collect(std::array::IntoIter::new([$($v,)*]))
+    };
+}
+
+/// Retrieves the IDs of all non-teamed rated Codeforces rounds.
+/// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.list
+pub fn fetch_cf_contest_list(client: &Client, num_recent: Option<usize>) -> Vec<usize> {
+    let response = client
+        .get("https://codeforces.com/api/contest.list")
         .send()
         .expect("Connection error: is Codeforces.com down?")
         .error_for_status()
         .expect("Status error: is Codeforces.com down?");
-    let packet: CFResponse<Vec<CFRatingChange>> = response
+    let packet: CFResponse<Vec<CFContest>> = response
         .json()
         .expect("Codeforces API response doesn't match the expected JSON schema");
-    match packet {
-        CFResponse::Ok { result } => result
-            .try_into()
-            .expect("Failed to parse JSON response as a valid Contest"),
+    let contests = match packet {
+        CFResponse::Ok { result } => result,
         CFResponse::Failed { comment } => panic!("{}", comment),
-    }
+    };
+    let team_contests: HashSet<_> = collection![
+        524, 532, 541, 562, 566, 639, 641, 643, 695, 771, 772, 773, 823, 923, 924, 925, 951,
+    ];
+    contests
+        .into_iter()
+        .take(num_recent.unwrap_or(usize::MAX))
+        .rev()
+        .filter(|contest| contest.phase.as_str() == "FINISHED")
+        .map(|contest| contest.id)
+        .filter(|&id| {
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            println!("Fetching round {}", id);
+            !team_contests.contains(&id) && fetch_cf_contest(client, id).is_ok()
+        })
+        .collect()
 }

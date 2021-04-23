@@ -2,6 +2,7 @@ mod cf_api;
 mod ctf_api;
 mod dataset;
 
+pub use cf_api::fetch_cf_contest_list;
 pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset, Wrap};
 use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
@@ -187,7 +188,7 @@ pub fn get_dataset_from_codeforces_api(
         .expect("Failed to parse JSON contest IDs as a Vec<usize>");
 
     Wrap::from_closure(contest_ids.len(), move |i| {
-        cf_api::fetch_cf_contest(&client, contest_ids[i])
+        cf_api::fetch_cf_contest(&client, contest_ids[i]).unwrap()
     })
 }
 
