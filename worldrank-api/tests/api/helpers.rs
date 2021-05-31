@@ -1,15 +1,20 @@
+use once_cell::sync::Lazy;
 use uuid::Uuid;
 use worldrank_api::configuration::get_configuration;
 use worldrank_api::startup::Application;
 use worldrank_api::telemetry::{get_subscriber, init_subscriber};
 
-lazy_static::lazy_static! {
-    static ref TRACING: () = {
-        let filter = if std::env::var("TEST_LOG").is_ok() { "debug" } else { "" };
-        let subscriber = get_subscriber(filter.into());
+// Ensure that the `tracing` stack is only initialised once using `once_cell`
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let default_filter_level = "info".to_string();
+    if std::env::var("TEST_LOG").is_ok() {
+        let subscriber = get_subscriber(default_filter_level, std::io::stdout);
+        init_subscriber(subscriber);
+    } else {
+        let subscriber = get_subscriber(default_filter_level, std::io::sink);
         init_subscriber(subscriber);
     };
-}
+});
 
 pub struct TestApp {
     address: String,
@@ -19,7 +24,7 @@ pub struct TestApp {
 impl TestApp {
     pub async fn spawn() -> Self {
         // `TRACING` is only executed the first time `initialize` is invoked.
-        lazy_static::initialize(&TRACING);
+        Lazy::force(&TRACING);
 
         // Randomise configuration to ensure test isolation
         let configuration = {

@@ -48,7 +48,7 @@ pub fn run(
     let databases_ptr = web::Data::new(databases);
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(TracingLogger)
+            .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/top", web::post().to(request_top))
             .route("/count", web::post().to(request_count))
