@@ -1,5 +1,6 @@
+use super::ApiError;
 use crate::domain::UserName;
-use crate::immut_database::{ImmutableSportDatabase, SportDatabases};
+use crate::immut_database::SportDatabases;
 use actix_web::{web, HttpResponse};
 
 #[derive(serde::Deserialize)]
@@ -17,37 +18,13 @@ pub struct FormData {
 pub async fn autocomplete(
     form: web::Form<FormData>,
     databases: web::Data<SportDatabases>,
-) -> Result<HttpResponse, HttpResponse> {
+) -> Result<HttpResponse, ApiError> {
     let database = databases
         .get(&form.0.source)
-        .ok_or(HttpResponse::BadRequest())?;
-    let query = UserName::parse(form.0.query).map_err(|e| {
-        tracing::error!("Bad username: {:?}", e);
-        HttpResponse::BadRequest().finish()
-    })?;
+        .ok_or(ApiError::InvalidDatabase)?;
+    let query = UserName::parse(form.0.query).map_err(ApiError::ValidationError)?;
 
-    let suggestions = autocomplete_from_database(&query, form.0.many, database)
-        .await
-        .map_err(|e| HttpResponse::BadRequest().body(e))?;
+    let suggestions = database.autocomplete(&query, form.0.many);
 
     Ok(HttpResponse::Ok().json(suggestions))
-}
-
-#[tracing::instrument(
-    name = "Obtaining autocomplete suggestions from the database",
-    skip(query, database),
-    fields(query = %query.as_ref())
-)]
-pub async fn autocomplete_from_database(
-    query: &UserName,
-    many: usize,
-    database: &ImmutableSportDatabase,
-) -> Result<Vec<String>, String> {
-    /*if many > 200 {
-        return Err(format!(
-            "Requested {} players. Please limit your requests to 200.",
-            many
-        ));
-    }*/
-    Ok(database.autocomplete(query, many))
 }
