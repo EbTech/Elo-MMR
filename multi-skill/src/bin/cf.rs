@@ -13,6 +13,7 @@ fn main() {
 
     let client = reqwest::blocking::Client::new();
     let contest_ids = fetch_cf_contest_list(&client, num_recent);
+    tracing::info!("Rated contest ids: {:?}", contest_ids);
 
     let ids_file = "../data/codeforces/contest_ids.csv";
     write_slice_to_file(&contest_ids, ids_file);

@@ -2,7 +2,8 @@ use super::Contest;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
-use std::convert::{TryFrom, TryInto};
+use std::convert::{TryFrom, TryInto}; // TODO: remove this import after 2021 edition
+use std::iter::FromIterator; // TODO: remove this import after 2021 edition
 
 /// General response from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp
@@ -172,17 +173,6 @@ struct CFContest {
     start_time_seconds: u64,
 }
 
-macro_rules! collection {
-    // map-like
-    ($($k:expr => $v:expr),* $(,)?) => {
-        std::iter::Iterator::collect(std::array::IntoIter::new([$(($k, $v),)*]))
-    };
-    // set-like
-    ($($v:expr),* $(,)?) => {
-        std::iter::Iterator::collect(std::array::IntoIter::new([$($v,)*]))
-    };
-}
-
 /// Retrieves the IDs of all non-teamed rated Codeforces rounds.
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.list
 pub fn fetch_cf_contest_list(client: &Client, num_recent: Option<usize>) -> Vec<usize> {
@@ -199,18 +189,18 @@ pub fn fetch_cf_contest_list(client: &Client, num_recent: Option<usize>) -> Vec<
         CFResponse::Ok { result } => result,
         CFResponse::Failed { comment } => panic!("{}", comment),
     };
-    let team_contests: HashSet<_> = collection![
+    let team_contests = HashSet::<usize>::from_iter([
         524, 532, 541, 562, 566, 639, 641, 643, 695, 771, 772, 773, 823, 923, 924, 925, 951,
-    ];
+    ]);
     contests
         .into_iter()
         .take(num_recent.unwrap_or(usize::MAX))
         .rev()
+        .inspect(|contest| tracing::info!("Trying round {}", contest.id))
         .filter(|contest| contest.phase.as_str() == "FINISHED")
         .map(|contest| contest.id)
         .filter(|&id| {
             std::thread::sleep(std::time::Duration::from_millis(500));
-            println!("Fetching round {}", id);
             !team_contests.contains(&id) && fetch_cf_contest(client, id).is_ok()
         })
         .collect()

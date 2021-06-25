@@ -3,7 +3,7 @@ use crate::systems::outcome_free;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::{TryFrom, TryInto}; // TODO: remove this import after 2021 edition
 
 const CURRENT_YEAR: usize = 2021;
 

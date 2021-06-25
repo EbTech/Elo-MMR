@@ -188,7 +188,7 @@ pub fn get_dataset_from_codeforces_api(
         .expect("Failed to parse JSON contest IDs as a Vec<usize>");
 
     Wrap::from_closure(contest_ids.len(), move |i| {
-        cf_api::fetch_cf_contest(&client, contest_ids[i]).unwrap()
+        cf_api::fetch_cf_contest(&client, contest_ids[i]).expect("Failed to fetch contest")
     })
 }
 
