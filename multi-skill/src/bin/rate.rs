@@ -65,7 +65,7 @@ fn main() {
 
     // Print contest histories of top players to data/{source}/players/{handle}.csv
     for (handle, player) in &results.players {
-        let bad_chars: &[char] = &['/','\\'];
+        let bad_chars: &[char] = &['/', '\\'];
         let handle = handle.replace(bad_chars, "-");
         let player = player.borrow();
 
