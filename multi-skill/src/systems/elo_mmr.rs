@@ -82,15 +82,6 @@ impl Term for Rating {
     }
 }
 
-impl TanhTerm {
-    fn base_values(&self, x: f64) -> (f64, f64) {
-        let z = (x - self.mu) * self.w_arg;
-        let val = -z.tanh() * self.w_out;
-        let val_prime = -z.cosh().powi(-2) * self.w_arg * self.w_out;
-        (val, val_prime)
-    }
-}
-
 impl Term for TanhTerm {
     fn eval(&self, x: f64, order: Ordering, split_ties: bool) -> (f64, f64) {
         let (val, val_prime) = self.base_values(x);
@@ -184,8 +175,8 @@ impl EloMMR {
         Self::from_limit(200., 80., false, true, EloMMRVariant::Gaussian)
     }
 
-    // sig_perf must exceed sig_limit, the limiting uncertainty for a player with long history
-    // the ratio (sig_limit / sig_perf) effectively determines the rating update weight
+    // beta must exceed sig_limit, the limiting uncertainty for a player with long history
+    // the ratio (sig_limit / beta) effectively determines the rating update weight
     pub fn from_limit(
         beta: f64,
         sig_limit: f64,

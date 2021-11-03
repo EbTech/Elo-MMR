@@ -221,6 +221,15 @@ fn main() {
                                 }
                                 names.insert(sanitized_team.clone());
 
+                                // Remove any forward slashes
+                                let sanitized_team = team.replace("/", "");
+
+                                // Remove dups
+                                if names.contains(&sanitized_team) {
+                                    continue;
+                                }
+                                names.insert(sanitized_team.clone());
+
                                 // Check if new round by seeing if this is a first place
                                 let rank: usize = tokens[0][..tokens[0].len() - 1].parse().unwrap();
                                 round.push((rank, sanitized_team));

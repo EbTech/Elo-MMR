@@ -1,3 +1,4 @@
+use super::ApiError;
 use crate::domain::PlayerSummary;
 use crate::immut_database::{ImmutableSportDatabase, SportDatabases};
 use actix_web::{web, HttpResponse};
@@ -22,13 +23,13 @@ pub struct FormData {
 pub async fn request_top(
     form: web::Form<FormData>,
     databases: web::Data<SportDatabases>,
-) -> Result<HttpResponse, HttpResponse> {
+) -> Result<HttpResponse, ApiError> {
     let database = databases
         .get(&form.0.source)
-        .ok_or(HttpResponse::BadRequest())?;
+        .ok_or(ApiError::InvalidDatabase)?;
     let player_summaries = top_from_database(form.0.many, form.0.start, database)
         .await
-        .map_err(|e| HttpResponse::BadRequest().body(e))?;
+        .map_err(ApiError::ValidationError)?;
 
     Ok(HttpResponse::Ok().json(player_summaries))
 }
@@ -40,10 +41,11 @@ pub async fn top_from_database(
     database: &ImmutableSportDatabase,
 ) -> Result<&[PlayerSummary], String> {
     if many > 200 {
-        return Err(format!(
+        let err_string = format!(
             "Requested {} players. Please limit your requests to 200.",
             many
-        ));
+        );
+        return Err(err_string);
     }
     let num_players = database.num_players();
     let end = num_players.min(start + many);

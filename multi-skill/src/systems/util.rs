@@ -54,6 +54,13 @@ impl TanhTerm {
     pub fn get_weight(&self) -> f64 {
         self.w_arg * self.w_out * 2. / TANH_MULTIPLIER.powi(2)
     }
+
+    pub fn base_values(&self, x: f64) -> (f64, f64) {
+        let z = (x - self.mu) * self.w_arg;
+        let val = -z.tanh() * self.w_out;
+        let val_prime = -z.cosh().powi(-2) * self.w_arg * self.w_out;
+        (val, val_prime)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

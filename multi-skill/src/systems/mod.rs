@@ -2,6 +2,7 @@ mod bar;
 mod codeforces_sys;
 mod elo_mmr;
 mod glicko;
+mod simple_elo_mmr;
 mod topcoder_sys;
 mod true_skill;
 mod util;
@@ -10,6 +11,7 @@ pub use bar::BAR;
 pub use codeforces_sys::CodeforcesSys;
 pub use elo_mmr::{EloMMR, EloMMRVariant};
 pub use glicko::Glicko;
+pub use simple_elo_mmr::SimpleEloMMR;
 pub use topcoder_sys::TopcoderSys;
 pub use true_skill::TrueSkillSPb;
 pub use util::{
@@ -31,8 +33,9 @@ pub fn get_rating_system_by_name(
         "mmx-fast" => Ok(Box::new(EloMMR::default_gaussian_fast())),
         "mmr" => Ok(Box::new(EloMMR::default())),
         "mmr-fast" => Ok(Box::new(EloMMR::default_fast())),
+        "mmr-simple" => Ok(Box::new(SimpleEloMMR::default())),
         name => Err(format!(
-            "{} is not a valid rating system. Must be one of: bar, glicko, cfsys, tcsys, trueskill, mmx, mmx-fast, mmr, mmr-fast",
+            "{} is not a valid rating system. Must be one of: bar, glicko, cfsys, tcsys, trueskill, mmx, mmx-fast, mmr, mmr-fast, mmr-simple",
             name
         )),
     }

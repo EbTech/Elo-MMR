@@ -4,19 +4,30 @@ use multi_skill::data_processing::{
 use std::cmp::Reverse;
 use std::collections::HashMap;
 
-fn summarize(dataset: &ContestDataset) -> (Vec<ContestSummary>, Vec<String>) {
+fn summarize(dataset: &ContestDataset) -> (Vec<ContestSummary>, Vec<String>, usize, f64, usize) {
     // Simulate the contests and rating updates
     let mut summaries = vec![];
-    let mut participation_count = HashMap::<String, usize>::new();
+    let mut p_count = HashMap::<String, usize>::new();
+    let mut p_min = usize::MAX;
+    let mut p_max = 0;
+    let mut p_total = 0;
     for contest in dataset.iter() {
         summaries.push(ContestSummary::new(&contest));
         for (handle, _, _) in &contest.standings {
-            *participation_count.entry(handle.clone()).or_default() += 1;
+            *p_count.entry(handle.clone()).or_default() += 1;
         }
+
+        let participations = contest.standings.len();
+        p_min = p_min.min(participations);
+        p_max = p_max.max(participations);
+        p_total += participations;
     }
-    let mut sorted_names: Vec<_> = participation_count.keys().cloned().collect();
-    sorted_names.sort_unstable_by_key(|name| Reverse(participation_count[name]));
-    (summaries, sorted_names)
+
+    let mut sorted_names: Vec<_> = p_count.keys().cloned().collect();
+    sorted_names.sort_unstable_by_key(|name| Reverse(p_count[name]));
+    let p_mean = p_total as f64 / dataset.len() as f64;
+
+    (summaries, sorted_names, p_min, p_mean, p_max)
 }
 
 fn main() {
@@ -38,11 +49,17 @@ fn main() {
                 args[1],
                 dataset.len()
             );
+        } else {
+            dataset = dataset.subrange(0..num_contests).boxed();
         }
-        dataset = dataset.subrange(0..num_contests).boxed();
     }
 
-    let (summaries, sorted_names) = summarize(&dataset);
+    let (summaries, sorted_names, p_min, p_mean, p_max) = summarize(&dataset);
+
+    tracing::info!("Number of contests = {}", dataset.len());
+    tracing::info!("Number of users = {}", sorted_names.len());
+    tracing::info!("Mean users per contest = {}", p_mean);
+    tracing::info!("Min users = {}, Max users = {}", p_min, p_max);
 
     let dir = std::path::PathBuf::from("../data").join(dataset_name);
     std::fs::create_dir_all(&dir).expect("Could not create directory");

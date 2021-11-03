@@ -2,15 +2,18 @@ use tracing::subscriber::set_global_default;
 use tracing::Subscriber;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
-use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
 
 /// Compose multiple layers into a `tracing`'s subscriber.
-pub fn get_subscriber(env_filter: String) -> impl Subscriber + Send + Sync {
+pub fn get_subscriber(
+    env_filter: String,
+    sink: impl MakeWriter + Send + Sync + 'static,
+) -> impl Subscriber + Send + Sync {
     let env_filter =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(env_filter));
     let app_name = format!("{}-{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-    //let (non_blocking_writer, _guard) = tracing_appender::non_blocking(std::io::stdout());
-    let formatting_layer = BunyanFormattingLayer::new(app_name, std::io::stdout);
+    //let (non_blocking_writer, _guard) = tracing_appender::non_blocking(sink);
+    let formatting_layer = BunyanFormattingLayer::new(app_name, sink);
     Registry::default()
         .with(env_filter)
         .with(JsonStorageLayer)

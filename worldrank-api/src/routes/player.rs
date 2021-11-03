@@ -1,7 +1,8 @@
-use crate::domain::HistoryPoint;
+use super::ApiError;
 use crate::domain::UserName;
-use crate::immut_database::{ImmutableSportDatabase, SportDatabases};
+use crate::immut_database::SportDatabases;
 use actix_web::{web, HttpResponse};
+use anyhow::Context;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -17,35 +18,16 @@ pub struct FormData {
 pub async fn request_player(
     form: web::Form<FormData>,
     databases: web::Data<SportDatabases>,
-) -> Result<HttpResponse, HttpResponse> {
+) -> Result<HttpResponse, ApiError> {
     let database = databases
         .get(&form.0.source)
-        .ok_or(HttpResponse::BadRequest())?;
-    let handle = UserName::parse(form.0.handle).map_err(|e| {
-        tracing::error!("Bad username: {:?}", e);
-        HttpResponse::BadRequest().finish()
-    })?;
+        .ok_or(ApiError::InvalidDatabase)?;
+    let handle = UserName::parse(form.0.handle).map_err(ApiError::ValidationError)?;
 
-    let player_history = player_from_database(&handle, database)
-        .await
-        .map_err(|e| HttpResponse::BadRequest().body(e))?;
+    // TODO: involves file I/O, so should probably be made async.
+    let player_history = database
+        .player_history(&handle)
+        .context("Couldn't find history for the requested player")?;
 
     Ok(HttpResponse::Ok().json(player_history))
-}
-
-#[tracing::instrument(
-    name = "Obtaining a player's history from the database",
-    skip(handle, database),
-    fields(handle = %handle.as_ref())
-)]
-pub async fn player_from_database(
-    handle: &UserName,
-    database: &ImmutableSportDatabase,
-) -> Result<Vec<HistoryPoint>, String> {
-    // We swap in more user-friendly error messages.
-    // TODO: involves file I/O, so should probably be made async.
-    database.player_history(handle).map_err(|e| {
-        tracing::error!("Failed to get history: {:?}", e);
-        format!("Couldn't find history for {:?}", handle)
-    })
 }
