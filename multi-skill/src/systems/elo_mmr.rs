@@ -317,9 +317,7 @@ impl RatingSystem for EloMMR {
                     let f = |x| {
                         idx_subsample
                             .clone()
-                            .map(|(rating, ranks)| {
-                                rating.evals(x, &ranks, my_rank, self.split_ties)
-                            })
+                            .map(|(rating, ranks)| rating.evals(x, ranks, my_rank, self.split_ties))
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
                     let mu_perf = solve_newton(bounds, f);
@@ -333,9 +331,7 @@ impl RatingSystem for EloMMR {
                     let f = |x| {
                         idx_subsample
                             .clone()
-                            .map(|(rating, ranks)| {
-                                rating.evals(x, &ranks, my_rank, self.split_ties)
-                            })
+                            .map(|(rating, ranks)| rating.evals(x, ranks, my_rank, self.split_ties))
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
                     let mu_perf = solve_newton(bounds, f);

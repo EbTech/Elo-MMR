@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file};
+use multi_skill::data_processing::{get_dataset_by_name, try_write_slice_to_file};
 use multi_skill::systems::{get_rating_system_by_name, simulate_contest, PlayersByName};
 
 /*
@@ -55,10 +55,10 @@ fn main() {
 
             if is_adversarial && initial_phase <= index && index < win_time {
                 let player = tcoder_players["tourist"].borrow();
-                if player.approx_posterior.mu > 2975.0 {
-                    if contest.remove_contestant("tourist").is_some() {
-                        contest.push_contestant("tourist");
-                    }
+                if player.approx_posterior.mu > 2975.0
+                    && contest.remove_contestant("tourist").is_some()
+                {
+                    contest.push_contestant("tourist");
                 }
             }
 
@@ -86,10 +86,10 @@ fn main() {
         // Print contest histories of top players to data/output/players/{handle}.json
         let player = tcoder_players["tourist"].borrow();
         let player_file = dir.join(format!("tourist_tc_{}.json", seq_type));
-        write_slice_to_file(&player.event_history, &player_file);
+        try_write_slice_to_file(&player.event_history, &player_file);
 
         let player = custom_players["tourist"].borrow();
         let player_file = dir.join(format!("tourist_{}_{}.json", sys_name, seq_type));
-        write_slice_to_file(&player.event_history, &player_file);
+        try_write_slice_to_file(&player.event_history, &player_file);
     }
 }

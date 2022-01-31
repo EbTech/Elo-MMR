@@ -234,7 +234,7 @@ where
                 let contest = self.base_dataset.get(index);
 
                 // Write the contest to the cache
-                super::write_to_json(&contest, &cache_file).expect("Failed to write to cache");
+                super::write_json(&contest, &cache_file).expect("Failed to write to cache");
                 tracing::info!("Codeforces contest successfully cached at {:?}", cache_file);
 
                 contest

@@ -1,4 +1,4 @@
-use crate::data_processing::write_slice_to_file;
+use crate::data_processing::try_write_slice_to_file;
 use crate::systems::{Player, PlayerEvent};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -66,7 +66,7 @@ pub fn make_leaderboard(
             .map(get_display_rating)
             .max()
             .unwrap();
-        let display_rating = get_display_rating(&last_event);
+        let display_rating = get_display_rating(last_event);
         let prev_rating = if num_contests == 1 {
             get_display_rating_from_ints(1500, 350)
         } else {
@@ -88,7 +88,7 @@ pub fn make_leaderboard(
         if player.update_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
-                .find(|&i| get_display_rating(&last_event) >= TITLE_BOUND[i])
+                .find(|&i| get_display_rating(last_event) >= TITLE_BOUND[i])
             {
                 title_count[title_id] += 1;
             }
@@ -132,5 +132,5 @@ pub fn print_ratings(
     }
 
     let filename = dir.as_ref().join("all_players.csv");
-    write_slice_to_file(&rating_data, &filename);
+    try_write_slice_to_file(&rating_data, &filename);
 }

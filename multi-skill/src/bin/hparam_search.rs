@@ -93,7 +93,7 @@ fn main() {
             }
         }
     }
-    for beta in beta_range.clone() {
+    for beta in beta_range {
         for sig_drift in drift_range.clone() {
             let system = systems::Glicko { beta, sig_drift };
             systems.push(Box::new(system));

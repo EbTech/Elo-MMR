@@ -2,12 +2,14 @@ mod cf_api;
 mod ctf_api;
 mod dataset;
 
-pub use cf_api::fetch_cf_contest_list;
+pub use cf_api::fetch_cf_contest_ids;
 pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset, Wrap};
 use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::path::Path;
+
+pub const CURRENT_YEAR: usize = 2022;
 
 fn one() -> f64 {
     1.0
@@ -139,38 +141,50 @@ impl ContestSummary {
     }
 }
 
-pub fn write_to_json<T: Serialize + ?Sized>(
-    value: &T,
-    path: impl AsRef<Path>,
-) -> Result<(), String> {
+pub fn read_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, String> {
+    let json_str = std::fs::read_to_string(path.as_ref()).map_err(|e| e.to_string())?;
+    serde_json::from_str(&json_str).map_err(|e| e.to_string())
+}
+
+pub fn read_csv<T: DeserializeOwned>(path: impl AsRef<Path>) -> csv::Result<Vec<T>> {
+    csv::Reader::from_path(path)?.deserialize().collect()
+}
+
+pub fn write_json<T: Serialize + ?Sized>(value: &T, path: impl AsRef<Path>) -> Result<(), String> {
     let cached_json = serde_json::to_string_pretty(&value).map_err(|e| e.to_string())?;
     std::fs::write(path.as_ref(), cached_json).map_err(|e| e.to_string())
 }
 
-fn write_to_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> Result<(), String> {
-    let file = std::fs::File::create(path.as_ref()).map_err(|e| e.to_string())?;
+pub fn write_csv<T: Serialize>(values: &[T], path: impl AsRef<Path>) -> csv::Result<()> {
+    let file = std::fs::File::create(path.as_ref())?;
     let mut writer = csv::Writer::from_writer(file);
-    values
-        .iter()
-        .try_for_each(|val| writer.serialize(val))
-        .map_err(|e| e.to_string())
+    values.iter().try_for_each(|val| writer.serialize(val))
 }
 
-pub fn write_slice_to_file_fallible<T: Serialize>(
+pub fn write_slice_to_file<T: Serialize>(
     values: &[T],
     path: impl AsRef<Path>,
 ) -> Result<(), String> {
     let path = path.as_ref();
     match path.extension().and_then(|s| s.to_str()) {
-        Some("json") => write_to_json(values, path),
-        Some("csv") => write_to_csv(values, path),
+        Some("json") => write_json(values, path),
+        Some("csv") => write_csv(values, path).map_err(|e| e.to_string()),
         _ => Err("Invalid or missing filename extension".into()),
     }
 }
 
-pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
+pub fn try_write_json<T: Serialize + ?Sized>(value: &T, path: impl AsRef<Path>) {
     let path = path.as_ref();
-    let write_res = write_slice_to_file_fallible(values, path);
+    let write_res = write_json(value, path);
+    match write_res {
+        Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
+        Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
+    };
+}
+
+pub fn try_write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
+    let path = path.as_ref();
+    let write_res = write_slice_to_file(values, path);
     match write_res {
         Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
         Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
@@ -178,14 +192,9 @@ pub fn write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path>) {
 }
 
 /// Helper function to get contest results from the Codeforces API.
-pub fn get_dataset_from_codeforces_api(
-    contest_id_file: impl AsRef<std::path::Path>,
-) -> Wrap<impl Dataset<Item = Contest>> {
+pub fn get_dataset_from_codeforces_api() -> Wrap<impl Dataset<Item = Contest>> {
     let client = Client::new();
-    let contests_json =
-        std::fs::read_to_string(contest_id_file).expect("Failed to read contest IDs from file");
-    let contest_ids: Vec<usize> = serde_json::from_str(&contests_json)
-        .expect("Failed to parse JSON contest IDs as a Vec<usize>");
+    let contest_ids = fetch_cf_contest_ids(&client);
 
     Wrap::from_closure(contest_ids.len(), move |i| {
         cf_api::fetch_cf_contest(&client, contest_ids[i]).expect("Failed to fetch contest")
@@ -205,12 +214,10 @@ pub type ContestDataset = Wrap<BoxedDataset<Contest>>;
 /// Helper function to get any named dataset.
 // TODO: actually throw errors when the directory is not found.
 pub fn get_dataset_by_name(dataset_name: &str) -> Result<ContestDataset, String> {
-    const CF_IDS: &str = "../data/codeforces/contest_ids.json";
-
     let dataset_dir = format!("../cache/{}", dataset_name);
     let dataset = if dataset_name == "codeforces" {
         // Rate-limit API calls so we don't burden Codeforces
-        get_dataset_from_codeforces_api(CF_IDS)
+        get_dataset_from_codeforces_api()
             .rate_limit(std::time::Duration::from_millis(500))
             .cached(dataset_dir)
             .boxed()

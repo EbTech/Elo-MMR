@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file_fallible, Dataset};
+use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file, Dataset};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::get_rating_system_by_name;
@@ -73,8 +73,7 @@ fn main() {
         //if last_event.rating_mu >= 2700 && player.update_time > six_months_ago {
         if true {
             let player_file = dir.join(format!("players/{}.csv", handle));
-            write_slice_to_file_fallible(&player.event_history, &player_file)
-                .expect("Failed write");
+            write_slice_to_file(&player.event_history, &player_file).expect("Failed write");
         }
     }
 

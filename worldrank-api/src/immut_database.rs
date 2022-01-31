@@ -1,15 +1,10 @@
 use crate::domain::{ContestSummary, HistoryPoint, PlayerSummary, UserName};
-use csv::Reader;
-use serde::de::DeserializeOwned;
+use multi_skill::data_processing::read_csv;
 use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::slice::SliceIndex;
 use superslice::Ext;
-
-fn read_csv<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Vec<T>, csv::Error> {
-    Reader::from_path(path)?.deserialize().collect()
-}
 
 pub struct ImmutableSportDatabase {
     players_path: PathBuf,

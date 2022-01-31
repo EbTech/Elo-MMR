@@ -1,4 +1,4 @@
-use multi_skill::data_processing::write_slice_to_file;
+use multi_skill::data_processing::{try_write_slice_to_file, CURRENT_YEAR};
 use reqwest::blocking::{Client, RequestBuilder};
 use reqwest::StatusCode;
 use select::document::Document;
@@ -39,7 +39,8 @@ impl<'a, I: Iterator<Item = Node<'a>>> Iterator for ArchiveRows<'a, I> {
     }
 }
 
-/*struct ScoreboardRows<'a, I: Iterator<Item = Node<'a>>> {
+/*
+struct ScoreboardRows<'a, I: Iterator<Item = Node<'a>>> {
     table: I,
 }
 
@@ -67,13 +68,18 @@ for (contest_url, title, time_string) in table {
     let table = ScoreboardRows {
         table: year_page.select(Name("td")),
     };
-}*/
+}
+*/
 
 fn main() {
     tracing_subscriber::fmt::init();
+    tracing::error!(
+        "The `ctf` binary is deprecated because the CTF API provides no means of \
+        obtaining results by event ID. Use data_processing::fetch_ctf_history() instead."
+    );
 
     let client = Client::new();
-    let contest_ids = (2005..=2021)
+    let contest_ids = (2005..=CURRENT_YEAR)
         .flat_map(|year| {
             let url = format!("https://ctftime.org/event/list/?year={}", year);
             let req = client.get(url);
@@ -86,5 +92,5 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    write_slice_to_file(&contest_ids, "../data/ctf_contest_ids.json");
+    try_write_slice_to_file(&contest_ids, "../data/ctf_contest_ids.json");
 }

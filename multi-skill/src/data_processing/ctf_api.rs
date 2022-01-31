@@ -1,11 +1,8 @@
-use super::Contest;
+use super::{Contest, CURRENT_YEAR};
 use crate::systems::outcome_free;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto}; // TODO: remove this import after 2021 edition
-
-const CURRENT_YEAR: usize = 2021;
 
 /// A contest's representation in the CTFtime API,
 /// as documented at https://ctftime.org/api
@@ -131,7 +128,7 @@ pub fn fetch_ctf_teams(client: &Client) -> HashMap<usize, String> {
             .send()
             .expect("Connection error: is CTFtime.org down?")
             .error_for_status()
-            .expect("Status error: is CTFtime.org  down?");
+            .expect("Status error: is CTFtime.org down?");
         let packet: CTFTeams = response
             .json()
             .expect("CTFtime API response doesn't match the expected JSON schema");

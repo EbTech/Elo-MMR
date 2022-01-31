@@ -2,7 +2,7 @@
 name = "multi-skill"
 version = "0.1.2"
 authors = ["Aram Ebtekar <aramebtech@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 description = "Skill estimation systems for multiplayer competitions"
 repository = "https://github.com/EbTech/Elo-MMR"

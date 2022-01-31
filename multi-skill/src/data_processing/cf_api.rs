@@ -1,9 +1,7 @@
-use super::Contest;
+use super::{read_csv, write_csv, Contest};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
-use std::convert::{TryFrom, TryInto}; // TODO: remove this import after 2021 edition
-use std::iter::FromIterator; // TODO: remove this import after 2021 edition
 
 /// General response from the Codeforces API.
 /// Codeforces documentation: https://codeforces.com/apiHelp
@@ -173,35 +171,57 @@ struct CFContest {
     start_time_seconds: u64,
 }
 
-/// Retrieves the IDs of all non-teamed rated Codeforces rounds.
-/// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.list
-pub fn fetch_cf_contest_list(client: &Client, num_recent: Option<usize>) -> Vec<usize> {
-    let response = client
+fn try_fetch_new_ids(client: &Client, last_id: usize) -> reqwest::Result<Vec<usize>> {
+    let packet: CFResponse<Vec<CFContest>> = client
         .get("https://codeforces.com/api/contest.list")
-        .send()
-        .expect("Connection error: is Codeforces.com down?")
-        .error_for_status()
-        .expect("Status error: is Codeforces.com down?");
-    let packet: CFResponse<Vec<CFContest>> = response
-        .json()
-        .expect("Codeforces API response doesn't match the expected JSON schema");
+        .send()?
+        .error_for_status()?
+        .json()?;
     let contests = match packet {
         CFResponse::Ok { result } => result,
-        CFResponse::Failed { comment } => panic!("{}", comment),
+        CFResponse::Failed { comment } => panic!("Bad API response: {}", comment),
     };
     let team_contests = HashSet::<usize>::from_iter([
         524, 532, 541, 562, 566, 639, 641, 643, 695, 771, 772, 773, 823, 923, 924, 925, 951,
     ]);
-    contests
+
+    let new_contest_ids_rev: Vec<usize> = contests
         .into_iter()
-        .take(num_recent.unwrap_or(usize::MAX))
-        .rev()
         .inspect(|contest| tracing::info!("Trying round {}", contest.id))
         .filter(|contest| contest.phase.as_str() == "FINISHED")
         .map(|contest| contest.id)
+        .take_while(|&id| id != last_id)
         .filter(|&id| {
             std::thread::sleep(std::time::Duration::from_millis(500));
             !team_contests.contains(&id) && fetch_cf_contest(client, id).is_ok()
         })
-        .collect()
+        .collect();
+    Ok(new_contest_ids_rev)
+}
+
+/// Retrieves the IDs of all non-team rated Codeforces rounds.
+/// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.list
+pub fn fetch_cf_contest_ids(client: &Client) -> Vec<usize> {
+    const CF_IDS_FILE: &str = "../data/codeforces/contest_ids.csv";
+    let mut local_contest_ids = read_csv(CF_IDS_FILE).expect("Failed to read contest IDs file");
+    let last_local_contest_id = *local_contest_ids.last().unwrap_or(&0);
+
+    match try_fetch_new_ids(client, last_local_contest_id) {
+        Ok(new_contest_ids_rev) => {
+            tracing::info!(
+                "Found {} new contest IDs: {:?}",
+                new_contest_ids_rev.len(),
+                new_contest_ids_rev
+            );
+            local_contest_ids.extend(new_contest_ids_rev.into_iter().rev());
+            write_csv(&local_contest_ids, CF_IDS_FILE)
+                .expect("Failed to write updated contest ids");
+        }
+        Err(err) => tracing::error!(
+            "Is Codeforces down? Couldn't fetch IDs because {}",
+            err.to_string()
+        ),
+    }
+
+    local_contest_ids
 }

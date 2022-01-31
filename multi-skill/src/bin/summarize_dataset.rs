@@ -1,5 +1,5 @@
 use multi_skill::data_processing::{
-    get_dataset_by_name, write_slice_to_file, ContestDataset, ContestSummary, Dataset,
+    get_dataset_by_name, try_write_slice_to_file, ContestDataset, ContestSummary, Dataset,
 };
 use std::cmp::Reverse;
 use std::collections::HashMap;
@@ -66,9 +66,9 @@ fn main() {
 
     // Write contest summaries to data/{source}/all_contests.csv
     let summary_file = dir.join("all_contests.csv");
-    write_slice_to_file(&summaries, &summary_file);
+    try_write_slice_to_file(&summaries, &summary_file);
 
     // Sort players in descending order of experience in data/{source}/names_by_experience.csv
     let experienced_players_file = dir.join("names_by_experience.csv");
-    write_slice_to_file(&sorted_names, &experienced_players_file);
+    try_write_slice_to_file(&sorted_names, &experienced_players_file);
 }

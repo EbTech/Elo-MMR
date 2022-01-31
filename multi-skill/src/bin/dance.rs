@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 use chrono::{DateTime, Utc};
-use multi_skill::data_processing::{write_to_json, Contest};
+use multi_skill::data_processing::{try_write_json, Contest};
 use reqwest::blocking::{Client, RequestBuilder};
 use reqwest::StatusCode;
 use select::document::Document;
@@ -117,8 +117,8 @@ fn process_round(mut round: Vec<(usize, String)>) -> Vec<(String, usize, usize)>
         while hi + 1 < round.len() && round[hi + 1].0 == cur {
             hi += 1;
         }
-        for j in lo..=hi {
-            let name = std::mem::take(&mut round[j].1);
+        for entry in &mut round[lo..=hi] {
+            let name = std::mem::take(&mut entry.1);
             res.push((name, lo, hi));
         }
         lo = hi + 1;
@@ -129,8 +129,8 @@ fn process_round(mut round: Vec<(usize, String)>) -> Vec<(String, usize, usize)>
 
 fn write_round(
     round: Vec<(usize, String)>,
-    contest_name: &String,
-    round_name: &String,
+    contest_name: &str,
+    round_name: &str,
     num_rounds: &mut usize,
     datetime: DateTime<Utc>,
 ) {
@@ -144,11 +144,7 @@ fn write_round(
         };
         std::fs::create_dir_all("../cache/dance").expect("Could not create cache directory");
         let path = format!("../cache/dance/{}.json", num_rounds);
-        let write_res = write_to_json(&contest, &path);
-        match write_res {
-            Ok(()) => tracing::info!("Successfully wrote to {:?}", path),
-            Err(msg) => tracing::error!("WARNING: failed write to {:?} because {}", path, msg),
-        };
+        try_write_json(&contest, &path);
         *num_rounds += 1;
     }
 }
@@ -225,10 +221,9 @@ fn main() {
                                 let sanitized_team = team.replace("/", "");
 
                                 // Remove dups
-                                if names.contains(&sanitized_team) {
+                                if !names.insert(sanitized_team.clone()) {
                                     continue;
                                 }
-                                names.insert(sanitized_team.clone());
 
                                 // Check if new round by seeing if this is a first place
                                 let rank: usize = tokens[0][..tokens[0].len() - 1].parse().unwrap();
