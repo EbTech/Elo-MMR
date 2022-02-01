@@ -16,8 +16,8 @@ impl ImmutableSportDatabase {
     pub fn new(data_path: impl AsRef<Path>) -> Result<Self, csv::Error> {
         let data_path = data_path.as_ref();
         let players_path = data_path.join("players");
-        let top_list = read_csv(data_path.join(&"all_players.csv"))?;
-        let contest_list = read_csv(data_path.join(&"all_contests.csv"))?;
+        let top_list = read_csv(data_path.join(&"all_players.csv"), true)?;
+        let contest_list = read_csv(data_path.join(&"all_contests.csv"), true)?;
         Ok(Self {
             players_path,
             top_list,
@@ -42,7 +42,7 @@ impl ImmutableSportDatabase {
 
     pub fn player_history(&self, handle: &UserName) -> Result<Vec<HistoryPoint>, csv::Error> {
         let filename = self.players_path.join(format!("{}.csv", handle.as_ref()));
-        let history = read_csv(filename)?;
+        let history = read_csv(filename, true)?;
         let history_with_contest_data = history
             .into_iter()
             .map(|ev| {

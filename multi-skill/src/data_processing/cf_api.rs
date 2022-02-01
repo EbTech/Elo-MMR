@@ -203,7 +203,8 @@ fn try_fetch_new_ids(client: &Client, last_id: usize) -> reqwest::Result<Vec<usi
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.list
 pub fn fetch_cf_contest_ids(client: &Client) -> Vec<usize> {
     const CF_IDS_FILE: &str = "../data/codeforces/contest_ids.csv";
-    let mut local_contest_ids = read_csv(CF_IDS_FILE).expect("Failed to read contest IDs file");
+    let mut local_contest_ids =
+        read_csv(CF_IDS_FILE, false).expect("Failed to read contest IDs file");
     let last_local_contest_id = *local_contest_ids.last().unwrap_or(&0);
 
     match try_fetch_new_ids(client, last_local_contest_id) {

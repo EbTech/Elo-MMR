@@ -146,8 +146,15 @@ pub fn read_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Strin
     serde_json::from_str(&json_str).map_err(|e| e.to_string())
 }
 
-pub fn read_csv<T: DeserializeOwned>(path: impl AsRef<Path>) -> csv::Result<Vec<T>> {
-    csv::Reader::from_path(path)?.deserialize().collect()
+pub fn read_csv<T: DeserializeOwned>(
+    path: impl AsRef<Path>,
+    has_headers: bool,
+) -> csv::Result<Vec<T>> {
+    csv::ReaderBuilder::new()
+        .has_headers(has_headers)
+        .from_path(path)?
+        .deserialize()
+        .collect()
 }
 
 pub fn write_json<T: Serialize + ?Sized>(value: &T, path: impl AsRef<Path>) -> Result<(), String> {
