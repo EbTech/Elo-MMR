@@ -198,6 +198,16 @@ pub fn try_write_slice_to_file<T: Serialize>(values: &[T], path: impl AsRef<Path
     };
 }
 
+pub fn log_expected_error(msg: String, is_expected: bool) -> Result<(), String> {
+    if is_expected {
+        tracing::warn!("Expected error {}", msg);
+        Ok(())
+    } else {
+        tracing::error!("Unexpected error {}", msg);
+        Err(msg)
+    }
+}
+
 /// Helper function to get contest results from the Codeforces API.
 pub fn get_dataset_from_codeforces_api() -> Wrap<impl Dataset<Item = Contest>> {
     let client = Client::new();

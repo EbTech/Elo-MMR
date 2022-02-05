@@ -6,6 +6,9 @@ import numpy as np
 import pandas as pd
 import praw
 
+reddit_dir = "../cache/reddit"
+os.makedirs(reddit_dir, exist_ok=True)
+
 reddit = praw.Reddit(
     client_id="8MguWY6Vv2iwDw",  
     client_secret="GyXPBkZaNZn1GT8o_K3lNXqx8mU",
@@ -81,10 +84,10 @@ for tid, thread in enumerate(thread_scores):
     for name in backlog:
         standings.append([name, lo, hi])
     
-    with open('../cache/reddit/' + str(tid) + '.json', 'w') as out:
+    with open(f'{reddit_dir}/{tid}.json', 'w') as out:
         json.dump(data, out)
 
 
 contest_ids = list(range(len(thread_scores)))
-with open('../data/reddit/contest_ids.json', 'w') as out:
+with open(f'{reddit_dir}/contest_ids.json', 'w') as out:
     out.write(str(contest_ids))

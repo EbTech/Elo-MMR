@@ -3,10 +3,13 @@
 import requests
 from bs4 import BeautifulSoup
 
+topcoder_dir = cache_dir + "../cache/topcoder"
+os.makedirs(topcoder_dir, exist_ok=True)
+
 # Mine list of contests
 index_link = "https://www.topcoder.com/tc?module=MatchList&sc=&sd=&nr=200&sr={}"
 round_ids = []
-for page_id in range(1, 1300, 200):
+for page_id in range(1, 999999, 200):
     url = index_link.format(page_id)
     html = requests.get(url)
     soup = BeautifulSoup(html.text, 'html.parser')
@@ -15,6 +18,8 @@ for page_id in range(1, 1300, 200):
         ref = result.find('a', href=True)['href']
         round_id = int(ref.split('=')[-1])
         round_ids.append(round_id)
+    if len(results) < 200:
+        break
 
 magic_link = "https://community.topcoder.com/stat?c=round_stats&rd={}&sm=1&em=100&nm=99&dn={}"
 def get_round_html(round_id, div):
@@ -80,12 +85,12 @@ for r, contest in enumerate(reversed(contests)):
             standings.append([contest[i+k][1], i, i + j - 1])
         i += j
         
-    ranking_file = open('../cache/topcoder/{}.json'.format(r), 'w')
+    ranking_file = open(f'{topcoder_dir}/{r}.json', 'w')
     json.dump(data, ranking_file)
     ranking_file.close()
     
 #contest_ids = list(range(len(contests)))
-#with open('../data/topcoder/contest_ids.json', 'w') as out:
+#with open(f'{topcoder_dir}/contest_ids.json', 'w') as out:
 #    out.write(str(contest_ids))
 #    out.close()
 

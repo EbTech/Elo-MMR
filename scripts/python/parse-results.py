@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # Iterate through our results and take the best
     for alg, shortname, expname in zip(algs, shortnames, expnames):
-        print("Algorithm type {}:".format(alg))
+        print(f"Algorithm type {alg}:")
         for name in metric_names:
             if name == 'time':
                 continue
@@ -71,4 +71,4 @@ if __name__ == "__main__":
                 best_params = list(metrics[name][alg])[idx]
 
                 param_values = extract_numbers(best_params)
-                print("  Best {} (metric, time): {} {}".format(name, best, best_params))
+                print(f"  Best {name} (metric, time): {best} {best_params}")

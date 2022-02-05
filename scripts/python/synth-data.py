@@ -11,6 +11,8 @@ import json
 
 from math import sqrt
 
+cache_dir = "../cache/"
+
 mu_noob = 1500
 sig_noob = 350
 sig_perf = 200
@@ -24,7 +26,8 @@ def np_random_custom(mu, sig, size=None):
         return np.random.normal(mu, sig, size)
 
 def make_dataset(dataset_name, pool_players, num_players, num_rounds):
-    os.makedirs('../cache/{}'.format(dataset_name), exist_ok=True)
+    synth_dir = cache_dir + dataset_name
+    os.makedirs(synth_dir, exist_ok=True)
     skills = np.random.normal(mu_noob, sig_noob, pool_players)
     
     for idx in range(num_rounds):
@@ -45,7 +48,7 @@ def make_dataset(dataset_name, pool_players, num_players, num_rounds):
         data['standings'] = standings
         for i, rank in enumerate(rankings):
             standings.append(["P{}".format(rank[1]), i, i])
-        with open('../cache/{}/{}.json'.format(dataset_name, idx), 'w') as out:
+        with open(f'{synth_dir}/{idx}.json', 'w') as out:
             json.dump(data, out)
 
 

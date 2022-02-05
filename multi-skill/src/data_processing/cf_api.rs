@@ -1,4 +1,4 @@
-use super::{read_csv, write_csv, Contest};
+use super::{log_expected_error, read_csv, write_csv, Contest};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
@@ -66,30 +66,23 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
                 ));
             }
             if time_seconds != change.rating_update_time_seconds {
-                // I don't know why but contests 61,318,347,373,381,400,404,405
-                // each contain one discrepancy, usually 4 hours late
-                tracing::warn!(
+                // I don't know why but a few of the contests each contain one
+                // discrepancy, usually 4 hours late
+                let err_msg = format!(
                     "@ {}: Inconsistent contest times {} and {}",
-                    id,
-                    time_seconds,
-                    change.rating_update_time_seconds
+                    id, time_seconds, change.rating_update_time_seconds
                 );
+                let is_expected = [61, 318, 347, 373, 381, 400, 404, 405].contains(&id);
+                log_expected_error(err_msg, is_expected)?;
             }
             while let Some(j) = seen_handles.insert(change.handle.clone(), i) {
-                // I don't know why but contests 447,472,615 have duplicate users
-                if !(id == 447 || id == 472 || id == 615) {
-                    return Err(format!(
-                        "Duplicate user {} at positions {} and {}",
-                        change.handle, i, j
-                    ));
-                }
-                tracing::warn!(
+                // I don't know why but a few of the contests have duplicate users
+                let err_msg = format!(
                     "@ {}: duplicate user {} at positions {} and {}",
-                    id,
-                    change.handle,
-                    i,
-                    j
+                    id, change.handle, i, j
                 );
+                let is_expected = [447, 472, 615].contains(&id);
+                log_expected_error(err_msg, is_expected)?;
                 change.handle += "_clone";
             }
 
