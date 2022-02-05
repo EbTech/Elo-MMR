@@ -3,7 +3,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-topcoder_dir = cache_dir + "../cache/topcoder"
+topcoder_dir = "../cache/topcoder"
 os.makedirs(topcoder_dir, exist_ok=True)
 
 # Mine list of contests
