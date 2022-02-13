@@ -1,1 +1,1 @@
-{"max_contests": 939, "mu_noob": 1500, "sig_noob": 350, "contest_source": "ctf", "system": {"method": "trueskill", "params": [10.0, 35.0, 0.0001, 11.0]}}
+{"max_contests": 1100, "mu_noob": 1500, "sig_noob": 350, "contest_source": "ctf", "system": {"method": "trueskill", "params": [10.0, 30.0, 0.0001, 8.0]}}

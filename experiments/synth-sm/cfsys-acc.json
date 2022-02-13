@@ -1,1 +1,1 @@
-{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-sm", "system": {"method": "cfsys", "params": [110.0, 0.9]}}
+{"max_contests": 15000, "mu_noob": 1500, "sig_noob": 350, "contest_source": "synth-sm", "system": {"method": "cfsys", "params": [70.0, 0.9]}}
