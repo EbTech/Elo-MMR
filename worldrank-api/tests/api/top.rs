@@ -1,7 +1,7 @@
 use crate::helpers::TestApp;
 use worldrank_api::domain::PlayerSummary;
 
-#[actix_rt::test]
+#[tokio::test]
 async fn top_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
@@ -17,7 +17,7 @@ async fn top_returns_a_200_for_valid_form_data() {
     assert_eq!(top.len(), 10);
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn top_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = TestApp::spawn().await;
@@ -37,7 +37,7 @@ async fn top_returns_a_400_when_data_is_missing() {
     }
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn top_returns_a_400_when_fields_are_present_but_empty() {
     // Arrange
     let app = TestApp::spawn().await;

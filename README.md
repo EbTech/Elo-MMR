@@ -35,7 +35,7 @@ RUST_LOG=debug cargo run --release --bin rate mmr codeforces
 
 UPDATE: it's now also possible to run the rating system from a config file. Here's an example: (this config file is out of date, we'll update it shortly.)
 ```
-RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mmr-acc.json
+RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mmr-fast-acc.json
 ```
 
 ### What does this command mean?

@@ -1,12 +1,12 @@
 use multi_skill::data_processing::Dataset;
-use multi_skill::experiment_config::Experiment;
+use multi_skill::experiment_config::{Experiment, ExperimentConfig};
 
 fn main() {
     tracing_subscriber::fmt::init();
 
     // Load system configs from parameter files
     let mut experiment_files = vec![];
-    let datasets = vec!["dance", "ctf"];//, "codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
+    let datasets = vec!["dance", "ctf"]; //, "codeforces", "topcoder", "reddit", "synth-sm", "synth-la"];
     let methods = vec![
         "glicko",
         "bar",
@@ -35,7 +35,8 @@ fn main() {
 
     // To ensure accurate timings, this loop is not parallelized
     for filename in &experiment_files {
-        let experiment = Experiment::from_file(filename);
+        let config = ExperimentConfig::from_file(filename);
+        let experiment = Experiment::from_config(config);
         let train_set_len = experiment.dataset.len() / 10;
         let results = experiment.eval(train_set_len);
 

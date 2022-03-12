@@ -1,6 +1,6 @@
 use crate::helpers::TestApp;
 
-#[actix_rt::test]
+#[tokio::test]
 async fn top_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
@@ -16,7 +16,7 @@ async fn top_returns_a_200_for_valid_form_data() {
     assert_eq!(top, vec!["EbTech"]);
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn top_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = TestApp::spawn().await;

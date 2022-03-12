@@ -1,6 +1,6 @@
 use crate::helpers::TestApp;
 
-#[actix_rt::test]
+#[tokio::test]
 async fn player_returns_a_200_for_valid_form_data() {
     // Arrange
     let app = TestApp::spawn().await;
@@ -30,7 +30,7 @@ async fn player_returns_a_200_for_valid_form_data() {
     assert_eq!(counts[0], counts[1] + counts[2]);
 }
 
-#[actix_rt::test]
+#[tokio::test]
 async fn player_returns_a_400_when_fields_are_invalid() {
     // Arrange
     let app = TestApp::spawn().await;

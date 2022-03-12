@@ -36,76 +36,76 @@ pub struct ExperimentConfig {
     pub contest_source: String,
 }
 
+impl ExperimentConfig {
+    pub fn from_file(source: impl AsRef<Path>) -> Self {
+        // Use json5 instead of serde_json to correctly parse f64::INFINITY
+        let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
+        json5::from_str(&params_json).expect("Failed to parse params as JSON")
+    }
+}
+
 pub struct Experiment {
     pub mu_noob: f64,
     pub sig_noob: f64,
-
     // Experiment should implement Send so that it can be sent across threads
     pub system: Box<dyn RatingSystem + Send>,
     pub dataset: ContestDataset,
 }
 
 impl Experiment {
-    pub fn from_file(source: impl AsRef<Path>) -> Self {
-        // Use json5 instead of serde_json to correctly parse f64::INFINITY
-        let params_json = std::fs::read_to_string(source).expect("Failed to read parameters file");
-        let params = json5::from_str(&params_json).expect("Failed to parse params as JSON");
-        Self::from_config(params)
-    }
-
-    pub fn from_config(params: ExperimentConfig) -> Self {
-        tracing::info!("Loading rating system:\n{:?}", params);
-        let dataset_full = get_dataset_by_name(&params.contest_source).unwrap();
-        let dataset_len = dataset_full.len().min(params.max_contests);
+    pub fn from_config(config: ExperimentConfig) -> Self {
+        tracing::info!("Loading rating system:\n{:?}", config);
+        let dataset_full = get_dataset_by_name(&config.contest_source).unwrap();
+        let dataset_len = dataset_full.len().min(config.max_contests);
         let dataset = dataset_full.subrange(..dataset_len).boxed();
 
-        let system: Box<dyn RatingSystem + Send> = match params.system.method.as_str() {
+        let system: Box<dyn RatingSystem + Send> = match config.system.method.as_str() {
             "glicko" => Box::new(Glicko {
-                beta: params.system.params[0],
-                sig_drift: params.system.params[1],
+                beta: config.system.params[0],
+                sig_drift: config.system.params[1],
             }),
             "bar" => Box::new(BAR {
-                beta: params.system.params[0],
-                sig_drift: params.system.params[1],
+                beta: config.system.params[0],
+                sig_drift: config.system.params[1],
                 kappa: 1e-4,
             }),
             "cfsys" => Box::new(CodeforcesSys {
-                beta: params.system.params[0],
-                weight_multiplier: params.system.params[1],
+                beta: config.system.params[0],
+                weight_multiplier: config.system.params[1],
             }),
             "tcsys" => Box::new(TopcoderSys {
-                weight_multiplier: params.system.params[0],
+                weight_multiplier: config.system.params[0],
             }),
             "trueskill" => Box::new(TrueSkillSPb {
-                eps: params.system.params[0],
-                beta: params.system.params[1],
-                convergence_eps: params.system.params[2],
-                sig_drift: params.system.params[3],
+                eps: config.system.params[0],
+                beta: config.system.params[1],
+                convergence_eps: config.system.params[2],
+                sig_drift: config.system.params[3],
             }),
             "mmx" => Box::new(EloMMR {
-                beta: params.system.params[0],
-                sig_limit: params.system.params[1],
+                beta: config.system.params[0],
+                sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
-                split_ties: params.system.params[2] > 0.,
-                subsample_size: params.system.params[3] as usize,
-                subsample_bucket: params.system.params[4],
+                split_ties: config.system.params[2] > 0.,
+                subsample_size: config.system.params[3] as usize,
+                subsample_bucket: config.system.params[4],
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
-                beta: params.system.params[0],
-                sig_limit: params.system.params[1],
+                beta: config.system.params[0],
+                sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
-                split_ties: params.system.params[2] > 0.,
-                subsample_size: params.system.params[3] as usize,
-                subsample_bucket: params.system.params[4],
-                variant: EloMMRVariant::Logistic(params.system.params[5]),
+                split_ties: config.system.params[2] > 0.,
+                subsample_size: config.system.params[3] as usize,
+                subsample_bucket: config.system.params[4],
+                variant: EloMMRVariant::Logistic(config.system.params[5]),
             }),
             x => panic!("'{}' is not a valid system name!", x),
         };
 
         Self {
-            mu_noob: params.mu_noob,
-            sig_noob: params.sig_noob,
+            mu_noob: config.mu_noob,
+            sig_noob: config.sig_noob,
             system,
             dataset,
         }

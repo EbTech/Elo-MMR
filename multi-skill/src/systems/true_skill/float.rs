@@ -7,7 +7,7 @@ mod f64_module {
     pub use std::f64::consts::PI;
 }
 
-#[allow(dead_code)]
+/*#[allow(dead_code)]
 mod f128_module {
     pub type MyFloat = f128::f128;
     pub const ZERO: MyFloat = MyFloat::ZERO;
@@ -16,7 +16,7 @@ mod f128_module {
     pub fn erfc(a: MyFloat) -> MyFloat {
         unsafe { f128::ffi::erfcq_f(a) }
     }
-}
+}*/
 
 // Choose between f64 and f128
 pub use f64_module::*;

@@ -207,7 +207,7 @@ fn main() {
                                 } else {
                                     tokens[2..tokens.len()].join(" ").to_string()
                                 };
-    
+
                                 // Remove any forward slashes
                                 let sanitized_team = team.replace("/", "");
 
