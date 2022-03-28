@@ -30,7 +30,7 @@ Note: in theory, Elo-MMR can be applied in team competitions as well, but additi
 
 First, [install Rust](https://www.rust-lang.org/tools/install). From the `multi-skill/` directory, run the command
 ```
-RUST_LOG=debug cargo run --release --bin rate mmr codeforces
+RUST_LOG=debug cargo run --release --bin rate mmr-fast codeforces
 ```
 
 UPDATE: it's now also possible to run the rating system from a config file. Here's an example: (this config file is out of date, we'll update it shortly.)
@@ -48,7 +48,7 @@ RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mm
 
 `--bin rate` selects the entry-point `multi-skill/src/bin/rate.rs`.
 
-`mmr` is a command-line argument specifying the rating system. Try `mmr-fast` for an approximate version that runs faster.
+`mmr-fast` is a command-line argument specifying the rating system. Try `mmr` for a slower but more accurate version of EloMMR.
 
 `codeforces` is a command-line argument specifying the dataset.
 
