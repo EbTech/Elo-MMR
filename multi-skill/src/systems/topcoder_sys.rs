@@ -1,9 +1,7 @@
 //! Topcoder system details: https://www.topcoder.com/community/competitive-programming/how-to-compete/ratings
 //! Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
 
-use super::{
-    Player, Rating, RatingSystem,
-};
+use super::{Player, Rating, RatingSystem};
 use crate::numerical::{standard_normal_cdf, standard_normal_cdf_inv};
 use rayon::prelude::*;
 

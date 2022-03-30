@@ -1,11 +1,11 @@
 mod player;
 
 use crate::data_processing::Contest;
+use crate::numerical::{solve_newton, TANH_MULTIPLIER};
+pub use player::{Player, PlayerEvent};
 use serde::{Deserialize, Serialize};
 use std::cell::{RefCell, RefMut};
 use std::collections::HashMap;
-pub use player::{Player, PlayerEvent};
-use crate::numerical::{TANH_MULTIPLIER,solve_newton};
 
 pub type PlayersByName = HashMap<String, RefCell<Player>>;
 

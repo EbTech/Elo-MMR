@@ -1,7 +1,7 @@
 [package]
 name = "multi-skill"
-version = "0.1.2"
-authors = ["Aram Ebtekar <aramebtech@gmail.com>"]
+version = "0.2.0-alpha"
+authors = ["Aram Ebtekar <aramebtech@gmail.com>", "Paul Liu <paul.liu@stanford.edu>"]
 edition = "2021"
 
 description = "Skill estimation systems for multiplayer competitions"

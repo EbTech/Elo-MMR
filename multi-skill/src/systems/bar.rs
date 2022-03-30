@@ -2,7 +2,7 @@
 //! from https://jmlr.csail.mit.edu/papers/volume12/weng11a/weng11a.pdf
 
 use super::{Player, Rating, RatingSystem};
-use crate::numerical::{standard_logistic_cdf,TANH_MULTIPLIER};
+use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
 use rayon::prelude::*;
 
 #[derive(Debug)]

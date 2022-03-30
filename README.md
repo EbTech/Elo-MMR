@@ -40,7 +40,7 @@ RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mm
 
 ### What does this command mean?
 
-`RUST_LOG=debug` prints additional information to the terminal during execution.
+`RUST_LOG=debug` sets an environment variable to print additional information to the terminal during execution. Note that environment variables are [set differently on Windows](https://stackoverflow.com/questions/18433840/logging-rust-programs).
 
 `cargo run` compiles and runs a Rust project.
 
@@ -58,7 +58,7 @@ An optional integer argument may follow, to specify how many contests to process
 
 It pulls data from the Codeforces contests specified in `data/codeforces/contest_ids.json`. If a contest is not already stored in `cache/codeforces/`, then it is downloaded there via the Codeforces online API. Finally, the resulting skill ratings of all the contestants are saved in `data/codeforces/ratings_output.csv`.
 
-Please note that your first Codeforces run will be slower, as the data is pulled from the Codeforces API, or may even fail if the Codeforces site experiences downtime. However, subsequent runs should be much faster.
+Please note that your first Codeforces run will be slower, as the contest standings are pulled from the Codeforces API. It may even fail if Codeforces.com experiences downtime, or decides that you've used too much bandwidth; if this happens, please wait a few minutes to try again.
 
 ### How can I rate contestants of my own games?
 

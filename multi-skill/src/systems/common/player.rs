@@ -1,6 +1,6 @@
-use super::{Rating, robust_average, TanhTerm};
-use std::collections::VecDeque;
+use super::{robust_average, Rating, TanhTerm};
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct PlayerEvent {

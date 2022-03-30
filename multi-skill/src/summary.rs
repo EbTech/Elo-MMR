@@ -117,10 +117,10 @@ pub fn print_ratings(
     rated_since: u64,
     dir: impl AsRef<std::path::Path>,
 ) {
-    // TODO: refactor this "summary" section to instead print a distribution.[csv|json].
-    //       Somehow make the distribution aware of titles so we can keep printing titles.
     let (summary, rating_data) = make_leaderboard(players, rated_since);
 
+    // TODO: refactor this "summary" section to instead print a distribution.[csv|json].
+    //       Somehow make the distribution aware of titles so we can keep printing titles.
     tracing::info!("Mean rating.mu = {}", summary.mean_rating);
     for i in (0..NUM_TITLES).rev() {
         tracing::info!(
