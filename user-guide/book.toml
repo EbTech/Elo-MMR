@@ -1,0 +1,9 @@
+[book]
+authors = ["Aram Ebtekar"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Elo-MMR User's Guide"
+
+[output.html]
+mathjax-support = true
