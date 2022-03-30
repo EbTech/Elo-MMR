@@ -32,10 +32,10 @@ pub struct PlayerSummary {
 }
 
 pub fn get_display_rating_from_ints(mu: i32, sig: i32) -> i32 {
-    // TODO: get rid of the magic numbers 2 and 80!
-    //       2.0 gives a conservative estimate: use 0 to get mean estimates
-    //       80 is EloR's default sig_lim
-    mu - 2 * (sig - 80)
+    // TODO: get rid of the magic numbers 3 and 80!
+    //       3 gives a conservative estimate: use 0 to get mean estimates
+    //       80 is Elo-MMR's default sig_lim
+    mu - 3 * (sig - 80)
 }
 
 pub fn get_display_rating(event: &PlayerEvent) -> i32 {

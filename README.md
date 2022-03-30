@@ -48,7 +48,7 @@ RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mm
 
 `--bin rate` selects the entry-point `multi-skill/src/bin/rate.rs`.
 
-`mmr-fast` is a command-line argument specifying the rating system. Try `mmr` for a slower but more accurate version of EloMMR.
+`mmr-fast` is a command-line argument specifying the rating system. Try `mmr` for a slower but more precise version of Elo-MMR.
 
 `codeforces` is a command-line argument specifying the dataset.
 

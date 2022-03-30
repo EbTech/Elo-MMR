@@ -1,6 +1,7 @@
 //! This version has fewer features and optimizations than elo_mmr.rs, more
 //! closely matching the pseudocode in https://arxiv.org/abs/2101.00400
-use super::util::{solve_newton, Player, Rating, RatingSystem, TanhTerm};
+use super::{Player, Rating, RatingSystem, TanhTerm};
+use crate::numerical::solve_newton;
 use rayon::prelude::*;
 
 fn eval_less(term: &TanhTerm, x: f64) -> (f64, f64) {

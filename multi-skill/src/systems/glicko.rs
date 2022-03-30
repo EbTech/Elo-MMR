@@ -1,6 +1,7 @@
 //! Glicko system details: https://en.wikipedia.org/wiki/Glicko_rating_system
 
-use super::util::{standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER};
+use super::{Player, Rating, RatingSystem};
+use crate::numerical::{standard_logistic_cdf,TANH_MULTIPLIER};
 use rayon::prelude::*;
 
 #[derive(Debug)]

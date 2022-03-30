@@ -2,7 +2,7 @@ mod float;
 mod nodes;
 mod normal;
 
-use super::util::{Player, Rating, RatingSystem};
+use super::{Player, Rating, RatingSystem};
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;

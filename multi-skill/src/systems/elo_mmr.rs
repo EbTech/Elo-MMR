@@ -1,7 +1,8 @@
 //! Elo-R system details: https://arxiv.org/abs/2101.00400
-use super::util::{
-    solve_newton, standard_normal_cdf, standard_normal_pdf, Player, Rating, RatingSystem, TanhTerm,
+use super::{
+    Player, Rating, RatingSystem, TanhTerm,
 };
+use crate::numerical::{solve_newton,standard_normal_pdf,standard_normal_cdf};
 use core::ops::Range;
 use rayon::prelude::*;
 use std::cmp::Ordering;

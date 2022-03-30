@@ -1,7 +1,8 @@
 //! The so-called Bayesian Approximation Ranking, or Algorithm 1 (BT-Full)
 //! from https://jmlr.csail.mit.edu/papers/volume12/weng11a/weng11a.pdf
 
-use super::util::{standard_logistic_cdf, Player, Rating, RatingSystem, TANH_MULTIPLIER};
+use super::{Player, Rating, RatingSystem};
+use crate::numerical::{standard_logistic_cdf,TANH_MULTIPLIER};
 use rayon::prelude::*;
 
 #[derive(Debug)]

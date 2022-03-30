@@ -3,3 +3,4 @@ pub mod experiment_config;
 pub mod metrics;
 pub mod summary;
 pub mod systems;
+pub mod numerical;
