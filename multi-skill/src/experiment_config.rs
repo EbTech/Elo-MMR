@@ -83,7 +83,7 @@ impl Experiment {
                 sig_drift: config.system.params[3],
             }),
             "mmx" => Box::new(EloMMR {
-                beta: config.system.params[0],
+                default_weight: config.system.params[0],
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,
@@ -92,7 +92,7 @@ impl Experiment {
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
-                beta: config.system.params[0],
+                default_weight: config.system.params[0],
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,

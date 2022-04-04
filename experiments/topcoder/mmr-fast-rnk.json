@@ -1,1 +1,1 @@
-{"max_contests": 2115, "mu_noob": 1500, "sig_noob": 350, "contest_source": "topcoder", "system": {"method": "mmr", "params": [255.0, 81.0, 0, 100.0, 2.0, 0.0]}}
+{"max_contests": 2115, "mu_noob": 1500, "sig_noob": 350, "contest_source": "topcoder", "system": {"method": "mmr", "params": [0.11, 81.0, 0, 100.0, 2.0, 0.0]}}

@@ -57,8 +57,8 @@ fn main() {
             }
         }
     }
-    for beta in beta_range.clone() {
-        for sig_limit in log_space(0.1 * beta, 0.8 * beta, 10, 1.) {
+    for default_weight in log_space(0.01, 2., 15, 0.01) {
+        for sig_limit in log_space(20., 160., 10, 5.) {
             for &split_ties in &[false, true] {
                 // make the algorithm fast
                 let subsample_size = 100;
@@ -66,7 +66,7 @@ fn main() {
 
                 // Gaussian performance model
                 let system = systems::EloMMR {
-                    beta,
+                    default_weight,
                     sig_limit,
                     drift_per_sec: 0.,
                     split_ties,
@@ -80,7 +80,7 @@ fn main() {
                 let rho_vals = &[0., 0.04, 0.2, 1., 5., f64::INFINITY];
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
-                        beta,
+                        default_weight,
                         sig_limit,
                         drift_per_sec: 0.,
                         split_ties,

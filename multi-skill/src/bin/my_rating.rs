@@ -4,7 +4,6 @@ use io::{BufRead, Write};
 use multi_skill::data_processing::read_csv;
 use multi_skill::summary::PlayerSummary;
 use std::collections::HashMap;
-use std::fs::File;
 use std::io;
 
 fn main() {
