@@ -6,7 +6,7 @@
 [![Crates.io Downloads](https://img.shields.io/crates/d/multi-skill.svg)](https://crates.io/crates/multi-skill)
 [![Gitter](https://badges.gitter.im/multi-skill/community.svg)](https://gitter.im/multi-skill/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-This is a package containing implementations of several rating systems for multi-player competitions: all-pairs Glicko, all-pairs BAR, Codeforces, TopCoder, TrueSkill-SPb, and the new system Elo-MMR. All under MIT license except for the contents of deprecated/cpp/trueskill.
+This is a package containing implementations of several rating systems for multi-player competitions: Glicko all-pairs, BAR BT-all-pairs, Codeforces, Topcoder, TrueSkill-SPb, and the new system Elo-MMR. All under MIT license except for the contents of deprecated/cpp/trueskill.
 
 Rating systems estimate the skills of players who participate in a common activity. The Elo-MMR algorithm was designed for activities in which moderate to large numbers of players are ranked at competitive events, and results cannot be standardized across different events for any of the following reasons:
 
