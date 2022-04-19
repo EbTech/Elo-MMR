@@ -38,7 +38,13 @@ UPDATE: it's now also possible to run the rating system from a config file. Here
 RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mmr-fast-acc.json
 ```
 
-### What does this command mean?
+To test the new checkpointing feature, try
+```
+cargo run --release --bin rate_from_configs ../experiments/testing/mmr-cf-1to10.json ../experiments/testing/mmr-cf-11to20.json
+```
+which produces state checkpoint files in the `experiments/testing/` directory.
+
+### What does the first command mean?
 
 `RUST_LOG=debug` sets an environment variable to print additional information to the terminal during execution. Note that environment variables are [set differently on Windows](https://stackoverflow.com/questions/18433840/logging-rust-programs).
 

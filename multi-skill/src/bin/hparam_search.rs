@@ -119,6 +119,8 @@ fn main() {
             sig_noob: 350.,
             system,
             dataset,
+            loaded_state: std::collections::HashMap::new(),
+            save_checkpoint: None,
         };
         let results = experiment.eval(0);
 
