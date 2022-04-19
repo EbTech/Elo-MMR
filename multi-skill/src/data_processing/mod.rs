@@ -20,7 +20,7 @@ fn is_one(&weight: &f64) -> bool {
 }
 
 /// Represents the outcome of a contest.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Contest {
     /// A human-readable title for the contest.
     pub name: String,
@@ -119,7 +119,7 @@ impl Contest {
 }
 
 /// Compressed summary of a contest
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ContestSummary {
     pub name: String,
     pub url: Option<String>,
