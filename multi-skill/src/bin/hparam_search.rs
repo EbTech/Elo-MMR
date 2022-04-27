@@ -32,11 +32,8 @@ fn main() {
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for beta in beta_range.clone() {
-        for weight_multiplier in log_space(0.05, 10., 12, 0.01) {
-            let system = systems::CodeforcesSys {
-                beta,
-                weight_multiplier,
-            };
+        for weight in log_space(0.05, 10., 12, 0.01) {
+            let system = systems::CodeforcesSys { beta, weight };
             systems.push(Box::new(system));
         }
     }

@@ -6,15 +6,15 @@ use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct CodeforcesSys {
-    pub beta: f64, // must be positive, only affects scale, since CF ignores SIG_NEWBIE
-    pub weight_multiplier: f64, // must be positive
+    pub beta: f64,   // must be positive, only affects scale, since CF ignores SIG_NEWBIE
+    pub weight: f64, // must be positive
 }
 
 impl Default for CodeforcesSys {
     fn default() -> Self {
         Self {
             beta: 400. * TANH_MULTIPLIER / std::f64::consts::LN_10,
-            weight_multiplier: 1.,
+            weight: 1.,
         }
     }
 }
@@ -81,8 +81,8 @@ impl RatingSystem for CodeforcesSys {
                     &all_ratings,
                     my_rating,
                 );
-                let weight = contest_weight * self.weight_multiplier;
-                let mu = (my_rating.mu + weight * geo_perf) / (1. + weight);
+                let wt = contest_weight * self.weight;
+                let mu = (my_rating.mu + wt * geo_perf) / (1. + wt);
                 let sig = player.approx_posterior.sig;
                 player.update_rating(Rating { mu, sig }, geo_perf);
             });

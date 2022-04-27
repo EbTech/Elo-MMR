@@ -53,6 +53,7 @@ impl RatingSystem for TopcoderSys {
         };
 
         let sqrt_contest_weight = contest_weight.sqrt();
+        let weight_extra = self.weight_noob - self.weight_limit;
         let new_ratings: Vec<(Rating, f64)> = standings
             .par_iter()
             .map(|(player, lo, hi)| {
@@ -78,10 +79,9 @@ impl RatingSystem for TopcoderSys {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let num_contests = player.event_history.len() as f64;
-                let mut weight =
-                    self.weight_limit + (self.weight_noob - self.weight_limit) / num_contests;
-                let unweighted_cap = 150. + 1500. / (num_contests + 1.);
-                let cap = unweighted_cap * weight / (0.18 + 0.42 / num_contests);
+                let mut weight = self.weight_limit + weight_extra / num_contests;
+                let mut cap = 150. + 1500. / (num_contests + 1.);
+                cap *= sqrt_contest_weight * weight / (0.18 + 0.42 / num_contests);
 
                 weight *= contest_weight / (1. - weight);
                 if old_rating >= 2500. {

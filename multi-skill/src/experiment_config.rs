@@ -91,7 +91,7 @@ impl Experiment {
             }),
             "cfsys" => Box::new(CodeforcesSys {
                 beta: config.system.params[0],
-                weight_multiplier: config.system.params[1],
+                weight: config.system.params[1],
             }),
             "tcsys" => Box::new(TopcoderSys {
                 weight_noob: config.system.params[0],
