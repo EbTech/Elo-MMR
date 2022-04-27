@@ -209,7 +209,7 @@ fn main() {
                                 };
 
                                 // Remove any forward slashes
-                                let sanitized_team = team.replace("/", "");
+                                let sanitized_team = team.replace('/', "");
 
                                 // Remove dups
                                 if names.contains(&sanitized_team) {
@@ -218,7 +218,7 @@ fn main() {
                                 names.insert(sanitized_team.clone());
 
                                 // Remove any forward slashes
-                                let sanitized_team = team.replace("/", "");
+                                let sanitized_team = team.replace('/', "");
 
                                 // Remove dups
                                 if !names.insert(sanitized_team.clone()) {

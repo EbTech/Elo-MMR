@@ -4,6 +4,7 @@ use crate::systems::{
     TopcoderSys, TrueSkillSPb, BAR,
 };
 
+use crate::data_processing::{read_json, write_json};
 use crate::metrics::{compute_metrics_custom, PerformanceReport};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
@@ -17,8 +18,17 @@ pub struct SystemParams {
     pub params: Vec<f64>,
 }
 
+fn usize_zero() -> usize {
+    0
+}
+
 fn usize_max() -> usize {
     usize::MAX
+}
+
+#[allow(dead_code)]
+fn is_usize_zero(&num: &usize) -> bool {
+    num == usize_zero()
 }
 
 #[allow(dead_code)]
@@ -28,12 +38,16 @@ fn is_usize_max(&num: &usize) -> bool {
 
 #[derive(Deserialize, Debug)]
 pub struct ExperimentConfig {
+    #[serde(default = "usize_zero", skip_serializing_if = "is_usize_zero")]
+    pub skip_contests: usize,
     #[serde(default = "usize_max", skip_serializing_if = "is_usize_max")]
     pub max_contests: usize,
     pub mu_noob: f64,
     pub sig_noob: f64,
     pub system: SystemParams,
     pub contest_source: String,
+    pub load_checkpoint: Option<String>,
+    pub save_checkpoint: Option<String>,
 }
 
 impl ExperimentConfig {
@@ -50,14 +64,20 @@ pub struct Experiment {
     // Experiment should implement Send so that it can be sent across threads
     pub system: Box<dyn RatingSystem + Send>,
     pub dataset: ContestDataset,
+    pub loaded_state: PlayersByName,
+    pub save_checkpoint: Option<String>,
 }
 
 impl Experiment {
     pub fn from_config(config: ExperimentConfig) -> Self {
         tracing::info!("Loading rating system:\n{:?}", config);
         let dataset_full = get_dataset_by_name(&config.contest_source).unwrap();
-        let dataset_len = dataset_full.len().min(config.max_contests);
-        let dataset = dataset_full.subrange(..dataset_len).boxed();
+        let dataset_end = dataset_full
+            .len()
+            .min(config.skip_contests + config.max_contests);
+        let dataset = dataset_full
+            .subrange(config.skip_contests..dataset_end)
+            .boxed();
 
         let system: Box<dyn RatingSystem + Send> = match config.system.method.as_str() {
             "glicko" => Box::new(Glicko {
@@ -103,16 +123,23 @@ impl Experiment {
             x => panic!("'{}' is not a valid system name!", x),
         };
 
+        let loaded_state = match config.load_checkpoint {
+            Some(filename) => read_json(filename).expect("Failed to read checkpoint"),
+            None => HashMap::new(),
+        };
+
         Self {
             mu_noob: config.mu_noob,
             sig_noob: config.sig_noob,
             system,
             dataset,
+            loaded_state,
+            save_checkpoint: config.save_checkpoint,
         }
     }
 
     pub fn eval(&self, num_rounds_postpone_eval: usize) -> ExperimentResults {
-        let mut players = HashMap::new();
+        let mut players = self.loaded_state.clone();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
 
         // Run the contest histories and measure
@@ -144,6 +171,10 @@ impl Experiment {
         }
         let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
 
+        if let Some(filename) = &self.save_checkpoint {
+            write_json(&players, filename).expect("Failed to save checkpoint");
+        }
+
         ExperimentResults {
             players,
             avg_perf,
@@ -157,7 +188,7 @@ impl Experiment {
         max_participants: usize,
         rng_seed: u64,
     ) -> ExperimentResults {
-        let mut players = HashMap::new();
+        let mut players = self.loaded_state.clone();
         let mut avg_perf = compute_metrics_custom(&mut players, &[]);
 
         let mut rng = StdRng::seed_from_u64(rng_seed);
@@ -191,6 +222,10 @@ impl Experiment {
             }
         }
         let secs_elapsed = now.elapsed().as_nanos() as f64 * 1e-9;
+
+        if let Some(filename) = &self.save_checkpoint {
+            write_json(&players, filename).expect("Failed to save checkpoint");
+        }
 
         ExperimentResults {
             players,

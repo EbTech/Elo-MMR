@@ -32,12 +32,13 @@ fn get_experiment_from_args(args: &[String]) -> (Experiment, String) {
             sig_noob: 350.,
             system,
             dataset,
+            loaded_state: std::collections::HashMap::new(),
+            save_checkpoint: None,
         };
         (experiment, source.to_string())
     }
 }
 
-/// Simulates the entire history of Codeforces
 fn main() {
     tracing_subscriber::fmt::init();
 

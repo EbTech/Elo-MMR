@@ -5,7 +5,8 @@ __pycache__/
 GeneratedSource/
 infernet/bin/
 obj/
-data/output/
+data/
+experiments/testing/state-*
 *.html
 *.aux
 *.blg
