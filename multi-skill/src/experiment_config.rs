@@ -94,7 +94,8 @@ impl Experiment {
                 weight_multiplier: config.system.params[1],
             }),
             "tcsys" => Box::new(TopcoderSys {
-                weight_multiplier: config.system.params[0],
+                weight_noob: config.system.params[0],
+                weight_limit: config.system.params[1],
             }),
             "trueskill" => Box::new(TrueSkillSPb {
                 eps: config.system.params[0],
@@ -103,7 +104,7 @@ impl Experiment {
                 sig_drift: config.system.params[3],
             }),
             "mmx" => Box::new(EloMMR {
-                default_weight: config.system.params[0],
+                weight_limit: config.system.params[0],
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,
@@ -112,7 +113,7 @@ impl Experiment {
                 variant: EloMMRVariant::Gaussian,
             }),
             "mmr" => Box::new(EloMMR {
-                default_weight: config.system.params[0],
+                weight_limit: config.system.params[0],
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,

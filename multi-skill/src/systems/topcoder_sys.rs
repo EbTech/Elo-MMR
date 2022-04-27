@@ -7,13 +7,15 @@ use rayon::prelude::*;
 
 #[derive(Debug)]
 pub struct TopcoderSys {
-    pub weight_multiplier: f64, // must be positive
+    pub weight_noob: f64,  // must be positive
+    pub weight_limit: f64, // must be positive
 }
 
 impl Default for TopcoderSys {
     fn default() -> Self {
         Self {
-            weight_multiplier: 1.,
+            weight_noob: 0.6,
+            weight_limit: 0.18,
         }
     }
 }
@@ -51,10 +53,6 @@ impl RatingSystem for TopcoderSys {
         };
 
         let sqrt_contest_weight = contest_weight.sqrt();
-        let limit_weight = 1. / 0.82 - 1.;
-        let cap_multiplier = self.weight_multiplier * (1. + limit_weight)
-            / (1. + limit_weight * self.weight_multiplier);
-
         let new_ratings: Vec<(Rating, f64)> = standings
             .par_iter()
             .map(|(player, lo, hi)| {
@@ -80,16 +78,17 @@ impl RatingSystem for TopcoderSys {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
 
                 let num_contests = player.event_history.len() as f64;
-                let mut weight = 1. / (0.82 - 0.42 / num_contests) - 1.;
-                weight *= contest_weight * self.weight_multiplier;
+                let mut weight =
+                    self.weight_limit + (self.weight_noob - self.weight_limit) / num_contests;
+                let unweighted_cap = 150. + 1500. / (num_contests + 1.);
+                let cap = unweighted_cap * weight / (0.18 + 0.42 / num_contests);
+
+                weight *= contest_weight / (1. - weight);
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {
                     weight *= 0.9;
                 }
-
-                let mut cap = 150. + 1500. / (num_contests + 1.);
-                cap *= cap_multiplier;
 
                 let try_rating = (old_rating + weight * perf_as) / (1. + weight);
                 let new_rating = try_rating.clamp(old_rating - cap, old_rating + cap);

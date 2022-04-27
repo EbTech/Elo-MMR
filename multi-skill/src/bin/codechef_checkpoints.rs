@@ -1,7 +1,9 @@
-use multi_skill::data_processing::{read_csv, write_json, get_dataset_by_name, try_write_slice_to_file};
-use multi_skill::systems::{Player, PlayersByName, simulate_contest, get_rating_system_by_name};
+use multi_skill::data_processing::{
+    get_dataset_by_name, read_csv, try_write_slice_to_file, write_json,
+};
 use multi_skill::metrics::{compute_metrics_custom, PerformanceReport};
-use multi_skill::summary::{make_leaderboard};
+use multi_skill::summary::make_leaderboard;
+use multi_skill::systems::{get_rating_system_by_name, simulate_contest, Player, PlayersByName};
 
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
@@ -50,7 +52,7 @@ fn main() {
             }
         }
     }
-    
+
     // Run the contest histories and measure
     let dir = std::path::PathBuf::from("/home/work_space/elommr-data/elommr-checkpoints/codechef/");
     let now = std::time::Instant::now();
@@ -62,22 +64,15 @@ fn main() {
             contest.weight,
             contest.name
         );
-        
+
         // At some point, codechef changed the default rating!
         if contest.name == "START25B" {
             mu_noob = 1000.;
         }
 
         // Now run the actual rating update
-        simulate_contest(
-            &mut players,
-            &contest,
-            &*system,
-            mu_noob,
-            sig_noob,
-            index,
-        );
-        
+        simulate_contest(&mut players, &contest, &*system, mu_noob, sig_noob, index);
+
         if checkpoints.contains(&contest.name) {
             let output_file = dir.join(contest.name.clone() + ".csv");
             let (summary, rating_data) = make_leaderboard(&players, 0);
