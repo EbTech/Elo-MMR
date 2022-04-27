@@ -32,7 +32,7 @@ if __name__ == "__main__":
         tokens = line.strip().split(' ')
         if len(tokens) < 5:
             continue
-        offset = 7
+        offset = 5
         name = tokens[offset]
         rest = ' '.join(tokens[offset:])
        

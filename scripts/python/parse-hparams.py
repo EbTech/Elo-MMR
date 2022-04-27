@@ -33,7 +33,7 @@ if __name__ == "__main__":
         tokens = line.strip().split(' ')
         if len(tokens) < 5:
             continue
-        offset = 6
+        offset = 4
         name = tokens[offset]
         rest = ' '.join(tokens[offset:])
         
@@ -47,7 +47,6 @@ if __name__ == "__main__":
         params, results = ":".join(tokens[:-1]), tokens[-1]
 
         vals = extract_numbers(results)
-
         for i in range(6):
             metrics[metric_names[i]][name][params] = vals[i]
         metrics['time'][name][params] = vals[-2]

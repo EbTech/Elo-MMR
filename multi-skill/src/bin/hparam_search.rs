@@ -61,8 +61,8 @@ fn main() {
         for sig_limit in log_space(20., 160., 10, 5.) {
             for &split_ties in &[false, true] {
                 // make the algorithm fast
-                let subsample_size = 100;
-                let subsample_bucket = 2.;
+                let subsample_size = 256;
+                let subsample_bucket = 1.;
 
                 // Gaussian performance model
                 let system = systems::EloMMR {
