@@ -7,14 +7,30 @@ use std::cell::RefCell;
 struct SimplePlayer {
     handle: String,
     cur_mu: f64,
-    cur_sigma: f64,
+    cur_sigma: Option<f64>,
+    num_contests: Option<usize>,
 }
 
 fn make_checkpoint(players: Vec<SimplePlayer>) -> PlayersByName {
     players
         .into_iter()
         .map(|simp| {
-            let player = Player::with_rating(simp.cur_mu, simp.cur_sigma, 0);
+            let sig = match simp.cur_sigma {
+                Some(sig) => sig,
+                None => {
+                    const SIG_LIM_SQ: f64 = 80. * 80.;
+                    const WEIGHT: f64 = 0.2;
+                    let sig_perf_sq = (1. + 1. / WEIGHT) * SIG_LIM_SQ;
+                    let sig_drift_sq = WEIGHT * SIG_LIM_SQ;
+                    let mut sig_sq = 350. * 350.;
+                    for _ in 0..simp.num_contests.unwrap_or(0) {
+                        sig_sq += sig_drift_sq;
+                        sig_sq *= sig_perf_sq / (sig_sq + sig_perf_sq);
+                    }
+                    sig_sq.sqrt()
+                }
+            };
+            let player = Player::with_rating(simp.cur_mu, sig, 0);
             (simp.handle, RefCell::new(player))
         })
         .collect()
