@@ -22,7 +22,7 @@ fn eval_equal(term: &TanhTerm, x: f64) -> (f64, f64) {
 #[derive(Debug)]
 pub struct SimpleEloMMR {
     // the weight of each new contest
-    pub default_weight: f64,
+    pub weight_limit: f64,
     // each contest participation adds an amount of drift such that, in the absence of
     // much time passing, the limiting skill uncertainty's square approaches this value
     pub sig_limit: f64,
@@ -35,7 +35,7 @@ pub struct SimpleEloMMR {
 impl Default for SimpleEloMMR {
     fn default() -> Self {
         Self {
-            default_weight: 0.2,
+            weight_limit: 0.2,
             sig_limit: 80.,
             drift_per_sec: 0.,
             transfer_speed: 1.,
@@ -45,7 +45,7 @@ impl Default for SimpleEloMMR {
 
 impl SimpleEloMMR {
     fn sig_perf_and_drift(&self, mut contest_weight: f64) -> (f64, f64) {
-        contest_weight *= self.default_weight;
+        contest_weight *= self.weight_limit;
         let sig_perf = (1. + 1. / contest_weight).sqrt() * self.sig_limit;
         let sig_drift_sq = contest_weight * self.sig_limit * self.sig_limit;
         (sig_perf, sig_drift_sq)

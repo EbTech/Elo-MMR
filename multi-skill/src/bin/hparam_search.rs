@@ -32,17 +32,19 @@ fn main() {
     let mut systems: Vec<Box<dyn RatingSystem + Send>> = vec![];
 
     for beta in beta_range.clone() {
-        for weight_multiplier in log_space(0.05, 10., 12, 0.01) {
-            let system = systems::CodeforcesSys {
-                beta,
-                weight_multiplier,
-            };
+        for weight in log_space(0.05, 10., 12, 0.01) {
+            let system = systems::CodeforcesSys { beta, weight };
             systems.push(Box::new(system));
         }
     }
-    for weight_multiplier in log_space(0.05, 10., 60, 0.01) {
-        let system = systems::TopcoderSys { weight_multiplier };
-        systems.push(Box::new(system));
+    for weight_noob in log_space(0.3, 0.9, 8, 0.01) {
+        for weight_limit in log_space(0.1 * weight_noob, weight_noob, 12, 0.01) {
+            let system = systems::TopcoderSys {
+                weight_noob,
+                weight_limit,
+            };
+            systems.push(Box::new(system));
+        }
     }
     for eps in log_space(0.1, 100., 10, 0.1) {
         for beta in beta_range.clone() {
@@ -57,7 +59,7 @@ fn main() {
             }
         }
     }
-    for default_weight in log_space(0.01, 2., 15, 0.01) {
+    for weight_limit in log_space(0.01, 2., 15, 0.01) {
         for sig_limit in log_space(20., 160., 10, 5.) {
             for &split_ties in &[false, true] {
                 // make the algorithm fast
@@ -66,7 +68,7 @@ fn main() {
 
                 // Gaussian performance model
                 let system = systems::EloMMR {
-                    default_weight,
+                    weight_limit,
                     sig_limit,
                     drift_per_sec: 0.,
                     split_ties,
@@ -80,7 +82,7 @@ fn main() {
                 let rho_vals = &[0., 0.04, 0.2, 1., 5., f64::INFINITY];
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
-                        default_weight,
+                        weight_limit,
                         sig_limit,
                         drift_per_sec: 0.,
                         split_ties,

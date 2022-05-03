@@ -139,7 +139,7 @@ pub enum EloMMRVariant {
 #[derive(Debug)]
 pub struct EloMMR {
     // the weight of each new contest
-    pub default_weight: f64,
+    pub weight_limit: f64,
     // each contest participation adds an amount of drift such that, in the absence of
     // much time passing, the limiting skill uncertainty's square approaches this value
     pub sig_limit: f64,
@@ -177,18 +177,18 @@ impl EloMMR {
     // beta must exceed sig_limit, the limiting uncertainty for a player with long history
     // the ratio (sig_limit / beta) effectively determines the rating update weight
     pub fn from_limit(
-        default_weight: f64,
+        weight_limit: f64,
         sig_limit: f64,
         split_ties: bool,
         fast: bool,
         variant: EloMMRVariant,
     ) -> Self {
-        assert!(default_weight > 0.);
+        assert!(weight_limit > 0.);
         assert!(sig_limit > 0.);
         let subsample_size = if fast { 100 } else { usize::MAX };
         let subsample_bucket = if fast { 2. } else { 1e-5 };
         Self {
-            default_weight,
+            weight_limit,
             sig_limit,
             drift_per_sec: 0.,
             split_ties,
@@ -199,7 +199,7 @@ impl EloMMR {
     }
 
     fn sig_perf_and_drift(&self, mut contest_weight: f64) -> (f64, f64) {
-        contest_weight *= self.default_weight;
+        contest_weight *= self.weight_limit;
         let sig_perf = (1. + 1. / contest_weight).sqrt() * self.sig_limit;
         let sig_drift_sq = contest_weight * self.sig_limit * self.sig_limit;
         (sig_perf, sig_drift_sq)
