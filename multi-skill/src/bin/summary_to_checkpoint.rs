@@ -15,6 +15,7 @@ fn make_checkpoint(players: Vec<SimplePlayer>) -> PlayersByName {
     players
         .into_iter()
         .map(|simp| {
+            // In priority order: use cur_sigma, num_contests, or a default
             let sig = match simp.cur_sigma {
                 Some(sig) => sig,
                 None => {
