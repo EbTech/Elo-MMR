@@ -1,5 +1,5 @@
 use multi_skill::data_processing::{read_csv, write_json};
-use multi_skill::systems::{Player, PlayersByName};
+use multi_skill::systems::{Player, PlayerEvent, PlayersByName};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 
@@ -23,14 +23,26 @@ fn make_checkpoint(players: Vec<SimplePlayer>) -> PlayersByName {
                     let sig_perf_sq = (1. + 1. / WEIGHT) * SIG_LIM_SQ;
                     let sig_drift_sq = WEIGHT * SIG_LIM_SQ;
                     let mut sig_sq = 350. * 350.;
-                    for _ in 0..simp.num_contests.unwrap_or(0) {
+                    for _ in 0..simp.num_contests.unwrap_or(1) {
                         sig_sq += sig_drift_sq;
                         sig_sq *= sig_perf_sq / (sig_sq + sig_perf_sq);
                     }
                     sig_sq.sqrt()
                 }
             };
-            let player = Player::with_rating(simp.cur_mu, sig, 0);
+
+            // Hack to create a Player with a non-empty history,
+            // when we don't have access to their actual history.
+            let mut player = Player::with_rating(simp.cur_mu, sig, 0);
+            let fake_event = PlayerEvent {
+                contest_index: 0,
+                rating_mu: 0,
+                rating_sig: 0,
+                perf_score: 0,
+                place: 0,
+            };
+            player.event_history.push(fake_event);
+            player.update_rating(player.approx_posterior, simp.cur_mu);
             (simp.handle, RefCell::new(player))
         })
         .collect()
