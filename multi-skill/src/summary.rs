@@ -32,17 +32,6 @@ pub struct PlayerSummary {
     pub handle: String,
 }
 
-pub fn get_display_rating_from_ints(mu: i32, sig: i32) -> i32 {
-    // TODO: get rid of the magic numbers 3 and 80!
-    //       3 gives a conservative estimate: use 0 to get mean estimates
-    //       80 is Elo-MMR's default sig_lim
-    mu - 3 * (sig - 80)
-}
-
-pub fn get_display_rating(event: &PlayerEvent) -> i32 {
-    get_display_rating_from_ints(event.rating_mu, event.rating_sig)
-}
-
 pub fn make_leaderboard(
     players: &HashMap<String, RefCell<Player>>,
     rated_since: u64,
@@ -64,14 +53,14 @@ pub fn make_leaderboard(
         let max_rating = player
             .event_history
             .iter()
-            .map(get_display_rating)
+            .map(PlayerEvent::get_display_rating)
             .max()
             .unwrap();
-        let display_rating = get_display_rating(last_event);
+        let display_rating = last_event.get_display_rating();
         let prev_rating = if num_contests == 1 {
-            get_display_rating_from_ints(1500, 350)
+            0
         } else {
-            get_display_rating(&player.event_history[num_contests - 2])
+            player.event_history[num_contests - 2].get_display_rating()
         };
         rating_data.push(PlayerSummary {
             rank: None,
@@ -90,7 +79,7 @@ pub fn make_leaderboard(
         if player.update_time > rated_since {
             if let Some(title_id) = (0..NUM_TITLES)
                 .rev()
-                .find(|&i| get_display_rating(last_event) >= TITLE_BOUND[i])
+                .find(|&i| display_rating >= TITLE_BOUND[i])
             {
                 title_count[title_id] += 1;
             }

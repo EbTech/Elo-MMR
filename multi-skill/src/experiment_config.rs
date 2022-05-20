@@ -1,7 +1,7 @@
 use crate::data_processing::{get_dataset_by_name, ContestDataset, Dataset};
 use crate::systems::{
     simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, PlayersByName, RatingSystem,
-    TopcoderSys, TrueSkillSPb, BAR,
+    SimpleEloMMR, TopcoderSys, TrueSkillSPb, BAR,
 };
 
 use crate::data_processing::{read_json, write_json};
@@ -120,6 +120,14 @@ impl Experiment {
                 subsample_size: config.system.params[3] as usize,
                 subsample_bucket: config.system.params[4],
                 variant: EloMMRVariant::Logistic(config.system.params[5]),
+            }),
+            "mmr-simple" => Box::new(SimpleEloMMR {
+                weight_limit: config.system.params[0],
+                sig_limit: config.system.params[1],
+                drift_per_sec: 0.,
+                split_ties: config.system.params[2] > 0.,
+                history_len: config.system.params[3] as usize,
+                transfer_speed: config.system.params[4],
             }),
             x => panic!("'{}' is not a valid system name!", x),
         };

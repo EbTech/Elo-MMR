@@ -40,7 +40,7 @@ RUST_LOG=debug cargo run --release --bin rate file: ../experiments/codeforces/mm
 
 To test the new checkpointing feature, try
 ```
-cargo run --release --bin rate_from_configs ../experiments/testing/mmr-cf-1to10.json ../experiments/testing/mmr-cf-11to20.json
+RUST_LOG=debug cargo run --release --bin rate_from_configs ../experiments/testing/mmr-cf-1to10.json ../experiments/testing/mmr-cf-11to20.json
 ```
 which produces state checkpoint files in the `experiments/testing/` directory.
 

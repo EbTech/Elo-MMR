@@ -14,9 +14,9 @@ fn eval_grea(term: &TanhTerm, x: f64) -> (f64, f64) {
     (val + term.w_out, val_prime)
 }
 
-fn eval_equal(term: &TanhTerm, x: f64) -> (f64, f64) {
+fn eval_equal(term: &TanhTerm, x: f64, mul: f64) -> (f64, f64) {
     let (val, val_prime) = term.base_values(x);
-    (2. * val, 2. * val_prime)
+    (mul * val, mul * val_prime)
 }
 
 #[derive(Debug)]
@@ -28,6 +28,10 @@ pub struct SimpleEloMMR {
     pub sig_limit: f64,
     // additional variance per second, from a drift that's continuous in time
     pub drift_per_sec: f64,
+    // whether to count ties as half a win plus half a loss
+    pub split_ties: bool,
+    // maximum number of recent contests to store, must be at least 1
+    pub history_len: usize,
     // maximum number of opponents and recent events to use, as a compute-saving approximation
     pub transfer_speed: f64,
 }
@@ -38,6 +42,8 @@ impl Default for SimpleEloMMR {
             weight_limit: 0.2,
             sig_limit: 80.,
             drift_per_sec: 0.,
+            split_ties: false,
+            history_len: usize::MAX,
             transfer_speed: 1.,
         }
     }
@@ -69,13 +75,16 @@ impl RatingSystem for SimpleEloMMR {
                 player.approx_posterior.with_noise(sig_perf).into()
             })
             .collect();
+        let mul = if self.split_ties { 1. } else { 2. };
 
         // The computational bottleneck: update ratings based on contest performance
         standings.into_par_iter().for_each(|(player, lo, hi)| {
             let bounds = (-6000.0, 9000.0);
             let f = |x| {
                 let itr1 = tanh_terms[0..lo].iter().map(|term| eval_less(term, x));
-                let itr2 = tanh_terms[lo..=hi].iter().map(|term| eval_equal(term, x));
+                let itr2 = tanh_terms[lo..=hi]
+                    .iter()
+                    .map(|term| eval_equal(term, x, mul));
                 let itr3 = tanh_terms[hi + 1..].iter().map(|term| eval_grea(term, x));
                 itr1.chain(itr2)
                     .chain(itr3)
@@ -87,7 +96,7 @@ impl RatingSystem for SimpleEloMMR {
                     mu: mu_perf,
                     sig: sig_perf,
                 },
-                usize::MAX,
+                self.history_len,
             );
         });
     }

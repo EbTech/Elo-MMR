@@ -1,0 +1,13 @@
+{
+  "load_checkpoint": "../experiments/testing/codechef-state.json",
+  "save_checkpoint": "../experiments/testing/codechef-state.json",
+  "skip_contests": 10,
+  "max_contests": 1,
+  "mu_noob": 1600,
+  "sig_noob": 280,
+  "contest_source": "codechef",
+  "system": {
+    "method": "mmr-simple",
+    "params": [0.2, 80, 1, 50, 0.1]
+  }
+}

@@ -338,7 +338,7 @@ impl RatingSystem for EloMMR {
                             mu: mu_perf,
                             sig: sig_perf,
                         },
-                        self.subsample_size,
+                        self.subsample_size, // TODO: make separate history length parameter
                     );
                 }
             };

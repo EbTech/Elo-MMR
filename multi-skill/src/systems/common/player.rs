@@ -11,6 +11,15 @@ pub struct PlayerEvent {
     pub place: usize,
 }
 
+impl PlayerEvent {
+    pub fn get_display_rating(&self) -> i32 {
+        // TODO: get rid of the magic numbers 3 and 80!
+        //       3 is a conservative number of stdevs: use 0 to get mean estimates
+        //       80 is Elo-MMR's default sig_lim
+        self.rating_mu - 3 * (self.rating_sig - 80)
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     normal_factor: Rating,
