@@ -1,6 +1,7 @@
 //! Codeforces system details: https://codeforces.com/blog/entry/20762
 
 use super::{robust_average, Player, Rating, RatingSystem};
+use crate::data_processing::ContestRatingParams;
 use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
 use rayon::prelude::*;
 
@@ -60,8 +61,12 @@ impl CodeforcesSys {
 }
 
 impl RatingSystem for CodeforcesSys {
-    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
-        let sig_perf = self.beta / contest_weight.sqrt();
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        standings: Vec<(&mut Player, usize, usize)>,
+    ) {
+        let sig_perf = self.beta / params.weight.sqrt();
         let all_ratings: Vec<Rating> = standings
             .par_iter()
             .map(|(player, _, _)| Rating {
@@ -74,14 +79,16 @@ impl RatingSystem for CodeforcesSys {
             .into_par_iter()
             .zip(all_ratings.par_iter())
             .for_each(|((player, lo, hi), &my_rating)| {
-                let geo_perf = self.compute_performance(
-                    sig_perf,
-                    &all_ratings[..lo],
-                    &all_ratings[hi + 1..],
-                    &all_ratings,
-                    my_rating,
-                );
-                let wt = contest_weight * self.weight;
+                let geo_perf = self
+                    .compute_performance(
+                        sig_perf,
+                        &all_ratings[..lo],
+                        &all_ratings[hi + 1..],
+                        &all_ratings,
+                        my_rating,
+                    )
+                    .min(params.perf_ceiling);
+                let wt = params.weight * self.weight;
                 let mu = (my_rating.mu + wt * geo_perf) / (1. + wt);
                 let sig = player.approx_posterior.sig;
                 player.update_rating(Rating { mu, sig }, geo_perf);

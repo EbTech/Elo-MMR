@@ -76,7 +76,8 @@ Contests are stored in JSON format, with the standings listed in order from firs
     "standings": [[<str, player 0's name>, <int, low rank>, <int, high rank>], 
                   [<str, player 1's name>, <int, low rank>, <int, high rank>],
                   ...]]
-    "weight": <optional float, defaults to 1 if not included>
+    "weight": <optional float, defaults to 1 if not included>,
+    "perf_ceiling": <optional float, defaults to infinity if not included>
 }
 ```
 The low and high ranks are 0-indexed and will differ for players who are involved in a tie. They specify the range of players with whom this player tied. For example, if there is a three-way tie at the top, players 0, 1 and 2 will each have a low rank of 0 and a high rank of 2.

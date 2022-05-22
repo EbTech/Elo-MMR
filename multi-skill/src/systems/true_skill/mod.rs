@@ -3,6 +3,7 @@ mod nodes;
 mod normal;
 
 use super::{Player, Rating, RatingSystem};
+use crate::data_processing::ContestRatingParams;
 
 use nodes::{FuncNode, GreaterNode, LeqNode, ProdNode, SumNode, TreeNode, ValueNode};
 use normal::Gaussian;
@@ -231,7 +232,11 @@ impl TrueSkillSPb {
 }
 
 impl RatingSystem for TrueSkillSPb {
-    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        standings: Vec<(&mut Player, usize, usize)>,
+    ) {
         let mut contest = TSContest::new();
 
         for i in 1..standings.len() {
@@ -253,6 +258,6 @@ impl RatingSystem for TrueSkillSPb {
         }
 
         // do inference
-        self.inference(contest_weight, &mut contest);
+        self.inference(params.weight, &mut contest);
     }
 }

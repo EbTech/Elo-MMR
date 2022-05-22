@@ -1,6 +1,7 @@
 //! Glicko system details: https://en.wikipedia.org/wiki/Glicko_rating_system
 
 use super::{Player, Rating, RatingSystem};
+use crate::data_processing::ContestRatingParams;
 use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
 use rayon::prelude::*;
 
@@ -27,8 +28,12 @@ impl Glicko {
 }
 
 impl RatingSystem for Glicko {
-    fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let sig_perf = self.beta / contest_weight.sqrt();
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        mut standings: Vec<(&mut Player, usize, usize)>,
+    ) {
+        let sig_perf = self.beta / params.weight.sqrt();
         let all_ratings: Vec<(Rating, usize, f64)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {

@@ -164,7 +164,7 @@ impl Experiment {
                 "Processing\n{:6} contestants in{:5}th contest with wt={}: {}",
                 contest.standings.len(),
                 index,
-                contest.weight,
+                contest.rating_params.weight,
                 contest.name
             );
 

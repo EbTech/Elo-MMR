@@ -138,7 +138,7 @@ fn write_round(
         let contest = Contest {
             name: format!("{} {}", contest_name, round_name),
             url: None, // TODO: add scoresheet URL
-            weight: 1.0,
+            rating_params: Default::default(),
             time_seconds: datetime.timestamp() as u64,
             standings: process_round(round),
         };

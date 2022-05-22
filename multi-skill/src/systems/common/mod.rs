@@ -1,6 +1,6 @@
 mod player;
 
-use crate::data_processing::Contest;
+use crate::data_processing::{Contest, ContestRatingParams};
 use crate::numerical::{solve_newton, TANH_MULTIPLIER};
 pub use player::{Player, PlayerEvent};
 use serde::{Deserialize, Serialize};
@@ -94,7 +94,11 @@ pub fn robust_average(
 }
 
 pub trait RatingSystem: std::fmt::Debug {
-    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>);
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        standings: Vec<(&mut Player, usize, usize)>,
+    );
 }
 
 pub fn outcome_free<T>(standings: &[(T, usize, usize)]) -> bool {
@@ -164,7 +168,7 @@ pub fn simulate_contest(
         })
         .collect();
 
-    system.round_update(contest.weight, standings);
+    system.round_update(contest.rating_params, standings);
 
     // TODO TEAMS: each participant uses its team's update using system.infer_from_team(),
     // making sure to copy the team's event_history metadata as well

@@ -2,6 +2,7 @@
 //! Further analysis: https://web.archive.org/web/20120417104152/http://brucemerry.org.za:80/tc-rating/rating_submit1.pdf
 
 use super::{Player, Rating, RatingSystem};
+use crate::data_processing::ContestRatingParams;
 use crate::numerical::{standard_normal_cdf, standard_normal_cdf_inv};
 use rayon::prelude::*;
 
@@ -28,7 +29,11 @@ impl TopcoderSys {
 }
 
 impl RatingSystem for TopcoderSys {
-    fn round_update(&self, contest_weight: f64, standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        standings: Vec<(&mut Player, usize, usize)>,
+    ) {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
             .iter()
@@ -52,7 +57,7 @@ impl RatingSystem for TopcoderSys {
             mean_vol_sq.sqrt()
         };
 
-        let sqrt_contest_weight = contest_weight.sqrt();
+        let sqrt_contest_weight = params.weight.sqrt();
         let weight_extra = self.weight_noob - self.weight_limit;
         let new_ratings: Vec<(Rating, f64)> = standings
             .par_iter()
@@ -77,13 +82,14 @@ impl RatingSystem for TopcoderSys {
                 let ex_perf = -standard_normal_cdf_inv(ex_rank / num_coders);
                 let ac_perf = -standard_normal_cdf_inv(ac_rank / num_coders);
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
+                let perf_as = perf_as.min(params.perf_ceiling);
 
                 let num_contests = player.event_history.len() as f64;
                 let mut weight = self.weight_limit + weight_extra / num_contests;
                 let mut cap = 150. + 1500. / (num_contests + 1.);
                 cap *= sqrt_contest_weight * weight / (0.18 + 0.42 / num_contests);
 
-                weight *= contest_weight / (1. - weight);
+                weight *= params.weight / (1. - weight);
                 if old_rating >= 2500. {
                     weight *= 0.8;
                 } else if old_rating >= 2000. {

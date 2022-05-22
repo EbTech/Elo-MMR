@@ -79,7 +79,7 @@ impl TryFrom<(usize, CTFContest, &HashMap<usize, String>)> for Contest {
         Ok(Self {
             name: json_contest.title,
             url: Some(url),
-            weight: 1.0,
+            rating_params: Default::default(),
             time_seconds: json_contest.time.round() as u64,
             standings,
         })

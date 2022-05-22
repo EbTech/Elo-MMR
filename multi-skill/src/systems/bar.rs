@@ -2,6 +2,7 @@
 //! from https://jmlr.csail.mit.edu/papers/volume12/weng11a/weng11a.pdf
 
 use super::{Player, Rating, RatingSystem};
+use crate::data_processing::ContestRatingParams;
 use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
 use rayon::prelude::*;
 
@@ -30,7 +31,11 @@ impl BAR {
 }
 
 impl RatingSystem for BAR {
-    fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        mut standings: Vec<(&mut Player, usize, usize)>,
+    ) {
         let all_ratings: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {
@@ -39,7 +44,7 @@ impl RatingSystem for BAR {
             })
             .collect();
 
-        let sig_perf_sq = self.beta.powi(2) / contest_weight;
+        let sig_perf_sq = self.beta.powi(2) / params.weight;
         standings.into_par_iter().for_each(|(player, my_lo, _)| {
             let my_rating = &player.approx_posterior;
             let old_sig_sq = my_rating.sig.powi(2);

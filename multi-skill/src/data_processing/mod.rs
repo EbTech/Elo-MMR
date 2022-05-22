@@ -12,11 +12,38 @@ use std::path::Path;
 pub const CURRENT_YEAR: usize = 2022;
 
 fn one() -> f64 {
-    1.0
+    1.
+}
+
+fn f64_max() -> f64 {
+    f64::MAX
 }
 
 fn is_one(&weight: &f64) -> bool {
     weight == one()
+}
+
+fn is_f64_max(&num: &f64) -> bool {
+    num == f64::MAX
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub struct ContestRatingParams {
+    /// The relative weight of a contest, default is 1.
+    #[serde(default = "one", skip_serializing_if = "is_one")]
+    pub weight: f64,
+    /// Maximum performance this contest is intended to measure, default is infinity.
+    #[serde(default = "f64_max", skip_serializing_if = "is_f64_max")]
+    pub perf_ceiling: f64,
+}
+
+impl Default for ContestRatingParams {
+    fn default() -> Self {
+        Self {
+            weight: one(),
+            perf_ceiling: f64_max(),
+        }
+    }
 }
 
 /// Represents the outcome of a contest.
@@ -26,9 +53,9 @@ pub struct Contest {
     pub name: String,
     /// The source URL, if any.
     pub url: Option<String>,
-    /// The relative weight of a contest, default is 1.
-    #[serde(default = "one", skip_serializing_if = "is_one")]
-    pub weight: f64,
+    /// Parameters that adjust characteristics of rating systems
+    #[serde(flatten)]
+    pub rating_params: ContestRatingParams,
     /// The number of seconds from the Unix Epoch to the end of the contest.
     pub time_seconds: u64,
     /// The list of standings, containing a name and the enclosing range of ties.
@@ -41,7 +68,7 @@ impl Contest {
         Self {
             name: format!("Round #{}", index),
             url: None,
-            weight: 1.,
+            rating_params: Default::default(),
             time_seconds: index as u64 * 86_400,
             standings: vec![],
         }
@@ -90,7 +117,7 @@ impl Contest {
         let mut contest = Self {
             name: self.name.clone(),
             url: self.url.clone(),
-            weight: self.weight,
+            rating_params: self.rating_params,
             time_seconds: self.time_seconds,
             standings,
         };
@@ -123,7 +150,7 @@ impl Contest {
 pub struct ContestSummary {
     pub name: String,
     pub url: Option<String>,
-    pub weight: f64,
+    pub rating_params: ContestRatingParams,
     pub time_seconds: u64,
     pub num_contestants: usize,
 }
@@ -134,7 +161,7 @@ impl ContestSummary {
         Self {
             name: contest.name.clone(),
             url: contest.url.clone(),
-            weight: contest.weight,
+            rating_params: contest.rating_params,
             time_seconds: contest.time_seconds,
             num_contestants: contest.standings.len(),
         }

@@ -1,5 +1,6 @@
 //! Elo-R system details: https://arxiv.org/abs/2101.00400
 use super::{Player, Rating, RatingSystem, TanhTerm};
+use crate::data_processing::ContestRatingParams;
 use crate::numerical::{solve_newton, standard_normal_cdf, standard_normal_pdf};
 use core::ops::Range;
 use rayon::prelude::*;
@@ -234,8 +235,12 @@ impl EloMMR {
 }
 
 impl RatingSystem for EloMMR {
-    fn round_update(&self, contest_weight: f64, mut standings: Vec<(&mut Player, usize, usize)>) {
-        let (sig_perf, discrete_drift) = self.sig_perf_and_drift(contest_weight);
+    fn round_update(
+        &self,
+        params: ContestRatingParams,
+        mut standings: Vec<(&mut Player, usize, usize)>,
+    ) {
+        let (sig_perf, discrete_drift) = self.sig_perf_and_drift(params.weight);
 
         // Update ratings due to waiting period between contests,
         // then use it to create Gaussian terms for the Q-function.
@@ -332,7 +337,7 @@ impl RatingSystem for EloMMR {
                             .map(|(rating, ranks)| rating.evals(x, ranks, my_rank, self.split_ties))
                             .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
                     };
-                    let mu_perf = solve_newton(bounds, f);
+                    let mu_perf = solve_newton(bounds, f).min(params.perf_ceiling);
                     player.update_rating_with_logistic(
                         Rating {
                             mu: mu_perf,
