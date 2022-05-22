@@ -1,6 +1,6 @@
 {
   "save_checkpoint": "../experiments/testing/codechef-state.json",
-  "max_contests": 10,
+  "max_contests": 630,
   "mu_noob": 1600,
   "sig_noob": 280,
   "contest_source": "codechef",

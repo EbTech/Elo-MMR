@@ -1,9 +1,9 @@
 {
   "load_checkpoint": "../experiments/testing/codechef-state.json",
   "save_checkpoint": "../experiments/testing/codechef-state.json",
-  "skip_contests": 10,
-  "max_contests": 1,
-  "mu_noob": 1600,
+  "skip_contests": 630,
+  "max_contests": 999,
+  "mu_noob": 1500,
   "sig_noob": 280,
   "contest_source": "codechef",
   "system": {
