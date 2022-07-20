@@ -42,8 +42,16 @@ impl Player {
         }
     }
 
+    pub fn times_played(&self) -> usize {
+        self.event_history.len()
+    }
+
+    pub fn times_played_excl(&self) -> usize {
+        self.event_history.len() - 1
+    }
+
     pub fn is_newcomer(&self) -> bool {
-        self.event_history.len() <= 1
+        self.times_played_excl() == 0
     }
 
     pub fn update_rating(&mut self, rating: Rating, performance_score: f64) {

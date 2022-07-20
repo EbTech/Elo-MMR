@@ -105,6 +105,7 @@ impl Experiment {
             }),
             "mmx" => Box::new(EloMMR {
                 weight_limit: config.system.params[0],
+                noob_delay: vec![], // TODO: add this to the config spec
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,
@@ -114,6 +115,7 @@ impl Experiment {
             }),
             "mmr" => Box::new(EloMMR {
                 weight_limit: config.system.params[0],
+                noob_delay: vec![], // TODO: add this to the config spec
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,
@@ -123,6 +125,7 @@ impl Experiment {
             }),
             "mmr-simple" => Box::new(SimpleEloMMR {
                 weight_limit: config.system.params[0],
+                noob_delay: vec![0.6, 0.8], // TODO: add this to the config spec
                 sig_limit: config.system.params[1],
                 drift_per_sec: 0.,
                 split_ties: config.system.params[2] > 0.,

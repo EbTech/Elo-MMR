@@ -141,6 +141,8 @@ pub enum EloMMRVariant {
 pub struct EloMMR {
     // the weight of each new contest
     pub weight_limit: f64,
+    // weight multipliers (less than one) to apply on first few contests
+    pub noob_delay: Vec<f64>,
     // each contest participation adds an amount of drift such that, in the absence of
     // much time passing, the limiting skill uncertainty's square approaches this value
     pub sig_limit: f64,
@@ -186,10 +188,12 @@ impl EloMMR {
     ) -> Self {
         assert!(weight_limit > 0.);
         assert!(sig_limit > 0.);
+        let noob_delay = vec![];
         let subsample_size = if fast { 100 } else { usize::MAX };
         let subsample_bucket = if fast { 2. } else { 1e-5 };
         Self {
             weight_limit,
+            noob_delay,
             sig_limit,
             drift_per_sec: 0.,
             split_ties,
@@ -199,8 +203,9 @@ impl EloMMR {
         }
     }
 
-    fn sig_perf_and_drift(&self, mut contest_weight: f64) -> (f64, f64) {
+    fn sig_perf_and_drift(&self, mut contest_weight: f64, n: usize) -> (f64, f64) {
         contest_weight *= self.weight_limit;
+        contest_weight *= self.noob_delay.get(n).unwrap_or(&1.);
         let sig_perf = (1. + 1. / contest_weight).sqrt() * self.sig_limit;
         let sig_drift_sq = contest_weight * self.sig_limit * self.sig_limit;
         (sig_perf, sig_drift_sq)
@@ -240,8 +245,6 @@ impl RatingSystem for EloMMR {
         params: ContestRatingParams,
         mut standings: Vec<(&mut Player, usize, usize)>,
     ) {
-        let (sig_perf, discrete_drift) = self.sig_perf_and_drift(params.weight);
-
         // Update ratings due to waiting period between contests,
         // then use it to create Gaussian terms for the Q-function.
         // The rank must also be stored in order to determine if it's a win, loss, or tie
@@ -249,6 +252,8 @@ impl RatingSystem for EloMMR {
         let mut base_terms: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {
+                let (sig_perf, discrete_drift) =
+                    self.sig_perf_and_drift(params.weight, player.times_played_excl());
                 let continuous_drift = self.drift_per_sec * player.update_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 match self.variant {
@@ -313,6 +318,7 @@ impl RatingSystem for EloMMR {
                 );
             }
             let bounds = (-6000.0, 9000.0);
+            let (sig_perf, _) = self.sig_perf_and_drift(params.weight, player.times_played_excl());
 
             match self.variant {
                 EloMMRVariant::Gaussian => {

@@ -48,7 +48,7 @@ pub fn make_leaderboard(
     };
     for (handle, player) in players {
         let player = player.borrow_mut();
-        let num_contests = player.event_history.len();
+        let num_contests = player.times_played();
         let last_event = player.event_history.last().unwrap();
         let max_rating = player
             .event_history

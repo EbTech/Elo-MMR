@@ -69,6 +69,7 @@ fn main() {
                 // Gaussian performance model
                 let system = systems::EloMMR {
                     weight_limit,
+                    noob_delay: vec![],
                     sig_limit,
                     drift_per_sec: 0.,
                     split_ties,
@@ -83,6 +84,7 @@ fn main() {
                 for &rho in rho_vals {
                     let system = systems::EloMMR {
                         weight_limit,
+                        noob_delay: vec![],
                         sig_limit,
                         drift_per_sec: 0.,
                         split_ties,

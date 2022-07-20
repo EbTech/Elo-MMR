@@ -183,7 +183,7 @@ pub fn get_participant_ratings(
 
     for &(ref handle, lo, hi) in contest_standings {
         if let Some(player) = players.get(handle).map(RefCell::borrow) {
-            if player.event_history.len() >= min_history {
+            if player.times_played() >= min_history {
                 standings.push((player.approx_posterior, lo, hi));
             }
         }

@@ -24,6 +24,8 @@ fn eval_equal(term: &TanhTerm, x: f64, mul: f64) -> (f64, f64) {
 pub struct SimpleEloMMR {
     // the weight of each new contest
     pub weight_limit: f64,
+    // weight multipliers (less than one) to apply on first few contests
+    pub noob_delay: Vec<f64>,
     // each contest participation adds an amount of drift such that, in the absence of
     // much time passing, the limiting skill uncertainty's square approaches this value
     pub sig_limit: f64,
@@ -41,6 +43,7 @@ impl Default for SimpleEloMMR {
     fn default() -> Self {
         Self {
             weight_limit: 0.2,
+            noob_delay: vec![0.6, 0.8], // TODO: make the default empty once it's configurable
             sig_limit: 80.,
             drift_per_sec: 0.,
             split_ties: false,
@@ -51,8 +54,9 @@ impl Default for SimpleEloMMR {
 }
 
 impl SimpleEloMMR {
-    fn sig_perf_and_drift(&self, mut contest_weight: f64) -> (f64, f64) {
+    fn sig_perf_and_drift(&self, mut contest_weight: f64, n: usize) -> (f64, f64) {
         contest_weight *= self.weight_limit;
+        contest_weight *= self.noob_delay.get(n).unwrap_or(&1.);
         let sig_perf = (1. + 1. / contest_weight).sqrt() * self.sig_limit;
         let sig_drift_sq = contest_weight * self.sig_limit * self.sig_limit;
         (sig_perf, sig_drift_sq)
@@ -65,8 +69,6 @@ impl RatingSystem for SimpleEloMMR {
         params: ContestRatingParams,
         mut standings: Vec<(&mut Player, usize, usize)>,
     ) {
-        let (sig_perf, discrete_drift) = self.sig_perf_and_drift(params.weight);
-
         // Update ratings due to waiting period between contests,
         // then use it to create Gaussian terms for the Q-function.
         // The rank must also be stored in order to determine if it's a win,
@@ -74,6 +76,8 @@ impl RatingSystem for SimpleEloMMR {
         let tanh_terms: Vec<TanhTerm> = standings
             .par_iter_mut()
             .map(|(player, _, _)| {
+                let (sig_perf, discrete_drift) =
+                    self.sig_perf_and_drift(params.weight, player.times_played_excl());
                 let continuous_drift = self.drift_per_sec * player.update_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 player.add_noise_best(sig_drift, self.transfer_speed);
@@ -96,6 +100,7 @@ impl RatingSystem for SimpleEloMMR {
                     .fold((0., 0.), |(s, sp), (v, vp)| (s + v, sp + vp))
             };
             let mu_perf = solve_newton(bounds, f).min(params.perf_ceiling);
+            let (sig_perf, _) = self.sig_perf_and_drift(params.weight, player.times_played_excl());
             player.update_rating_with_logistic(
                 Rating {
                     mu: mu_perf,

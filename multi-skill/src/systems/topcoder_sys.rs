@@ -84,7 +84,7 @@ impl RatingSystem for TopcoderSys {
                 let perf_as = old_rating + c_factor * (ac_perf - ex_perf);
                 let perf_as = perf_as.min(params.perf_ceiling);
 
-                let num_contests = player.event_history.len() as f64;
+                let num_contests = player.times_played() as f64;
                 let mut weight = self.weight_limit + weight_extra / num_contests;
                 let mut cap = 150. + 1500. / (num_contests + 1.);
                 cap *= sqrt_contest_weight * weight / (0.18 + 0.42 / num_contests);
