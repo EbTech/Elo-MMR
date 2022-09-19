@@ -99,6 +99,11 @@ pub trait RatingSystem: std::fmt::Debug {
         params: ContestRatingParams,
         standings: Vec<(&mut Player, usize, usize)>,
     );
+
+    /// Computes the update for only one player, given their contest performance
+    fn individual_update(&self, params: ContestRatingParams, player: &mut Player, mu_perf: f64) {
+        unimplemented!("Currently, only SimpleEloMMR allows performance-based updates");
+    }
 }
 
 pub fn outcome_free<T>(standings: &[(T, usize, usize)]) -> bool {
