@@ -254,7 +254,7 @@ impl RatingSystem for EloMMR {
             .map(|(player, lo, _)| {
                 let (sig_perf, discrete_drift) =
                     self.sig_perf_and_drift(params.weight, player.times_played_excl());
-                let continuous_drift = self.drift_per_sec * player.update_time as f64;
+                let continuous_drift = self.drift_per_sec * player.delta_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 match self.variant {
                     // if transfer_speed is infinite or the prior is Gaussian, the logistic

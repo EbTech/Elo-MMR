@@ -67,7 +67,7 @@ impl RatingSystem for SimpleEloMMR {
     fn individual_update(&self, params: ContestRatingParams, player: &mut Player, mu_perf: f64) {
         let (sig_perf, discrete_drift) =
             self.sig_perf_and_drift(params.weight, player.times_played_excl());
-        let continuous_drift = self.drift_per_sec * player.update_time as f64;
+        let continuous_drift = self.drift_per_sec * player.delta_time as f64;
         let sig_drift = (discrete_drift + continuous_drift).sqrt();
         player.add_noise_best(sig_drift, self.transfer_speed);
 
@@ -94,7 +94,7 @@ impl RatingSystem for SimpleEloMMR {
             .map(|(player, _, _)| {
                 let (sig_perf, discrete_drift) =
                     self.sig_perf_and_drift(params.weight, player.times_played_excl());
-                let continuous_drift = self.drift_per_sec * player.update_time as f64;
+                let continuous_drift = self.drift_per_sec * player.delta_time as f64;
                 let sig_drift = (discrete_drift + continuous_drift).sqrt();
                 player.add_noise_best(sig_drift, self.transfer_speed);
                 player.approx_posterior.with_noise(sig_perf).into()

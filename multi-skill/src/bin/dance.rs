@@ -56,7 +56,7 @@ fn request(builder: RequestBuilder) -> Result<Document, StatusCode> {
 
 fn get_range(page: &Document, property_name: &str) -> RangeInclusive<u32> {
     let node = page
-        .select(Attr("name", property_name))
+        .find(Attr("name", property_name))
         .next()
         .unwrap_or_else(|| panic!("Can't find node with name={}", property_name));
     let min: u32 = node
@@ -75,7 +75,7 @@ fn get_range(page: &Document, property_name: &str) -> RangeInclusive<u32> {
 fn get_dates_and_urls(page: &Document) -> Vec<(u32, String)> {
     let mut res: Vec<(u32, String)> = Vec::new();
     // Every second one is a date
-    for row in page.select(And(Class("t1n"), Name("tr"))) {
+    for row in page.find(And(Class("t1n"), Name("tr"))) {
         let children: Vec<_> = row.children().collect();
         assert_eq!(children.len(), 2);
 
@@ -98,7 +98,7 @@ fn get_rounds(page: &Document) -> impl Iterator<Item = String> + '_ {
         And(Class("t2b"), Name("td")),
         Or(Name("a"), And(Class("t2n"), Name("td"))),
     );
-    page.select(pred).skip(5).map(|node| {
+    page.find(pred).skip(5).map(|node| {
         if node.name() == Some("a") {
             // Delimit round names with special characters
             "$ ".to_string() + &node.text()
@@ -179,7 +179,7 @@ fn main() {
                             comp_url
                         );
 
-                        let contest_name = match comp_page.select(Class("h4")).next() {
+                        let contest_name = match comp_page.find(Class("h4")).next() {
                             Some(node) => node.text(),
                             None => "Nameless Contest".to_string(),
                         };
@@ -197,7 +197,7 @@ fn main() {
                                         &round_name,
                                         &mut num_rounds,
                                         /*This can be scraped from the O2CM results search. We'll leave it for now*/
-                                        Utc.ymd(inyear as i32, inmonth, inday).and_hms(0, 0, 0),
+                                        Utc.with_ymd_and_hms(inyear as i32, inmonth, inday, 0, 0, 0).unwrap(),
                                     );
                                 }
                                 round_name = tokens[1..tokens.len()].join(" ").to_string();
@@ -235,7 +235,7 @@ fn main() {
                             &contest_name,
                             &round_name,
                             &mut num_rounds,
-                            Utc.ymd(inyear as i32, inmonth, inday).and_hms(0, 0, 0),
+                            Utc.with_ymd_and_hms(inyear as i32, inmonth, inday, 0, 0, 0).unwrap(),
                         );
                     }
                     Err(status) => {

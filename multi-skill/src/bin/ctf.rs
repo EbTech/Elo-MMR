@@ -31,7 +31,7 @@ impl<'a, I: Iterator<Item = Node<'a>>> Iterator for ArchiveRows<'a, I> {
             // This contest has no scoreboard, so skip it
             self.next()
         } else {
-            let node = url_cell.select(Name("a")).next().unwrap();
+            let node = url_cell.find(Name("a")).next().unwrap();
             let path = node.attr("href").unwrap();
             let id = path.strip_prefix("/event/").unwrap();
             Some(id.parse().unwrap())
@@ -59,14 +59,14 @@ for (contest_url, title, time_string) in table {
     tracing::info!("{} {} {}", contest_url, title, time_string);
     let contest_req = client.get(contest_url);
     let contest_page = request(contest_req).expect("Failed HTTP status");
-    let title2 = contest_page.select(Name("h2")).next().unwrap().text();
+    let title2 = contest_page.find(Name("h2")).next().unwrap().text();
     assert_eq!(title, title2);
-    let time2 = contest_page.select(Name("p")).next().unwrap().text();
+    let time2 = contest_page.find(Name("p")).next().unwrap().text();
     let time2 = time2.split("— ").nth(1).unwrap();
     let time2 = time2.split(" UTC").next().unwrap();
     assert_eq!(time_string, time2);
     let table = ScoreboardRows {
-        table: year_page.select(Name("td")),
+        table: year_page.find(Name("td")),
     };
 }
 */
@@ -85,7 +85,7 @@ fn main() {
             let req = client.get(url);
             let page = request(req).expect("Failed HTTP status");
             let table = ArchiveRows {
-                table: page.select(Name("td")),
+                table: page.find(Name("td")),
             };
             let urls = table.collect::<Vec<_>>();
             urls.into_iter().rev()
