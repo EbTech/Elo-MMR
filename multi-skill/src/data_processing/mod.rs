@@ -283,7 +283,7 @@ mod test {
         let first_contest = dataset.get(0);
         let first_winner = &first_contest.standings[0];
 
-        assert_eq!(first_contest.weight, 1.);
+        assert_eq!(first_contest.rating_params.weight, 1.);
         assert_eq!(first_contest.standings.len(), 66);
         assert_eq!(first_winner.0, "vepifanov");
         assert_eq!(first_winner.1, 0);

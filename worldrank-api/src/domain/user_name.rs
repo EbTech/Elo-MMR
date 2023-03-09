@@ -28,7 +28,7 @@ impl AsRef<str> for UserName {
 #[cfg(test)]
 mod tests {
     use super::UserName;
-    use claim::{assert_err, assert_ok};
+    use claims::{assert_err, assert_ok};
 
     #[test]
     fn a_256_grapheme_long_name_is_valid() {

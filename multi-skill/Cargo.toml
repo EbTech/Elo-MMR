@@ -12,24 +12,24 @@ categories = ["algorithms", "mathematics", "game-development"]
 license = "MIT"
 
 [dependencies]
-rayon = "1.5"
-reqwest = { version = "0.11.9", features = ["json", "blocking"] }
+rayon = "1.7"
+reqwest = { version = "0.11.14", features = ["json", "blocking"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-statrs = "0.15.0"
+statrs = "0.16.0"
 overload = "0.1.1"
-csv = "1.1"
-select = "0.6.0-alpha"
+csv = "1.2"
+select = "0.6.0"
 superslice = "1.0"
-tracing = "0.1.32"
-tracing-subscriber = "0.3.9"
-smallvec = { version = "1.8", features = ["union"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
+smallvec = { version = "1.10", features = ["union"] }
 rand = "0.8.5"
 json5 = "0.4.1"
 #f128 = "0.2.9"    (formerly used to test high-precision TrueSkill, but requires GCC's __float128)
-num-traits = "0.2.14"
-itertools = "0.10.3"
-chrono = "0.4.19"
+num-traits = "0.2.15"
+itertools = "0.10.5"
+chrono = "0.4.23"
 
 [[bin]]
 name = "rate"

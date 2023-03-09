@@ -1,5 +1,4 @@
 use super::{ContestSummary, PlayerEvent};
-use multi_skill::summary::get_display_rating;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -16,7 +15,7 @@ pub struct HistoryPoint {
 impl HistoryPoint {
     pub fn new(event: &PlayerEvent, contest: &ContestSummary) -> Self {
         Self {
-            display_rating: get_display_rating(event),
+            display_rating: event.get_display_rating(),
             perf_score: event.perf_score,
             place: event.place,
             num_contestants: contest.num_contestants,
