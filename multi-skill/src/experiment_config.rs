@@ -1,7 +1,7 @@
 use crate::data_processing::{get_dataset_by_name, ContestDataset, Dataset};
 use crate::systems::{
-    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, Glicko, PlayersByName, RatingSystem,
-    SimpleEloMMR, TopcoderSys, TrueSkillSPb, BAR,
+    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, EndureElo, Glicko, PlayersByName,
+    RatingSystem, SimpleEloMMR, TopcoderSys, TrueSkillSPb, BAR,
 };
 
 use crate::data_processing::{read_json, write_json};
@@ -88,6 +88,10 @@ impl Experiment {
                 beta: config.system.params[0],
                 sig_drift: config.system.params[1],
                 kappa: 1e-4,
+            }),
+            "endure" => Box::new(EndureElo {
+                beta: config.system.params[0],
+                sig_drift: config.system.params[1],
             }),
             "cfsys" => Box::new(CodeforcesSys {
                 beta: config.system.params[0],

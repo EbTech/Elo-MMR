@@ -2,6 +2,7 @@ mod bar;
 mod codeforces_sys;
 mod common;
 mod elo_mmr;
+mod endure_elo;
 mod glicko;
 mod simple_elo_mmr;
 mod topcoder_sys;
@@ -14,6 +15,7 @@ pub use common::{
     PlayersByName, Rating, RatingSystem, TanhTerm,
 };
 pub use elo_mmr::{EloMMR, EloMMRVariant};
+pub use endure_elo::EndureElo;
 pub use glicko::Glicko;
 pub use simple_elo_mmr::SimpleEloMMR;
 pub use topcoder_sys::TopcoderSys;
@@ -26,6 +28,7 @@ pub fn get_rating_system_by_name(
     match system_name {
         "bar" => Ok(Box::new(BAR::default())),
         "glicko" => Ok(Box::new(Glicko::default())),
+        "endure" => Ok(Box::new(EndureElo::default())),
         "cfsys" => Ok(Box::new(CodeforcesSys::default())),
         "tcsys" => Ok(Box::new(TopcoderSys::default())),
         "trueskill" => Ok(Box::new(TrueSkillSPb::default())),
