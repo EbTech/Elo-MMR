@@ -101,7 +101,7 @@ pub trait RatingSystem: std::fmt::Debug {
     );
 
     /// Computes the update for only one player, given their contest performance
-    fn individual_update(&self, params: ContestRatingParams, player: &mut Player, mu_perf: f64) {
+    fn individual_update(&self, _params: ContestRatingParams, _player: &mut Player, _mu_perf: f64) {
         unimplemented!("Currently, only SimpleEloMMR allows performance-based updates");
     }
 }
@@ -127,7 +127,7 @@ pub fn simulate_contest(
     }
 
     // If a player is competing for the first time, initialize with a default rating
-    contest.standings.iter().for_each(|&(ref handle, _, _)| {
+    contest.standings.iter().for_each(|(handle, _, _)| {
         // TODO TEAMS: make an entry for every member of the team, then make the team object
         //             in teams: PlayersByName with system.make_team(players)
         players.entry(handle.clone()).or_insert_with(|| {

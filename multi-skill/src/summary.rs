@@ -123,5 +123,5 @@ pub fn print_ratings(
     }
 
     let filename = dir.as_ref().join("all_players.csv");
-    try_write_slice_to_file(&rating_data, &filename);
+    try_write_slice_to_file(&rating_data, filename);
 }

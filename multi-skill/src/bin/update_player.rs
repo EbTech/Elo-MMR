@@ -50,7 +50,7 @@ fn main() {
 
     // Output the result to data/<handle>.json
     let dir = std::path::PathBuf::from("../data");
-    std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
+    std::fs::create_dir_all(dir.join("players")).expect("Could not create directory");
     let output_file = dir.join(format!("{}.json", handle));
-    try_write_json(player, &output_file);
+    try_write_json(player, output_file);
 }

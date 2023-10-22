@@ -130,7 +130,7 @@ pub fn cross_entropy_metric(standings: &ParticipantRatings, scale: f64) -> Weigh
     let mut sum_ce = 0.;
     for &(loser_rating, loser_lo, _) in standings {
         for &(winner_rating, winner_lo, _) in standings {
-            if winner_lo >= loser_lo as usize {
+            if winner_lo >= loser_lo {
                 break;
             }
             let rating_diff = loser_rating.mu - winner_rating.mu;

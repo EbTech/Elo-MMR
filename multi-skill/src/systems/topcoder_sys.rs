@@ -37,20 +37,20 @@ impl RatingSystem for TopcoderSys {
         let num_coders = standings.len() as f64;
         let ave_rating = standings
             .iter()
-            .map(|&(ref player, _, _)| player.approx_posterior.mu)
+            .map(|(player, _, _)| player.approx_posterior.mu)
             .sum::<f64>()
             / num_coders;
 
         let c_factor = {
             let mut mean_vol_sq = standings
                 .iter()
-                .map(|&(ref player, _, _)| player.approx_posterior.sig.powi(2))
+                .map(|(player, _, _)| player.approx_posterior.sig.powi(2))
                 .sum::<f64>()
                 / num_coders;
             if num_coders > 1. {
                 mean_vol_sq += standings
                     .iter()
-                    .map(|&(ref player, _, _)| (player.approx_posterior.mu - ave_rating).powi(2))
+                    .map(|(player, _, _)| (player.approx_posterior.mu - ave_rating).powi(2))
                     .sum::<f64>()
                     / (num_coders - 1.);
             }
@@ -67,7 +67,7 @@ impl RatingSystem for TopcoderSys {
 
                 let ex_rank = standings
                     .iter()
-                    .map(|&(ref foe, _, _)| {
+                    .map(|(foe, _, _)| {
                         self.win_probability(
                             sqrt_contest_weight,
                             &foe.approx_posterior,

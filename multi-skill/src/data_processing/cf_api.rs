@@ -124,7 +124,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 /// Codeforces documentation: https://codeforces.com/apiHelp/methods#contest.ratingChanges
 pub fn fetch_cf_contest(client: &Client, contest_id: usize) -> Result<Contest, String> {
     let response = client
-        .get(&codeforces_api_url(contest_id))
+        .get(codeforces_api_url(contest_id))
         .send()
         .expect("Connection error: is Codeforces.com down?");
     if response.status().as_u16() != 400 {

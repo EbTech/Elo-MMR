@@ -59,7 +59,7 @@ fn main() {
         return;
     }
     let contest_source = &args[1];
-    let dir = std::path::PathBuf::from("../data").join(&contest_source);
+    let dir = std::path::PathBuf::from("../data").join(contest_source);
     let input_file = dir.join("all_players.csv");
     let output_file = dir.join("checkpoint_players.json");
 

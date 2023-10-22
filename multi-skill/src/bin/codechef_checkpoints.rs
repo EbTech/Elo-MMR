@@ -1,7 +1,5 @@
-use multi_skill::data_processing::{
-    get_dataset_by_name, read_csv, try_write_slice_to_file, write_json,
-};
-use multi_skill::metrics::{compute_metrics_custom, PerformanceReport};
+use multi_skill::data_processing::{get_dataset_by_name, try_write_slice_to_file};
+use multi_skill::metrics::compute_metrics_custom;
 use multi_skill::summary::make_leaderboard;
 use multi_skill::systems::{get_rating_system_by_name, simulate_contest, Player, PlayersByName};
 
@@ -47,7 +45,7 @@ fn main() {
     let mut checkpoints = std::collections::HashSet::<String>::new();
     for path in paths {
         if let Some(contest_name) = path.unwrap().path().file_stem() {
-            if let Some(string_name) = contest_name.to_os_string().into_string().ok() {
+            if let Ok(string_name) = contest_name.to_os_string().into_string() {
                 checkpoints.insert(string_name);
             }
         }

@@ -144,7 +144,7 @@ fn write_round(
         };
         std::fs::create_dir_all("../cache/dance").expect("Could not create cache directory");
         let path = format!("../cache/dance/{}.json", num_rounds);
-        try_write_json(&contest, &path);
+        try_write_json(&contest, path);
         *num_rounds += 1;
     }
 }
