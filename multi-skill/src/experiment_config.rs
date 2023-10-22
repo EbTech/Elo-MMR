@@ -13,9 +13,17 @@ use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Deserialize, Debug)]
-pub struct SystemParams {
-    pub method: String,
-    pub params: Vec<f64>,
+#[serde(tag = "method", rename_all = "kebab-case")]
+pub enum SystemParams {
+    Glicko { params: Vec<f64> },
+    Bar { params: Vec<f64> },
+    Endure { params: Vec<f64> },
+    Cfsys { params: Vec<f64> },
+    Tcsys { params: Vec<f64> },
+    Trueskill { params: Vec<f64> },
+    Mmx { params: Vec<f64> },
+    Mmr { params: Vec<f64> },
+    MmrSimple { params: Vec<f64> },
 }
 
 fn usize_zero() -> usize {
@@ -79,64 +87,63 @@ impl Experiment {
             .subrange(config.skip_contests..dataset_end)
             .boxed();
 
-        let system: Box<dyn RatingSystem + Send> = match config.system.method.as_str() {
-            "glicko" => Box::new(Glicko {
-                beta: config.system.params[0],
-                sig_drift: config.system.params[1],
+        let system: Box<dyn RatingSystem + Send> = match config.system {
+            SystemParams::Glicko { params } => Box::new(Glicko {
+                beta: params[0],
+                sig_drift: params[1],
             }),
-            "bar" => Box::new(BAR {
-                beta: config.system.params[0],
-                sig_drift: config.system.params[1],
+            SystemParams::Bar { params } => Box::new(BAR {
+                beta: params[0],
+                sig_drift: params[1],
                 kappa: 1e-4,
             }),
-            "endure" => Box::new(EndureElo {
-                beta: config.system.params[0],
-                sig_drift: config.system.params[1],
+            SystemParams::Endure { params } => Box::new(EndureElo {
+                beta: params[0],
+                sig_drift: params[1],
             }),
-            "cfsys" => Box::new(CodeforcesSys {
-                beta: config.system.params[0],
-                weight: config.system.params[1],
+            SystemParams::Cfsys { params } => Box::new(CodeforcesSys {
+                beta: params[0],
+                weight: params[1],
             }),
-            "tcsys" => Box::new(TopcoderSys {
-                weight_noob: config.system.params[0],
-                weight_limit: config.system.params[1],
+            SystemParams::Tcsys { params } => Box::new(TopcoderSys {
+                weight_noob: params[0],
+                weight_limit: params[1],
             }),
-            "trueskill" => Box::new(TrueSkillSPb {
-                eps: config.system.params[0],
-                beta: config.system.params[1],
-                convergence_eps: config.system.params[2],
-                sig_drift: config.system.params[3],
+            SystemParams::Trueskill { params } => Box::new(TrueSkillSPb {
+                eps: params[0],
+                beta: params[1],
+                convergence_eps: params[2],
+                sig_drift: params[3],
             }),
-            "mmx" => Box::new(EloMMR {
-                weight_limit: config.system.params[0],
+            SystemParams::Mmx { params } => Box::new(EloMMR {
+                weight_limit: params[0],
                 noob_delay: vec![], // TODO: add this to the config spec
-                sig_limit: config.system.params[1],
+                sig_limit: params[1],
                 drift_per_sec: 0.,
-                split_ties: config.system.params[2] > 0.,
-                subsample_size: config.system.params[3] as usize,
-                subsample_bucket: config.system.params[4],
+                split_ties: params[2] > 0.,
+                subsample_size: params[3] as usize,
+                subsample_bucket: params[4],
                 variant: EloMMRVariant::Gaussian,
             }),
-            "mmr" => Box::new(EloMMR {
-                weight_limit: config.system.params[0],
+            SystemParams::Mmr { params } => Box::new(EloMMR {
+                weight_limit: params[0],
                 noob_delay: vec![], // TODO: add this to the config spec
-                sig_limit: config.system.params[1],
+                sig_limit: params[1],
                 drift_per_sec: 0.,
-                split_ties: config.system.params[2] > 0.,
-                subsample_size: config.system.params[3] as usize,
-                subsample_bucket: config.system.params[4],
-                variant: EloMMRVariant::Logistic(config.system.params[5]),
+                split_ties: params[2] > 0.,
+                subsample_size: params[3] as usize,
+                subsample_bucket: params[4],
+                variant: EloMMRVariant::Logistic(params[5]),
             }),
-            "mmr-simple" => Box::new(SimpleEloMMR {
-                weight_limit: config.system.params[0],
+            SystemParams::MmrSimple { params } => Box::new(SimpleEloMMR {
+                weight_limit: params[0],
                 noob_delay: vec![0.6, 0.8], // TODO: add this to the config spec
-                sig_limit: config.system.params[1],
+                sig_limit: params[1],
                 drift_per_sec: 0.,
-                split_ties: config.system.params[2] > 0.,
-                history_len: config.system.params[3] as usize,
-                transfer_speed: config.system.params[4],
+                split_ties: params[2] > 0.,
+                history_len: params[3] as usize,
+                transfer_speed: params[4],
             }),
-            x => panic!("'{}' is not a valid system name!", x),
         };
 
         let loaded_state = match config.load_checkpoint {
