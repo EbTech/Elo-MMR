@@ -1,0 +1,16 @@
+{
+    "max_contests": 9999,
+    "mu_noob": 1500,
+    "sig_noob": 350,
+    "contest_source": "iaxcindividuals",
+    "system": {
+        "method": "mmr-simple",
+        "weight_limit": 0.2,
+        "noob_delay": [],
+        "sig_limit": 0,
+        "drift_per_day": 50,
+        "split_ties": false,
+        "history_len": 999,
+        "transfer_speed": 0.1
+    }
+}

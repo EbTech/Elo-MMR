@@ -1,13 +1,19 @@
 {
-  "load_checkpoint": "../experiments/testing/codechef-state.json",
-  "save_checkpoint": "../experiments/testing/codechef-state.json",
-  "skip_contests": 630,
-  "max_contests": 999,
-  "mu_noob": 1500,
-  "sig_noob": 280,
-  "contest_source": "codechef",
-  "system": {
-    "method": "mmr-simple",
-    "params": [0.2, 80, 1, 50, 0.1]
-  }
+    "load_checkpoint": "../experiments/testing/codechef-state.json",
+    "save_checkpoint": "../experiments/testing/codechef-state.json",
+    "skip_contests": 630,
+    "max_contests": 999,
+    "mu_noob": 1500,
+    "sig_noob": 280,
+    "contest_source": "codechef",
+    "system": {
+        "method": "mmr-simple",
+        "weight_limit": 0.2,
+        "noob_delay": [0.6, 0.8],
+        "sig_limit": 80,
+        "drift_per_day": 0,
+        "split_ties": true,
+        "history_len": 50,
+        "transfer_speed": 0.1
+    }
 }

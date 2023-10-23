@@ -21,6 +21,8 @@ pub use simple_elo_mmr::SimpleEloMMR;
 pub use topcoder_sys::TopcoderSys;
 pub use true_skill::TrueSkillSPb;
 
+pub static SECS_PER_DAY: f64 = 86_400.;
+
 // TODO: add a version that can take parameters, like in experiment_config but polymorphic
 pub fn get_rating_system_by_name(
     system_name: &str,

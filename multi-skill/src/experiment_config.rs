@@ -15,15 +15,41 @@ use std::path::Path;
 #[derive(Deserialize, Debug)]
 #[serde(tag = "method", rename_all = "kebab-case")]
 pub enum SystemParams {
-    Glicko { params: Vec<f64> },
-    Bar { params: Vec<f64> },
-    Endure { params: Vec<f64> },
-    Cfsys { params: Vec<f64> },
-    Tcsys { params: Vec<f64> },
-    Trueskill { params: Vec<f64> },
-    Mmx { params: Vec<f64> },
-    Mmr { params: Vec<f64> },
-    MmrSimple { params: Vec<f64> },
+    Glicko {
+        params: Vec<f64>,
+    },
+    Bar {
+        params: Vec<f64>,
+    },
+    Endure {
+        params: Vec<f64>,
+    },
+    Cfsys {
+        params: Vec<f64>,
+    },
+    Tcsys {
+        params: Vec<f64>,
+    },
+    Trueskill {
+        params: Vec<f64>,
+    },
+    Mmx {
+        params: Vec<f64>,
+    },
+    Mmr {
+        params: Vec<f64>,
+    },
+    // Experimental support for named config params
+    // TODO: find nice ways to use defaults and interface with constructor
+    MmrSimple {
+        weight_limit: f64,
+        noob_delay: Vec<f64>,
+        sig_limit: f64,
+        drift_per_day: f64,
+        split_ties: bool,
+        history_len: usize,
+        transfer_speed: f64,
+    },
 }
 
 fn usize_zero() -> usize {
@@ -119,7 +145,7 @@ impl Experiment {
                 weight_limit: params[0],
                 noob_delay: vec![], // TODO: add this to the config spec
                 sig_limit: params[1],
-                drift_per_sec: 0.,
+                drift_per_day: 0.,
                 split_ties: params[2] > 0.,
                 subsample_size: params[3] as usize,
                 subsample_bucket: params[4],
@@ -129,20 +155,28 @@ impl Experiment {
                 weight_limit: params[0],
                 noob_delay: vec![], // TODO: add this to the config spec
                 sig_limit: params[1],
-                drift_per_sec: 0.,
+                drift_per_day: 0.,
                 split_ties: params[2] > 0.,
                 subsample_size: params[3] as usize,
                 subsample_bucket: params[4],
                 variant: EloMMRVariant::Logistic(params[5]),
             }),
-            SystemParams::MmrSimple { params } => Box::new(SimpleEloMMR {
-                weight_limit: params[0],
-                noob_delay: vec![0.6, 0.8], // TODO: add this to the config spec
-                sig_limit: params[1],
-                drift_per_sec: 0.,
-                split_ties: params[2] > 0.,
-                history_len: params[3] as usize,
-                transfer_speed: params[4],
+            SystemParams::MmrSimple {
+                weight_limit,
+                noob_delay,
+                sig_limit,
+                drift_per_day,
+                split_ties,
+                history_len,
+                transfer_speed,
+            } => Box::new(SimpleEloMMR {
+                weight_limit,
+                noob_delay,
+                sig_limit,
+                drift_per_day,
+                split_ties,
+                history_len,
+                transfer_speed,
             }),
         };
 

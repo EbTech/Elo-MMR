@@ -1,5 +1,5 @@
 //! Elo-R system details: https://arxiv.org/abs/2101.00400
-use super::{Player, Rating, RatingSystem, TanhTerm};
+use super::{Player, Rating, RatingSystem, TanhTerm, SECS_PER_DAY};
 use crate::data_processing::ContestRatingParams;
 use crate::numerical::{solve_newton, standard_normal_cdf, standard_normal_pdf};
 use core::ops::Range;
@@ -146,8 +146,8 @@ pub struct EloMMR {
     // each contest participation adds an amount of drift such that, in the absence of
     // much time passing, the limiting skill uncertainty's square approaches this value
     pub sig_limit: f64,
-    // additional variance per second, from a drift that's continuous in time
-    pub drift_per_sec: f64,
+    // additional variance per day, from a drift that's continuous in time
+    pub drift_per_day: f64,
     // whether to count ties as half a win plus half a loss
     pub split_ties: bool,
     // maximum number of opponents and recent events to use, as a compute-saving approximation
@@ -195,7 +195,7 @@ impl EloMMR {
             weight_limit,
             noob_delay,
             sig_limit,
-            drift_per_sec: 0.,
+            drift_per_day: 0.,
             split_ties,
             subsample_size,
             subsample_bucket,
@@ -203,12 +203,24 @@ impl EloMMR {
         }
     }
 
-    fn sig_perf_and_drift(&self, mut contest_weight: f64, n: usize) -> (f64, f64) {
+    fn compute_weight(&self, mut contest_weight: f64, n: usize) -> f64 {
         contest_weight *= self.weight_limit;
-        contest_weight *= self.noob_delay.get(n).unwrap_or(&1.);
-        let sig_perf = (1. + 1. / contest_weight).sqrt() * self.sig_limit;
-        let sig_drift_sq = contest_weight * self.sig_limit * self.sig_limit;
-        (sig_perf, sig_drift_sq)
+        if let Some(delay_factor) = self.noob_delay.get(n) {
+            contest_weight *= delay_factor;
+        }
+        contest_weight
+    }
+
+    fn compute_sig_perf(&self, weight: f64) -> f64 {
+        let discrete_perf = (1. + 1. / weight) * self.sig_limit * self.sig_limit;
+        let continuous_perf = self.drift_per_day / weight;
+        (discrete_perf + continuous_perf).sqrt()
+    }
+
+    fn compute_sig_drift(&self, weight: f64, delta_secs: f64) -> f64 {
+        let discrete_drift = weight * self.sig_limit * self.sig_limit;
+        let continuous_drift = self.drift_per_day * delta_secs / SECS_PER_DAY;
+        (discrete_drift + continuous_drift).sqrt()
     }
 
     fn subsample(
@@ -252,10 +264,9 @@ impl RatingSystem for EloMMR {
         let mut base_terms: Vec<(Rating, usize)> = standings
             .par_iter_mut()
             .map(|(player, lo, _)| {
-                let (sig_perf, discrete_drift) =
-                    self.sig_perf_and_drift(params.weight, player.times_played_excl());
-                let continuous_drift = self.drift_per_sec * player.delta_time as f64;
-                let sig_drift = (discrete_drift + continuous_drift).sqrt();
+                let weight = self.compute_weight(params.weight, player.times_played_excl());
+                let sig_perf = self.compute_sig_perf(weight);
+                let sig_drift = self.compute_sig_drift(weight, player.delta_time as f64);
                 match self.variant {
                     // if transfer_speed is infinite or the prior is Gaussian, the logistic
                     // weights become zero so this special-case optimization clears them out
@@ -318,7 +329,8 @@ impl RatingSystem for EloMMR {
                 );
             }
             let bounds = (-6000.0, 9000.0);
-            let (sig_perf, _) = self.sig_perf_and_drift(params.weight, player.times_played_excl());
+            let weight = self.compute_weight(params.weight, player.times_played_excl());
+            let sig_perf = self.compute_sig_perf(weight);
 
             match self.variant {
                 EloMMRVariant::Gaussian => {
