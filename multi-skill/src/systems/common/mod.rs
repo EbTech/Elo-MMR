@@ -166,6 +166,7 @@ pub fn simulate_contest(
                 rating_sig: 0, // will be filled by system.round_update()
                 perf_score: 0, // will be filled by system.round_update()
                 place: lo,
+                display_rating: 0, // will be filled by system.individual_update()
             });
             player.delta_time = contest.time_seconds - player.update_time;
             player.update_time = contest.time_seconds;
