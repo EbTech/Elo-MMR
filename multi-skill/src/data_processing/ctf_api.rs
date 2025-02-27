@@ -1,4 +1,4 @@
-use super::{Contest, CURRENT_YEAR};
+use super::{CURRENT_YEAR, Contest};
 use crate::systems::outcome_free;
 use reqwest::blocking::Client;
 use serde::Deserialize;

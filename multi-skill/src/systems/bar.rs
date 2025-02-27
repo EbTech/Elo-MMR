@@ -3,7 +3,7 @@
 
 use super::{Player, Rating, RatingSystem};
 use crate::data_processing::ContestRatingParams;
-use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
+use crate::numerical::{TANH_MULTIPLIER, standard_logistic_cdf};
 use rayon::prelude::*;
 
 #[derive(Debug)]

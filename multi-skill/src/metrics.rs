@@ -1,4 +1,4 @@
-use crate::systems::{get_participant_ratings, outcome_free, PlayersByName, Rating};
+use crate::systems::{PlayersByName, Rating, get_participant_ratings, outcome_free};
 use overload::overload;
 use std::fmt;
 use std::ops;

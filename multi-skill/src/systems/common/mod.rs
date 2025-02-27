@@ -1,7 +1,7 @@
 mod player;
 
 use crate::data_processing::{Contest, ContestRatingParams};
-use crate::numerical::{solve_newton, TANH_MULTIPLIER};
+use crate::numerical::{TANH_MULTIPLIER, solve_newton};
 pub use player::{Player, PlayerEvent};
 use serde::{Deserialize, Serialize};
 use std::cell::{RefCell, RefMut};

@@ -4,8 +4,8 @@ mod health_check;
 mod player;
 mod top;
 
-use actix_web::http::StatusCode;
 use actix_web::ResponseError;
+use actix_web::http::StatusCode;
 pub use autocomplete::autocomplete;
 pub use count_range::request_count;
 pub use health_check::health_check;

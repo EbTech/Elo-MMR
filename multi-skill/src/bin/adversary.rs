@@ -1,5 +1,5 @@
 use multi_skill::data_processing::{get_dataset_by_name, try_write_slice_to_file};
-use multi_skill::systems::{get_rating_system_by_name, simulate_contest, PlayersByName};
+use multi_skill::systems::{PlayersByName, get_rating_system_by_name, simulate_contest};
 
 /*
     The following file alters the contest history of "tourist",

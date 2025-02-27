@@ -1,6 +1,6 @@
 use super::ApiError;
 use crate::immut_database::SportDatabases;
-use actix_web::{web, HttpResponse};
+use actix_web::{HttpResponse, web};
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -29,5 +29,5 @@ pub async fn request_count(
     }
     let count = database.count_rating_range(min, max);
 
-    Ok(HttpResponse::Ok().json(&count))
+    Ok(HttpResponse::Ok().json(count))
 }

@@ -1,6 +1,6 @@
-use multi_skill::data_processing::{try_write_slice_to_file, CURRENT_YEAR};
-use reqwest::blocking::{Client, RequestBuilder};
+use multi_skill::data_processing::{CURRENT_YEAR, try_write_slice_to_file};
 use reqwest::StatusCode;
+use reqwest::blocking::{Client, RequestBuilder};
 use select::document::Document;
 use select::node::Node;
 use select::predicate::Name;

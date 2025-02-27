@@ -1,5 +1,5 @@
 use super::float::MyFloat;
-use super::normal::{Gaussian, G_ONE, G_ZERO};
+use super::normal::{G_ONE, G_ZERO, Gaussian};
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 

@@ -1,5 +1,5 @@
 //! Elo-R system details: https://arxiv.org/abs/2101.00400
-use super::{Player, Rating, RatingSystem, TanhTerm, SECS_PER_DAY};
+use super::{Player, Rating, RatingSystem, SECS_PER_DAY, TanhTerm};
 use crate::data_processing::ContestRatingParams;
 use crate::numerical::{solve_newton, standard_normal_cdf, standard_normal_pdf};
 use core::ops::Range;

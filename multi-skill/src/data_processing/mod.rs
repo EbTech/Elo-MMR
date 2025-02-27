@@ -3,10 +3,10 @@ mod ctf_api;
 mod dataset;
 
 pub use cf_api::fetch_cf_contest_ids;
-pub use dataset::{get_dataset_from_disk, CachedDataset, ClosureDataset, Dataset, Wrap};
+pub use dataset::{CachedDataset, ClosureDataset, Dataset, Wrap, get_dataset_from_disk};
 use rand::seq::SliceRandom;
 use reqwest::blocking::Client;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::path::Path;
 
 pub const CURRENT_YEAR: usize = 2022;

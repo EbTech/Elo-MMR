@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, write_slice_to_file, Dataset};
+use multi_skill::data_processing::{Dataset, get_dataset_by_name, write_slice_to_file};
 use multi_skill::experiment_config::{Experiment, ExperimentConfig};
 use multi_skill::summary::print_ratings;
 use multi_skill::systems::get_rating_system_by_name;
@@ -65,7 +65,7 @@ fn main() {
         .time_seconds
         .saturating_sub(183 * 86_400);
     let dir = std::path::PathBuf::from("../data").join(&contest_source);
-    std::fs::create_dir_all(&dir.join("players")).expect("Could not create directory");
+    std::fs::create_dir_all(dir.join("players")).expect("Could not create directory");
 
     // Print contest histories of top players to data/{source}/players/{handle}.csv
     for (handle, player) in &results.players {

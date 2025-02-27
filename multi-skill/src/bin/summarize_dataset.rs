@@ -1,5 +1,5 @@
 use multi_skill::data_processing::{
-    get_dataset_by_name, try_write_slice_to_file, ContestDataset, ContestSummary, Dataset,
+    ContestDataset, ContestSummary, Dataset, get_dataset_by_name, try_write_slice_to_file,
 };
 use std::cmp::Reverse;
 use std::collections::HashMap;

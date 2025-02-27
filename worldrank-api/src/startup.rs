@@ -2,7 +2,7 @@ use crate::configuration::Settings;
 use crate::immut_database::SportDatabases;
 use crate::routes::{autocomplete, health_check, request_count, request_player, request_top};
 use actix_web::dev::Server;
-use actix_web::{web, App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 

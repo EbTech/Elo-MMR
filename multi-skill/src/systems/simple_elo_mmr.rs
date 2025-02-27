@@ -1,6 +1,6 @@
 //! This version has fewer features and optimizations than elo_mmr.rs, more
 //! closely matching the pseudocode in https://arxiv.org/abs/2101.00400
-use super::{Player, Rating, RatingSystem, TanhTerm, SECS_PER_DAY};
+use super::{Player, Rating, RatingSystem, SECS_PER_DAY, TanhTerm};
 use crate::data_processing::ContestRatingParams;
 use crate::numerical::solve_newton;
 use rayon::prelude::*;

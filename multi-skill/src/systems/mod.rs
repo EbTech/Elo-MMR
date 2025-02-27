@@ -11,8 +11,8 @@ mod true_skill;
 pub use bar::BAR;
 pub use codeforces_sys::CodeforcesSys;
 pub use common::{
-    get_participant_ratings, outcome_free, robust_average, simulate_contest, Player, PlayerEvent,
-    PlayersByName, Rating, RatingSystem, TanhTerm,
+    Player, PlayerEvent, PlayersByName, Rating, RatingSystem, TanhTerm, get_participant_ratings,
+    outcome_free, robust_average, simulate_contest,
 };
 pub use elo_mmr::{EloMMR, EloMMRVariant};
 pub use endure_elo::EndureElo;

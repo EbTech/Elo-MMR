@@ -1,7 +1,7 @@
 use multi_skill::data_processing::{get_dataset_by_name, try_write_slice_to_file};
 use multi_skill::metrics::compute_metrics_custom;
 use multi_skill::summary::make_leaderboard;
-use multi_skill::systems::{get_rating_system_by_name, simulate_contest, Player, PlayersByName};
+use multi_skill::systems::{Player, PlayersByName, get_rating_system_by_name, simulate_contest};
 
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;

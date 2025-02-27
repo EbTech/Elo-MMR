@@ -1,8 +1,8 @@
 use chrono::prelude::*;
 use chrono::{DateTime, Utc};
-use multi_skill::data_processing::{try_write_json, Contest};
-use reqwest::blocking::{Client, RequestBuilder};
+use multi_skill::data_processing::{Contest, try_write_json};
 use reqwest::StatusCode;
+use reqwest::blocking::{Client, RequestBuilder};
 use select::document::Document;
 use select::predicate::{And, Attr, Class, Name, Or};
 use serde::Serialize;

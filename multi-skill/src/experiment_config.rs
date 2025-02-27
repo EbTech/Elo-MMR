@@ -1,13 +1,13 @@
-use crate::data_processing::{get_dataset_by_name, ContestDataset, Dataset};
+use crate::data_processing::{ContestDataset, Dataset, get_dataset_by_name};
 use crate::systems::{
-    simulate_contest, CodeforcesSys, EloMMR, EloMMRVariant, EndureElo, Glicko, PlayersByName,
-    RatingSystem, SimpleEloMMR, TopcoderSys, TrueSkillSPb, BAR,
+    BAR, CodeforcesSys, EloMMR, EloMMRVariant, EndureElo, Glicko, PlayersByName, RatingSystem,
+    SimpleEloMMR, TopcoderSys, TrueSkillSPb, simulate_contest,
 };
 
 use crate::data_processing::{read_json, write_json};
-use crate::metrics::{compute_metrics_custom, PerformanceReport};
-use rand::rngs::StdRng;
+use crate::metrics::{PerformanceReport, compute_metrics_custom};
 use rand::SeedableRng;
+use rand::rngs::StdRng;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;

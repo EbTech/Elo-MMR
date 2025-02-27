@@ -1,4 +1,4 @@
-use super::{log_expected_error, read_csv, write_csv, Contest};
+use super::{Contest, log_expected_error, read_csv, write_csv};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
@@ -42,7 +42,7 @@ impl TryFrom<Vec<CFRatingChange>> for Contest {
 
     /// Checks the integrity of our API response and convert it into a more convenient format.
     fn try_from(json_contest: Vec<CFRatingChange>) -> Result<Self, Self::Error> {
-        let first_change = json_contest.get(0).ok_or("Empty standings")?;
+        let first_change = json_contest.first().ok_or("Empty standings")?;
         let id = first_change.contest_id;
         let name = first_change.contest_name.clone();
         let time_seconds = first_change.rating_update_time_seconds;

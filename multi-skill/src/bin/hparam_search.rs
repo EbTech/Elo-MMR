@@ -1,4 +1,4 @@
-use multi_skill::data_processing::{get_dataset_by_name, Dataset};
+use multi_skill::data_processing::{Dataset, get_dataset_by_name};
 use multi_skill::experiment_config::Experiment;
 use multi_skill::systems::{self, RatingSystem};
 use rayon::prelude::*;
@@ -71,7 +71,7 @@ fn main() {
                     weight_limit,
                     noob_delay: vec![],
                     sig_limit,
-                    drift_per_sec: 0.,
+                    drift_per_day: 0.,
                     split_ties,
                     subsample_size,
                     subsample_bucket,
@@ -86,7 +86,7 @@ fn main() {
                         weight_limit,
                         noob_delay: vec![],
                         sig_limit,
-                        drift_per_sec: 0.,
+                        drift_per_day: 0.,
                         split_ties,
                         subsample_size,
                         subsample_bucket,

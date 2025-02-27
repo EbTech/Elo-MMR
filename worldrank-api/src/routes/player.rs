@@ -1,7 +1,7 @@
 use super::ApiError;
 use crate::domain::UserName;
 use crate::immut_database::SportDatabases;
-use actix_web::{web, HttpResponse};
+use actix_web::{HttpResponse, web};
 use anyhow::Context;
 
 #[derive(serde::Deserialize)]

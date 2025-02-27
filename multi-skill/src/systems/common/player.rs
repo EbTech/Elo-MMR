@@ -1,4 +1,4 @@
-use super::{robust_average, Rating, TanhTerm};
+use super::{Rating, TanhTerm, robust_average};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 

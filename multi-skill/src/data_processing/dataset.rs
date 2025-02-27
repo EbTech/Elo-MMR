@@ -1,4 +1,4 @@
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::ops::{Bound, RangeBounds};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;

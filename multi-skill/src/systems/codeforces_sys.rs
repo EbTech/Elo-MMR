@@ -1,8 +1,8 @@
 //! Codeforces system details: https://codeforces.com/blog/entry/20762
 
-use super::{robust_average, Player, Rating, RatingSystem};
+use super::{Player, Rating, RatingSystem, robust_average};
 use crate::data_processing::ContestRatingParams;
-use crate::numerical::{standard_logistic_cdf, TANH_MULTIPLIER};
+use crate::numerical::{TANH_MULTIPLIER, standard_logistic_cdf};
 use rayon::prelude::*;
 
 #[derive(Debug)]
