@@ -24,7 +24,7 @@ fn is_one(&weight: &f64) -> bool {
 }
 
 fn is_f64_max(&num: &f64) -> bool {
-    num == f64::MAX
+    num == f64_max()
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
@@ -150,7 +150,8 @@ impl Contest {
 pub struct ContestSummary {
     pub name: String,
     pub url: Option<String>,
-    pub rating_params: ContestRatingParams,
+    pub weight: f64,
+    pub perf_ceiling: f64,
     pub time_seconds: u64,
     pub num_contestants: usize,
 }
@@ -161,7 +162,8 @@ impl ContestSummary {
         Self {
             name: contest.name.clone(),
             url: contest.url.clone(),
-            rating_params: contest.rating_params,
+            weight: contest.rating_params.weight,
+            perf_ceiling: contest.rating_params.perf_ceiling,
             time_seconds: contest.time_seconds,
             num_contestants: contest.standings.len(),
         }
