@@ -92,6 +92,14 @@ With this file format in mind, you can run your own contests as follows:
 
 - Finally, run the same command, but with `codeforces` replaced by `{dataset_name}`.
 
+## Some alternative implementations
+
+- [Python bindings](https://github.com/aropan/elo-mmr-py/)
+
+- [Python implementation](https://github.com/DMOJ/online-judge/blob/master/judge/ratings.py) (from DMOJ team)
+
+- [TypeScript implementation](https://github.com/chad3814/elo-mmr)
+
 ## Mathematical Details
 
 Please see the [full paper](paper/EloMMR.pdf) published at the Web Conference 2021. If you use this crate in your research, please consider citing our paper.
