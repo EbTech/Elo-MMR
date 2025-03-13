@@ -53,14 +53,14 @@ pub fn make_leaderboard(
         let max_rating = player
             .event_history
             .iter()
-            .map(PlayerEvent::get_display_rating)
+            .map(|event| event.display_rating)
             .max()
             .unwrap();
-        let display_rating = last_event.get_display_rating();
+        let display_rating = last_event.display_rating;
         let prev_rating = if num_contests == 1 {
             0
         } else {
-            player.event_history[num_contests - 2].get_display_rating()
+            player.event_history[num_contests - 2].display_rating
         };
         rating_data.push(PlayerSummary {
             rank: None,

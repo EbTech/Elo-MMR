@@ -15,7 +15,7 @@ pub struct HistoryPoint {
 impl HistoryPoint {
     pub fn new(event: &PlayerEvent, contest: &ContestSummary) -> Self {
         Self {
-            display_rating: event.get_display_rating(),
+            display_rating: event.display_rating,
             perf_score: event.perf_score,
             place: event.place,
             num_contestants: contest.num_contestants,

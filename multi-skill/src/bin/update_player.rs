@@ -37,6 +37,7 @@ fn main() {
         rating_sig: 0,    // will be filled by system.individual_update()
         perf_score: 0,    // will be filled by system.individual_update()
         place: 0,         // this information is not available
+        display_rating: 0, // will be filled by system.individual_update()
     });
 
     // Perform the rating update with the configured parameters

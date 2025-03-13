@@ -41,6 +41,7 @@ fn make_checkpoint(players: Vec<SimplePlayer>) -> PlayersByName {
                 rating_sig: 0,
                 perf_score: 0,
                 place: 0,
+                display_rating: 0,
             };
             player.event_history.push(fake_event);
             player.update_rating(player.approx_posterior, simp.cur_mu);

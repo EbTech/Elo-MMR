@@ -9,6 +9,7 @@ pub struct PlayerEvent {
     pub rating_sig: i32,
     pub perf_score: i32,
     pub place: usize,
+    pub display_rating: i32,
 }
 
 impl PlayerEvent {
@@ -65,6 +66,8 @@ impl Player {
         last_event.rating_mu = rating.mu.round() as i32;
         last_event.rating_sig = rating.sig.round() as i32;
         last_event.perf_score = performance_score.round() as i32;
+
+        last_event.display_rating = last_event.get_display_rating();
     }
 
     pub fn update_rating_with_normal(&mut self, performance: Rating) {
